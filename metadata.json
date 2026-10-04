@@ -1,0 +1,6 @@
+{
+  "name": "LAP OF LUXURY",
+  "description": "Experience premium in every touch. Luxury fashion, watches, bags, shoes, and accessories storefront with automated sliders and admin inventory management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
