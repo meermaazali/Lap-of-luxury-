@@ -11,12 +11,22 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   children,
   delay = 0,
   className = '',
-  threshold = 0.12,
+  threshold = 0.05,
 }) => {
   const [isRevealed, setIsRevealed] = useState(false);
   const domRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Safety fallback so content is NEVER stuck invisible on any device
+    const fallbackTimer = setTimeout(() => {
+      setIsRevealed(true);
+    }, 400);
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsRevealed(true);
+      return () => clearTimeout(fallbackTimer);
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -27,8 +37,8 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
         });
       },
       {
-        threshold,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.01,
+        rootMargin: '100px 0px 100px 0px',
       }
     );
 
@@ -38,9 +48,10 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
     }
 
     return () => {
+      clearTimeout(fallbackTimer);
       if (current) observer.unobserve(current);
     };
-  }, [threshold]);
+  }, []);
 
   return (
     <div

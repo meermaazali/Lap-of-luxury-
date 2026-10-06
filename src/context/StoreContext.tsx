@@ -15,6 +15,7 @@ import {
   INITIAL_ORDERS,
   INITIAL_MEDIA,
 } from '../data/initialData';
+import { normalizeImageUrl, compressImage } from '../utils/imageUtils';
 
 interface StoreContextType {
   // Products
@@ -152,62 +153,100 @@ function playOrderChime() {
 }
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial from localStorage or defaults
+  // Load initial from localStorage or defaults with image path normalization
   const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('lol_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+    try {
+      const saved = localStorage.getItem('lol_products');
+      const list: Product[] = saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+      return list.map((p) => ({
+        ...p,
+        image: normalizeImageUrl(p.image, p.category),
+      }));
+    } catch {
+      return INITIAL_PRODUCTS;
+    }
   });
 
   const [banners, setBanners] = useState<BannerSlide[]>(() => {
-    const saved = localStorage.getItem('lol_banners');
-    return saved ? JSON.parse(saved) : INITIAL_BANNERS;
+    try {
+      const saved = localStorage.getItem('lol_banners');
+      const list: BannerSlide[] = saved ? JSON.parse(saved) : INITIAL_BANNERS;
+      return list.map((b) => ({
+        ...b,
+        image: normalizeImageUrl(b.image),
+      }));
+    } catch {
+      return INITIAL_BANNERS;
+    }
   });
 
   const [bannerInterval, setBannerInterval] = useState<number>(() => {
-    const saved = localStorage.getItem('lol_banner_interval');
-    return saved ? Number(saved) : 5; // 5 seconds default
+    try {
+      const saved = localStorage.getItem('lol_banner_interval');
+      return saved ? Number(saved) : 5;
+    } catch {
+      return 5;
+    }
   });
 
   const [categories, setCategories] = useState<CategoryItem[]>(() => {
-    const saved = localStorage.getItem('lol_categories');
-    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+    try {
+      const saved = localStorage.getItem('lol_categories');
+      const list: CategoryItem[] = saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+      return list.map((c) => ({
+        ...c,
+        image: normalizeImageUrl(c.image, c.slug),
+      }));
+    } catch {
+      return INITIAL_CATEGORIES;
+    }
   });
 
   const [categoryInterval, setCategoryInterval] = useState<number>(() => {
-    const saved = localStorage.getItem('lol_category_interval');
-    return saved ? Number(saved) : 4;
+    try {
+      const saved = localStorage.getItem('lol_category_interval');
+      return saved ? Number(saved) : 4;
+    } catch {
+      return 4;
+    }
   });
 
   const [cart, setCart] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem('lol_cart');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('lol_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [wishlist, setWishlist] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('lol_wishlist');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('lol_wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
-    const saved = localStorage.getItem('lol_orders');
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem('lol_orders');
+      if (saved) {
         const parsed: Order[] = JSON.parse(saved);
-        // Filter out any previous dummy/mockup orders so state is neat and clean!
-        const cleaned = parsed.filter(
-          (o) => o.id !== 'order-101' && o.id !== 'order-102'
-        );
-        return cleaned;
-      } catch {
-        return [];
+        return parsed.filter((o) => o.id !== 'order-101' && o.id !== 'order-102');
       }
-    }
+    } catch {}
     return [];
   });
 
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(() => {
-    const saved = localStorage.getItem('lol_media');
-    return saved ? JSON.parse(saved) : INITIAL_MEDIA;
+    try {
+      const saved = localStorage.getItem('lol_media');
+      return saved ? JSON.parse(saved) : INITIAL_MEDIA;
+    } catch {
+      return INITIAL_MEDIA;
+    }
   });
 
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -269,28 +308,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Payment Setup Configuration
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
-    const saved = localStorage.getItem('lol_payment_config');
-    return saved
-      ? JSON.parse(saved)
-      : {
-          upiId: '7578887888@ybl',
-          payeeName: 'Lap of Luxury Mahbubnagar',
-          upiNumber: '75 7888 7888',
-          qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D7578887888%40ybl%26pn%3DLap%2520of%2520Luxury%26cu%3DINR',
-          enableUPI: true,
-          enableCOD: true,
-          enableCard: false,
-          bankAccountNumber: '50200012345678',
-          bankIfsc: 'HDFC0001234',
-          bankName: 'HDFC Bank, Mahbubnagar',
-          instructions: 'Scan the UPI QR code or send to the UPI ID. Enter 12-digit UTR below.',
+    try {
+      const saved = localStorage.getItem('lol_payment_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          acceptPaymentsOnline: parsed.acceptPaymentsOnline !== undefined ? parsed.acceptPaymentsOnline : false,
+          ...parsed,
         };
+      }
+    } catch {}
+    return {
+      acceptPaymentsOnline: false, // Default: coming soon until admin toggles ON
+      upiId: '7578887888@ybl',
+      payeeName: 'Lap of Luxury Mahbubnagar',
+      upiNumber: '75 7888 7888',
+      qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D7578887888%40ybl%26pn%3DLap%2520of%2520Luxury%26cu%3DINR',
+      enableUPI: true,
+      enableCOD: true,
+      enableCard: false,
+      bankAccountNumber: '50200012345678',
+      bankIfsc: 'HDFC0001234',
+      bankName: 'HDFC Bank, Mahbubnagar',
+      instructions: 'Scan the UPI QR code or send to the UPI ID. Enter 12-digit UTR below.',
+    };
   });
 
   const updatePaymentConfig = (updates: Partial<PaymentConfig>) => {
     setPaymentConfig((prev) => {
       const next = { ...prev, ...updates };
-      localStorage.setItem('lol_payment_config', JSON.stringify(next));
+      try {
+        localStorage.setItem('lol_payment_config', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Could not save payment config to localStorage:', e);
+      }
       return next;
     });
   };
@@ -585,27 +636,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLatestNotification(null);
   };
 
-  // Media upload (unlimited local/cloud storage via DataURL + File reader)
-  const uploadMediaAsset = (file: File, category: string = 'Products'): Promise<MediaAsset> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        const newAsset: MediaAsset = {
-          id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          dataUrl,
-          createdAt: new Date().toISOString(),
-          category,
-        };
-        setMediaAssets((prev) => [newAsset, ...prev]);
-        resolve(newAsset);
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
+  // Media upload with automatic web optimization (<150KB compression) to ensure unlimited uploads without storage quota limits
+  const uploadMediaAsset = async (file: File, category: string = 'Products'): Promise<MediaAsset> => {
+    let dataUrl: string;
+    try {
+      dataUrl = await compressImage(file, 1000, 0.82);
+    } catch {
+      dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const newAsset: MediaAsset = {
+      id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: file.name,
+      size: Math.round(dataUrl.length * 0.75),
+      type: 'image/jpeg',
+      dataUrl,
+      createdAt: new Date().toISOString(),
+      category,
+    };
+    setMediaAssets((prev) => [newAsset, ...prev]);
+    return newAsset;
   };
 
   const deleteMediaAsset = (id: string) => {

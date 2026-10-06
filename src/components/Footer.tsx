@@ -90,14 +90,6 @@ export const Footer: React.FC = () => {
                 </li>
                 <li>
                   <button
-                    onClick={() => setPolicyTab('returns')}
-                    className="hover:text-[#B8860B] transition-colors cursor-pointer text-left"
-                  >
-                    Returns & Refunds
-                  </button>
-                </li>
-                <li>
-                  <button
                     onClick={() => setPolicyTab('size')}
                     className="hover:text-[#B8860B] transition-colors cursor-pointer text-left"
                   >
@@ -169,39 +161,20 @@ export const Footer: React.FC = () => {
               <h4 className="font-bodoni text-xs sm:text-sm font-black tracking-[0.18em] uppercase text-[#111111] mb-3">
                 FOLLOW US
               </h4>
-              <div className="flex items-center gap-2.5 mb-3 text-[#111111]">
+              <div className="flex items-center gap-3 mb-3 text-[#111111]">
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/_lapofluxury_/"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-8 h-8 rounded-full border border-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-white transition-all cursor-pointer"
-                  aria-label="Instagram"
+                  className="px-3.5 py-1.5 rounded-full border-2 border-[#D4AF37] bg-gradient-to-r from-[#FAF6EE] to-[#F3E7BE] flex items-center gap-2 hover:bg-[#D4AF37] hover:text-[#111111] transition-all cursor-pointer shadow-sm group"
+                  aria-label="Instagram Profile @_lapofluxury_"
                 >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://wa.me/917578887888"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 rounded-full border border-[#D4AF37] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all cursor-pointer"
-                  aria-label="WhatsApp"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://youtube.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 rounded-full border border-[#D4AF37] flex items-center justify-center hover:bg-red-600 hover:text-white transition-all cursor-pointer"
-                  aria-label="YouTube"
-                >
-                  <Youtube className="w-4 h-4" />
+                  <Instagram className="w-4 h-4 text-[#B8860B] group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-bold text-[#111111] tracking-wider">
+                    @_lapofluxury_
+                  </span>
                 </a>
               </div>
-
-              <p className="text-xs font-bold text-[#111111] mb-2">
-                @_lapofluxury_
-              </p>
 
               <div className="space-y-1 text-xs text-[#5E5244]">
                 <button
@@ -216,8 +189,8 @@ export const Footer: React.FC = () => {
                   <span className="font-bold text-[#111111]">Cell: 75 7888 7888</span>
                 </div>
                 <div className="pt-0.5">
-                  <a href="mailto:lapofluxury@gmail.com" className="text-[#B8860B] font-bold hover:underline">
-                    lapofluxury@gmail.com
+                  <a href="mailto:lapofluxurypremium@gmail.com" className="text-[#B8860B] font-bold hover:underline">
+                    lapofluxurypremium@gmail.com
                   </a>
                 </div>
               </div>

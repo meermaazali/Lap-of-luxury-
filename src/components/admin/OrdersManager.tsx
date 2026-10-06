@@ -273,7 +273,7 @@ export const OrdersManager: React.FC = () => {
                 Store · Mahbubnagar, Telangana
               </p>
               <p className="text-[11px] text-[#7A6C58]">D/6, Kota Complex, Telangana Chowrasta, Boyapalle Rural, Mahbubnagar 509001</p>
-              <p className="text-[11px] text-[#7A6C58]">Cell: 75 7888 7888 · Support: lapofluxury@gmail.com</p>
+              <p className="text-[11px] text-[#7A6C58]">Cell: 75 7888 7888 · Support: lapofluxurypremium@gmail.com</p>
             </div>
 
             <div className="py-4 space-y-2 text-xs">

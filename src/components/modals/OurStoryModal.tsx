@@ -79,13 +79,13 @@ export const OurStoryModal: React.FC<OurStoryModalProps> = ({ isOpen, onClose })
                 WHITE GLOVE CARE
               </h4>
               <p className="text-[11px] text-[#6B5F50] mt-1">
-                Personal concierge support, 7-day exchanges, and verified delivery.
+                Personal concierge support, bespoke tailoring assistance, and verified express delivery.
               </p>
             </div>
           </div>
 
           <div className="pt-4 border-t border-[#E8DEC8] flex items-center justify-between text-xs text-[#7A6C58]">
-            <span>Mahabubnagar Flagship · Telangana</span>
+            <span>Mahabubnagar Boutique · Telangana</span>
             <span className="font-bold text-[#111111]">Direct Line: 75 7888 7888</span>
           </div>
         </div>

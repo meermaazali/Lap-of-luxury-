@@ -8,7 +8,7 @@ interface StoreLocationModalProps {
 
 export const MAPS_URL = "https://maps.google.com/?q=D/6,+Kota+Complex,+Telangana+Chowrasta,+2-2-2/2,+Boyapalle+Rural,+Mahbubnagar,+Telangana 509001";
 export const STORE_ADDRESS = "D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Boyapalle Rural, Mahbubnagar, Telangana 509001";
-export const SUPPORT_EMAIL = "lapofluxury@gmail.com";
+export const SUPPORT_EMAIL = "lapofluxurypremium@gmail.com";
 export const STORE_PHONE = "75 7888 7888";
 
 export const StoreLocationModal: React.FC<StoreLocationModalProps> = ({ isOpen, onClose }) => {
@@ -50,14 +50,14 @@ export const StoreLocationModal: React.FC<StoreLocationModalProps> = ({ isOpen, 
           <div className="rounded-xl overflow-hidden border border-[#E5DAC8] relative bg-[#FAF8F5]">
             <img
               src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop"
-              alt="Lap of Luxury Mahbubnagar Flagship Store"
+              alt="Lap of Luxury Mahbubnagar Store"
               className="w-full h-44 object-cover object-center"
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-3 left-4 right-4 text-white">
               <span className="bg-[#B89758] text-white text-[9px] font-bold px-2 py-0.5 rounded tracking-widest uppercase">
-                OPEN 7 DAYS A WEEK
+                OPEN DAILY · 10:00 AM - 9:30 PM
               </span>
               <p className="font-bodoni font-bold text-base sm:text-lg mt-1">
                 LAP OF LUXURY · MAHBUBNAGAR

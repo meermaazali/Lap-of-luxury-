@@ -12,6 +12,7 @@ export const CartDrawer: React.FC = () => {
     updateCartQuantity,
     removeFromCart,
     setIsCheckoutOpen,
+    paymentConfig,
   } = useStore();
 
   const [couponCode, setCouponCode] = useState('');
@@ -233,14 +234,46 @@ export const CartDrawer: React.FC = () => {
               </div>
             </div>
 
-            {/* Checkout CTA */}
-            <button
-              onClick={handleProceedToCheckout}
-              className="w-full py-3 bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs sm:text-sm font-extrabold tracking-[0.16em] uppercase rounded shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>PROCEED TO CHECKOUT</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {/* Checkout CTA or Payment Coming Soon */}
+            {!paymentConfig.acceptPaymentsOnline ? (
+              <div className="space-y-2">
+                <div className="p-3 bg-gradient-to-r from-[#FAF6EE] to-[#F3E7BE] border-2 border-[#D4AF37] rounded-xl text-center space-y-1">
+                  <span className="text-[10px] tracking-[0.2em] font-extrabold uppercase text-[#B8860B] block">
+                    ONLINE PAYMENT COMING SOON
+                  </span>
+                  <p className="text-xs text-[#2C241B] font-semibold">
+                    Catalog ordering active. Direct boutique phone & WhatsApp orders:
+                  </p>
+                  <a
+                    href="tel:7578887888"
+                    className="inline-block text-xs font-black text-[#111111] bg-white px-3 py-1 rounded-full border border-[#D4AF37] hover:bg-[#D4AF37] transition-colors"
+                  >
+                    📞 75 7888 7888
+                  </a>
+                </div>
+
+                <a
+                  href={`https://wa.me/917578887888?text=${encodeURIComponent(
+                    `Hello Lap of Luxury, I would like to order my cart items:\n${cart
+                      .map((i) => `• ${i.product.name} (${i.selectedSize}) x${i.quantity} = ₹${i.product.price * i.quantity}`)
+                      .join('\n')}\nTotal: ₹${finalTotal}`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-3 bg-[#111111] hover:bg-[#2A2A2E] text-[#E5C07B] text-xs font-extrabold tracking-[0.16em] uppercase rounded shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer border border-[#D4AF37]"
+                >
+                  <span>ORDER VIA WHATSAPP / CALL (75 7888 7888)</span>
+                </a>
+              </div>
+            ) : (
+              <button
+                onClick={handleProceedToCheckout}
+                className="w-full py-3 bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs sm:text-sm font-extrabold tracking-[0.16em] uppercase rounded shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>PROCEED TO CHECKOUT</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
 
             <div className="flex items-center justify-center gap-2 text-[10px] text-[#7A6C58]">
               <ShieldCheck className="w-3.5 h-3.5 text-[#B8860B]" />

@@ -17,6 +17,7 @@ import { useStore } from '../../context/StoreContext';
 export const PaymentSetupManager: React.FC = () => {
   const { paymentConfig, updatePaymentConfig } = useStore();
 
+  const [acceptPaymentsOnline, setAcceptPaymentsOnline] = useState(paymentConfig.acceptPaymentsOnline);
   const [upiId, setUpiId] = useState(paymentConfig.upiId);
   const [payeeName, setPayeeName] = useState(paymentConfig.payeeName);
   const [upiNumber, setUpiNumber] = useState(paymentConfig.upiNumber);
@@ -40,6 +41,7 @@ export const PaymentSetupManager: React.FC = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     updatePaymentConfig({
+      acceptPaymentsOnline,
       upiId,
       payeeName,
       upiNumber,
@@ -105,6 +107,48 @@ export const PaymentSetupManager: React.FC = () => {
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Form Details (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
+          {/* Master Payment Status ON / OFF Banner */}
+          <div className="bg-gradient-to-r from-[#1E1E22] via-[#2A251D] to-[#1E1E22] text-white p-5 rounded-2xl border-2 border-[#D4AF37] shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-1 rounded-full bg-[#D4AF37] text-black">
+                  <ShieldCheck className="w-4 h-4" />
+                </span>
+                <h4 className="font-bodoni font-black text-sm uppercase tracking-wider text-white">
+                  STORE CHECKOUT PAYMENT SWITCH
+                </h4>
+              </div>
+              <p className="text-xs text-gray-300 mt-1 max-w-md">
+                {acceptPaymentsOnline
+                  ? 'ONLINE PAYMENTS ACTIVE (ON): Customers can complete orders via UPI QR, Cash on Delivery, or NetBanking.'
+                  : 'PAYMENT COMING SOON (OFF): Customers can add items to cart, but checkout displays "Online Payment Coming Soon".'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <span
+                className={`text-xs font-bold uppercase tracking-wider ${
+                  acceptPaymentsOnline ? 'text-emerald-400 font-mono' : 'text-amber-400 font-mono'
+                }`}
+              >
+                {acceptPaymentsOnline ? 'PAYMENTS ON' : 'COMING SOON (OFF)'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setAcceptPaymentsOnline(!acceptPaymentsOnline)}
+                className={`relative w-14 h-8 rounded-full transition-colors cursor-pointer p-1 ${
+                  acceptPaymentsOnline ? 'bg-emerald-600' : 'bg-gray-600'
+                }`}
+              >
+                <div
+                  className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform ${
+                    acceptPaymentsOnline ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
           {/* Active Payment Methods */}
           <div className="bg-white rounded-2xl p-6 border border-[#E0D5C3] shadow-xs space-y-4">
             <h3 className="font-bodoni text-sm font-bold tracking-wider text-[#111111] uppercase flex items-center gap-2">

@@ -66,7 +66,7 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onFinish }
 
         {/* Tap to enter hint */}
         <span className="mt-8 text-[10px] tracking-widest uppercase text-gray-400 font-sans">
-          Mahabubnagar · Flagship Store
+          Mahabubnagar · Luxury Store
         </span>
       </div>
     </div>

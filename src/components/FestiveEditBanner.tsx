@@ -24,8 +24,12 @@ export const FestiveEditBanner: React.FC = () => {
           {/* Background image & luxury gold atmosphere */}
           <div className="absolute inset-0">
             <img
-              src="/src/assets/images/festive_edit_luxury_1791098550195.jpg"
+              src="/images/festive_edit_luxury_1791098550195.jpg"
               alt="The Festive Edit"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&auto=format&fit=crop';
+              }}
               className="w-full h-full object-cover object-center"
               referrerPolicy="no-referrer"
             />
@@ -78,7 +82,7 @@ export const FestiveEditBanner: React.FC = () => {
             </div>
 
             <p className="font-bodoni italic tracking-wider text-[11px] sm:text-xs uppercase text-[#6C5420] mb-5 font-semibold">
-              LIMITED-TIME COLLECTION · EXCLUSIVE TO MAHABUBNAGAR FLAGSHIP & ONLINE
+              LIMITED-TIME COLLECTION · EXCLUSIVE TO MAHABUBNAGAR BOUTIQUE & ONLINE
             </p>
 
             {/* Golden Shop button matching mockup */}

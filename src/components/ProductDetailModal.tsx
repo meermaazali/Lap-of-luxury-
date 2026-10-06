@@ -19,6 +19,7 @@ import {
   RotateCcw as ResetIcon,
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
 
 export const ProductDetailModal: React.FC = () => {
   const {
@@ -163,6 +164,12 @@ export const ProductDetailModal: React.FC = () => {
               <img
                 src={activeImage}
                 alt={quickViewProduct.name}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target.src !== FALLBACK_LUXURY_IMAGE) {
+                    target.src = FALLBACK_LUXURY_IMAGE;
+                  }
+                }}
                 className="w-full h-full object-cover transition-transform duration-150"
                 style={{
                   transform: `scale(${zoomScale})`,

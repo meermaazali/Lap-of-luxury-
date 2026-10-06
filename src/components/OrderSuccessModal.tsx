@@ -77,8 +77,8 @@ export const OrderSuccessModal: React.FC = () => {
 
           <div className="flex justify-between text-xs text-[#7A6C58] pt-1 border-t border-[#EFE8DD]">
             <span>Support Concierge:</span>
-            <a href="mailto:lapofluxury@gmail.com" className="text-[#B89758] font-bold hover:underline">
-              lapofluxury@gmail.com
+            <a href="mailto:lapofluxurypremium@gmail.com" className="text-[#B89758] font-bold hover:underline">
+              lapofluxurypremium@gmail.com
             </a>
           </div>
         </div>

@@ -44,7 +44,6 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
         <div className="flex border-b border-[#E8DEC8] bg-[#F7F4EC] overflow-x-auto no-scrollbar">
           {[
             { id: 'shipping', label: 'Shipping Policy', icon: Truck },
-            { id: 'returns', label: 'Returns & Refunds', icon: RotateCcw },
             { id: 'size', label: 'Size Guide', icon: Ruler },
             { id: 'faq', label: 'FAQs', icon: HelpCircle },
             { id: 'contact', label: 'Contact Us', icon: Phone },
@@ -86,25 +85,6 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
               </div>
               <p className="text-[#6B5F50]">
                 Every order is hand-inspected and shipped in sealed, tamper-evident luxury presentation packaging.
-              </p>
-            </div>
-          )}
-
-          {activeTab === 'returns' && (
-            <div className="space-y-3">
-              <h3 className="font-bodoni font-bold text-base text-[#111111] uppercase tracking-wider">
-                7-DAY EASY SIZE EXCHANGE & RETURNS
-              </h3>
-              <p className="leading-relaxed">
-                If your shirt, jeans, or footwear does not fit with absolute perfection, we offer a seamless <strong>7-day hassle-free replacement or size exchange</strong>.
-              </p>
-              <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8] space-y-1.5">
-                <p><strong>Conditions:</strong> Item must be unworn, unwashed with original brand tags attached.</p>
-                <p><strong>Pick-up:</strong> Our courier partner arranges doorstep collection from your address.</p>
-                <p><strong>Refunds:</strong> Processed within 48 hours of inspection back to original UPI/bank account or store credit.</p>
-              </div>
-              <p className="text-[#6B5F50]">
-                To initiate an exchange, simply message our concierge at <strong>75 7888 7888</strong>.
               </p>
             </div>
           )}
@@ -167,11 +147,11 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 </div>
                 <div className="p-3 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
                   <strong className="block text-[#111111]">Are all items 100% genuine and verified?</strong>
-                  <p className="mt-1 text-[#6B5F50]">Absolutely. Every shirt, watch, handbag, and denim item is original and inspected at our flagship store in Mahabubnagar.</p>
+                  <p className="mt-1 text-[#6B5F50]">Absolutely. Every shirt, watch, handbag, and denim item is original and inspected at our boutique in Mahbubnagar.</p>
                 </div>
                 <div className="p-3 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
                   <strong className="block text-[#111111]">Can I visit the store in person to try on outfits?</strong>
-                  <p className="mt-1 text-[#6B5F50]">Yes! Visit our flagship store at Clock Tower Road, Mahabubnagar from 10:00 AM to 9:30 PM daily.</p>
+                  <p className="mt-1 text-[#6B5F50]">Yes! Visit our boutique at Clock Tower Road, Mahabubnagar from 10:00 AM to 9:30 PM daily.</p>
                 </div>
               </div>
             </div>
@@ -183,11 +163,11 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 GET IN TOUCH WITH VIP CONCIERGE
               </h3>
               <p className="leading-relaxed">
-                Whether you need styling advice, sizing verification, or custom delivery requests, our staff is available 7 days a week.
+                Whether you need styling advice, sizing verification, or custom delivery requests, our staff is available daily.
               </p>
               <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8] space-y-2">
                 <p><strong>Direct Cell Line:</strong> 75 7888 7888</p>
-                <p><strong>Support Email:</strong> <a href="mailto:lapofluxury@gmail.com" className="text-[#B89758] font-bold underline">lapofluxury@gmail.com</a></p>
+                <p><strong>Support Email:</strong> <a href="mailto:lapofluxurypremium@gmail.com" className="text-[#B89758] font-bold underline">lapofluxurypremium@gmail.com</a></p>
                 <p><strong>Store Address:</strong> D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Boyapalle Rural, Mahbubnagar, Telangana 509001</p>
                 <p><strong>Instagram:</strong> @_lapofluxury_</p>
               </div>
@@ -200,7 +180,7 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 JOIN THE LAP OF LUXURY TEAM
               </h3>
               <p className="leading-relaxed">
-                We are actively looking for passionate retail stylists, inventory coordinators, and luxury brand specialists for our Mahabubnagar flagship store and online growth.
+                We are actively looking for passionate retail stylists, inventory coordinators, and luxury brand specialists for our Mahabubnagar boutique and online growth.
               </p>
               <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8]">
                 <p>Send your profile or resume via WhatsApp to <strong>75 7888 7888</strong> with the subject <em>"Career Application"</em>.</p>

@@ -40,7 +40,7 @@ export const BrandStorySection: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
               <div className="absolute bottom-5 left-5 right-5 text-white">
                 <span className="font-editorial italic uppercase tracking-[0.2em] text-xs text-[#D4AF37] font-bold">
-                  Mahabubnagar Flagship
+                  Mahabubnagar Boutique
                 </span>
                 <p className="font-bodoni text-lg sm:text-xl font-bold tracking-wider mt-0.5">
                   VISIT OUR STORE

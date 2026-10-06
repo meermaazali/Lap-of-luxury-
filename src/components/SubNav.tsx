@@ -22,7 +22,7 @@ export const SubNav: React.FC = () => {
   };
 
   return (
-    <nav className="bg-[#FAF8F5] border-b border-[#ECE3D2] overflow-x-auto no-scrollbar shadow-xs">
+    <nav className="bg-gradient-to-r from-[#FAF8F5] via-[#FFFDF9] to-[#FAF8F5] border-b border-[#D4AF37]/35 overflow-x-auto no-scrollbar shadow-xs">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-start md:justify-center gap-6 md:gap-9 py-2.5 whitespace-nowrap min-w-max">
         {NAV_ITEMS.map((item) => {
           const isActive = selectedCategory === item.slug;
@@ -32,8 +32,8 @@ export const SubNav: React.FC = () => {
               onClick={() => handleNavClick(item.slug, item.name)}
               className={`flex items-center gap-1 text-[11px] md:text-xs font-semibold tracking-[0.16em] uppercase transition-colors relative py-1 cursor-pointer ${
                 isActive
-                  ? 'text-[#B89758]'
-                  : 'text-[#3E3831] hover:text-[#B89758]'
+                  ? 'text-[#B8860B] font-bold'
+                  : 'text-[#3E3831] hover:text-[#B8860B]'
               }`}
             >
               <span>{item.name}</span>
@@ -41,7 +41,7 @@ export const SubNav: React.FC = () => {
                 <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
               )}
               {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#B89758] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] rounded-full" />
               )}
             </button>
           );

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { FALLBACK_CATEGORY_IMAGES, FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
 
 export const CategoryAutoSlider: React.FC = () => {
   const { categories, selectedCategory, setSelectedCategory, categoryInterval, triggerTransition } = useStore();
@@ -92,6 +93,13 @@ export const CategoryAutoSlider: React.FC = () => {
                   <img
                     src={cat.image}
                     alt={cat.name}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      const fb = FALLBACK_CATEGORY_IMAGES[cat.slug] || FALLBACK_LUXURY_IMAGE;
+                      if (target.src !== fb) {
+                        target.src = fb;
+                      }
+                    }}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                     referrerPolicy="no-referrer"
                   />

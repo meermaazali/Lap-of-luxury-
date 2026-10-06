@@ -68,6 +68,7 @@ export interface Order {
 }
 
 export interface PaymentConfig {
+  acceptPaymentsOnline: boolean;
   upiId: string;
   payeeName: string;
   upiNumber: string;

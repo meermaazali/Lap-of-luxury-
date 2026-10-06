@@ -23,6 +23,7 @@ export const ProductsManager: React.FC = () => {
   });
 
   const [isUploading, setIsUploading] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
@@ -117,11 +118,20 @@ export const ProductsManager: React.FC = () => {
       });
     }
 
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3500);
     setIsModalOpen(false);
   };
 
   return (
     <div className="space-y-6">
+      {savedSuccess && (
+        <div className="bg-emerald-50 border-2 border-emerald-400 text-emerald-900 p-4 rounded-xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <span>✓ Product saved! Catalog updated in real-time.</span>
+          <span className="text-[10px] text-emerald-700">Auto-saved to catalog</span>
+        </div>
+      )}
+
       {/* Top Action Bar */}
       <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs flex items-center justify-between gap-4">
         <div>

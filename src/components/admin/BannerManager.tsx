@@ -18,6 +18,7 @@ export const BannerManager: React.FC = () => {
   const [editingBanner, setEditingBanner] = useState<BannerSlide | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -110,12 +111,20 @@ export const BannerManager: React.FC = () => {
         order: banners.length + 1,
       });
     }
-
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3500);
     setIsModalOpen(false);
   };
 
   return (
     <div className="space-y-6">
+      {savedSuccess && (
+        <div className="bg-emerald-50 border-2 border-emerald-400 text-emerald-900 p-4 rounded-xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <span>✓ Banner saved! Text & imagery updated on live storefront.</span>
+          <span className="text-[10px] text-emerald-700">Auto-saved to storage</span>
+        </div>
+      )}
+
       {/* Top Banner Control Bar */}
       <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

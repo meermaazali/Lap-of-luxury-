@@ -11,7 +11,6 @@ import {
   VolumeX,
   LogOut,
   QrCode,
-  Server,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { UploadedLogoMark } from '../UploadedLogoMark';
@@ -23,7 +22,6 @@ import { BannerManager } from './BannerManager';
 import { CategoryManager } from './CategoryManager';
 import { MediaStorageManager } from './MediaStorageManager';
 import { PaymentSetupManager } from './PaymentSetupManager';
-import { DeploymentGuideManager } from './DeploymentGuideManager';
 
 export const AdminPortal: React.FC = () => {
   const {
@@ -41,7 +39,7 @@ export const AdminPortal: React.FC = () => {
   });
 
   const [activeTab, setActiveTab] = useState<
-    'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media' | 'payments' | 'deploy'
+    'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media' | 'payments'
   >('orders');
 
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -240,18 +238,6 @@ export const AdminPortal: React.FC = () => {
               <QrCode className="w-3.5 h-3.5" />
               <span>Payment Setup</span>
             </button>
-
-            <button
-              onClick={() => setActiveTab('deploy')}
-              className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'deploy'
-                  ? 'bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] text-[#111111]'
-                  : 'text-[#A09A8F] hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Server className="w-3.5 h-3.5" />
-              <span>Free Hosting & Code</span>
-            </button>
           </div>
         </div>
       </header>
@@ -309,7 +295,6 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'categories' && <CategoryManager />}
         {activeTab === 'media' && <MediaStorageManager />}
         {activeTab === 'payments' && <PaymentSetupManager />}
-        {activeTab === 'deploy' && <DeploymentGuideManager />}
       </main>
     </div>
   );

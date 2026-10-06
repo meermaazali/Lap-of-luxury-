@@ -163,7 +163,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ onClose }) => {
               <span>D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Boyapalle Rural, Mahbubnagar, Telangana 509001</span>
             </p>
             <p className="text-[11px] text-[#7A6C58] pt-1 border-t border-[#E0D5C3]">
-              Support Email: <a href="mailto:lapofluxury@gmail.com" className="text-[#B89758] font-bold hover:underline">lapofluxury@gmail.com</a>
+              Support Email: <a href="mailto:lapofluxurypremium@gmail.com" className="text-[#B89758] font-bold hover:underline">lapofluxurypremium@gmail.com</a>
             </p>
           </div>
         </div>

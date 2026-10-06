@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
 
 export const HeroSlider: React.FC = () => {
   const { banners, bannerInterval, triggerTransition } = useStore();
@@ -51,6 +52,12 @@ export const HeroSlider: React.FC = () => {
           <img
             src={currentSlide.image}
             alt={currentSlide.title}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (target.src !== FALLBACK_LUXURY_IMAGE) {
+                target.src = FALLBACK_LUXURY_IMAGE;
+              }
+            }}
             className="w-full h-full object-cover object-center transition-all duration-1000 transform scale-100"
             referrerPolicy="no-referrer"
           />
