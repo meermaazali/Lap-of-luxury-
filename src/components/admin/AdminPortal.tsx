@@ -10,6 +10,8 @@ import {
   Volume2,
   VolumeX,
   LogOut,
+  QrCode,
+  Server,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { UploadedLogoMark } from '../UploadedLogoMark';
@@ -20,6 +22,8 @@ import { ProductsManager } from './ProductsManager';
 import { BannerManager } from './BannerManager';
 import { CategoryManager } from './CategoryManager';
 import { MediaStorageManager } from './MediaStorageManager';
+import { PaymentSetupManager } from './PaymentSetupManager';
+import { DeploymentGuideManager } from './DeploymentGuideManager';
 
 export const AdminPortal: React.FC = () => {
   const {
@@ -37,7 +41,7 @@ export const AdminPortal: React.FC = () => {
   });
 
   const [activeTab, setActiveTab] = useState<
-    'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media'
+    'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media' | 'payments' | 'deploy'
   >('orders');
 
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -62,71 +66,62 @@ export const AdminPortal: React.FC = () => {
     );
   }
 
-  // Quick stats
-  const totalRevenue = orders
-    .filter((o) => o.status !== 'Cancelled')
-    .reduce((sum, o) => sum + o.total, 0);
-
   const lowStockCount = products.filter((p) => p.stockCount <= 5).length;
+  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] text-[#1E1E22] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F4F1EA] text-[#1E1E22] flex flex-col font-sans">
       {/* Top Admin Header */}
-      <header className="bg-[#111113] text-[#F3E7D5] border-b-2 border-[#D4AF37] sticky top-0 z-40 shadow-lg">
+      <header className="bg-[#111113] text-white border-b-2 border-[#D4AF37] sticky top-0 z-30 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          {/* Left: Brand Identity & Back button */}
-          <div className="flex items-center gap-3">
+          {/* Left: Brand & Return to Store */}
+          <div className="flex items-center gap-4">
             <button
               onClick={() => {
                 setIsAdminMode(false);
                 window.location.hash = '';
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold tracking-wider transition-colors cursor-pointer"
-              title="Return to Customer Storefront"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#444] hover:border-[#D4AF37] text-xs font-semibold text-[#D4AF37] hover:bg-white/5 transition-all cursor-pointer"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Back to Store</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>← Back to Storefront</span>
             </button>
 
-            <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
-
             <div className="flex items-center gap-2.5">
-              <UploadedLogoMark className="w-7 h-7 shrink-0" color="#D4AF37" />
-              <span className="font-bodoni font-black tracking-[0.18em] text-sm md:text-base text-white">
-                LAP OF LUXURY
-              </span>
-              <span className="bg-[#D4AF37] text-[#111111] text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded">
-                STORE ADMIN
-              </span>
+              <div className="w-8 h-8 rounded-full bg-[#1A1A1E] border border-[#D4AF37] p-1 flex items-center justify-center">
+                <UploadedLogoMark className="w-full h-full" color="#D4AF37" />
+              </div>
+              <div>
+                <span className="font-bodoni font-black tracking-widest uppercase text-sm sm:text-base text-white">
+                  LAP OF LUXURY
+                </span>
+                <span className="text-[10px] text-[#A8987E] block uppercase tracking-wider font-semibold">
+                  Mahbubnagar Portal (PIN: 7878)
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Right: Sound toggle, Orders alert & Logout */}
+          {/* Right: Quick actions & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-1.5 rounded bg-white/10 hover:bg-white/20 text-[#D5C2AA] hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
-              title={soundEnabled ? 'Mute Chimes' : 'Enable Chimes'}
+              className={`p-2 rounded-lg border transition-colors cursor-pointer ${
+                soundEnabled
+                  ? 'border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10'
+                  : 'border-gray-700 text-gray-500 hover:text-gray-300'
+              }`}
+              title={soundEnabled ? 'Order sound alert ON' : 'Order sound alert OFF'}
             >
-              {soundEnabled ? (
-                <>
-                  <Volume2 className="w-4 h-4 text-[#D4AF37]" />
-                  <span className="hidden md:inline text-[11px]">Chime On</span>
-                </>
-              ) : (
-                <>
-                  <VolumeX className="w-4 h-4 text-gray-400" />
-                  <span className="hidden md:inline text-[11px]">Muted</span>
-                </>
-              )}
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
 
             <button
               onClick={() => setActiveTab('orders')}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
                 unreadOrdersCount > 0
-                  ? 'bg-red-600 text-white animate-pulse'
-                  : 'bg-white/10 text-white hover:bg-white/20'
+                  ? 'bg-red-600/90 text-white border-red-500 animate-pulse'
+                  : 'border-gray-700 hover:border-[#D4AF37] text-xs'
               }`}
             >
               <Bell className="w-4 h-4 text-[#D4AF37]" />
@@ -144,7 +139,7 @@ export const AdminPortal: React.FC = () => {
               title="Lock Admin Console"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Lock / Logout</span>
+              <span className="hidden sm:inline">Lock (7878)</span>
             </button>
           </div>
         </div>
@@ -180,8 +175,8 @@ export const AdminPortal: React.FC = () => {
               <Package className="w-3.5 h-3.5" />
               <span>Inventory & Stock</span>
               {lowStockCount > 0 && (
-                <span className="bg-amber-500 text-[#1E1E22] text-[9px] px-1.5 rounded-full font-bold">
-                  {lowStockCount} Low
+                <span className="bg-amber-500 text-black text-[9px] px-1.5 rounded-full font-bold">
+                  {lowStockCount}
                 </span>
               )}
             </button>
@@ -195,7 +190,7 @@ export const AdminPortal: React.FC = () => {
               }`}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Products Catalog ({products.length})</span>
+              <span>Products ({products.length})</span>
             </button>
 
             <button
@@ -207,7 +202,7 @@ export const AdminPortal: React.FC = () => {
               }`}
             >
               <Sliders className="w-3.5 h-3.5" />
-              <span>Sliding Banners ({banners.length})</span>
+              <span>Banners & Slider ({banners.length})</span>
             </button>
 
             <button
@@ -219,7 +214,7 @@ export const AdminPortal: React.FC = () => {
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>Category Slider</span>
+              <span>Categories</span>
             </button>
 
             <button
@@ -231,7 +226,31 @@ export const AdminPortal: React.FC = () => {
               }`}
             >
               <Cloud className="w-3.5 h-3.5" />
-              <span>Cloud Storage ({mediaAssets.length} Assets)</span>
+              <span>Media Storage ({mediaAssets.length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'payments'
+                  ? 'bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] text-[#111111]'
+                  : 'text-[#A09A8F] hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span>Payment Setup</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('deploy')}
+              className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'deploy'
+                  ? 'bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] text-[#111111]'
+                  : 'text-[#A09A8F] hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Server className="w-3.5 h-3.5" />
+              <span>Free Hosting & Code</span>
             </button>
           </div>
         </div>
@@ -248,7 +267,7 @@ export const AdminPortal: React.FC = () => {
             <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
               ₹{totalRevenue.toLocaleString('en-IN')}
             </p>
-            <span className="text-[10px] text-emerald-700 font-bold">Mahabubnagar Flagship</span>
+            <span className="text-[10px] text-emerald-700 font-bold">Mahbubnagar Store</span>
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs">
@@ -289,6 +308,8 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'banners' && <BannerManager />}
         {activeTab === 'categories' && <CategoryManager />}
         {activeTab === 'media' && <MediaStorageManager />}
+        {activeTab === 'payments' && <PaymentSetupManager />}
+        {activeTab === 'deploy' && <DeploymentGuideManager />}
       </main>
     </div>
   );

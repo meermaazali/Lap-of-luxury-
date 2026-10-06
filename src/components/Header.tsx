@@ -22,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
     wishlist,
     products,
     openProductDetail,
+    setIsAdminMode,
   } = useStore();
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -138,20 +139,22 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Tagline ROW with Cart Button Positioned Directly Beside It */}
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3.5 flex-wrap">
-            <p className="font-bodoni italic tracking-[0.18em] text-[11px] sm:text-xs md:text-[13px] uppercase font-semibold text-[#8A671A]">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mt-0.5">
+            <p className="font-bodoni italic tracking-[0.16em] text-[11px] sm:text-xs md:text-[13px] uppercase font-semibold text-[#8A671A]">
               Experience premium in every touch
             </p>
+
+            <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-[#B89758]" />
 
             {/* Cart Button Kept Right Beside Tagline */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full border transition-all cursor-pointer shadow-xs active:scale-95 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:py-1.5 rounded-full border transition-all cursor-pointer shadow-sm hover:shadow-md active:scale-95 shrink-0 ${
                 cartCount > 0
                   ? 'bg-[#111111] text-[#F3E7D5] border-[#B89758] hover:bg-[#2A2A2E]'
-                  : 'bg-white text-[#3B332A] border-[#D5C7B0] hover:border-[#B89758]'
+                  : 'bg-white text-[#3B332A] border-[#C5A880] hover:border-[#B89758]'
               }`}
-              title="Shopping Cart"
+              title="View Shopping Cart"
             >
               {/* Stacked Thumbnails if items exist */}
               {cart.length > 0 ? (

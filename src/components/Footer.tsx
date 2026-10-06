@@ -7,7 +7,7 @@ import { OurStoryModal } from './modals/OurStoryModal';
 import { PolicyModal } from './modals/PolicyModal';
 
 export const Footer: React.FC = () => {
-  const { setSelectedCategory } = useStore();
+  const { setSelectedCategory, setIsAdminMode } = useStore();
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [isStoryOpen, setIsStoryOpen] = useState(false);
   const [policyTab, setPolicyTab] = useState<string | null>(null);
@@ -239,6 +239,16 @@ export const Footer: React.FC = () => {
               <span>·</span>
               <button onClick={() => setIsLocationOpen(true)} className="hover:text-[#111111] cursor-pointer">
                 Store Sitemap
+              </button>
+              <span>·</span>
+              <button
+                onClick={() => {
+                  setIsAdminMode(true);
+                }}
+                className="text-[#8C6D1F] hover:text-[#111111] font-bold flex items-center gap-1 cursor-pointer bg-[#F2EDE3] px-2 py-0.5 rounded border border-[#D5C7B0]"
+                title="Staff Portal (Password: 7878)"
+              >
+                <span>Staff Portal</span>
               </button>
             </div>
           </div>

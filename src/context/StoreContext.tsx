@@ -218,9 +218,50 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [lastPlacedOrder, setLastPlacedOrder] = useState<Order | null>(null);
   const [latestNotification, setLatestNotification] = useState<Order | null>(null);
 
-  const [isAdminMode, setIsAdminMode] = useState<boolean>(() => {
-    return window.location.hash.toLowerCase().includes('admin');
-  });
+  const checkIsAdminRoute = () => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    return path.startsWith('/admin') || hash.includes('admin') || search.includes('admin');
+  };
+
+  const [isAdminMode, setIsAdminModeState] = useState<boolean>(() => checkIsAdminRoute());
+
+  const setIsAdminMode = (admin: boolean) => {
+    setIsAdminModeState(admin);
+    if (typeof window !== 'undefined') {
+      if (admin) {
+        if (!window.location.pathname.startsWith('/admin') && !window.location.hash.includes('admin')) {
+          try {
+            window.history.pushState(null, '', '/admin');
+          } catch {
+            window.location.hash = 'admin';
+          }
+        }
+      } else {
+        if (window.location.pathname.startsWith('/admin') || window.location.hash.includes('admin')) {
+          try {
+            window.history.pushState(null, '', '/');
+          } catch {
+            window.location.hash = '';
+          }
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleUrlChange = () => {
+      setIsAdminModeState(checkIsAdminRoute());
+    };
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
 
   // White Screen Luxury Transition State
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
