@@ -48,7 +48,11 @@ export const AdminPortal: React.FC = () => {
     sessionStorage.removeItem('lol_admin_authed');
     setIsAuthenticated(false);
     setIsAdminMode(false);
-    window.location.hash = '';
+    try {
+      window.history.pushState(null, '', '/');
+    } catch {
+      window.location.hash = '';
+    }
   };
 
   // If not authenticated, show password screen requiring 7878
@@ -58,7 +62,11 @@ export const AdminPortal: React.FC = () => {
         onSuccess={() => setIsAuthenticated(true)}
         onCancel={() => {
           setIsAdminMode(false);
-          window.location.hash = '';
+          try {
+            window.history.pushState(null, '', '/');
+          } catch {
+            window.location.hash = '';
+          }
         }}
       />
     );
@@ -77,7 +85,11 @@ export const AdminPortal: React.FC = () => {
             <button
               onClick={() => {
                 setIsAdminMode(false);
-                window.location.hash = '';
+                try {
+                  window.history.pushState(null, '', '/');
+                } catch {
+                  window.location.hash = '';
+                }
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#444] hover:border-[#D4AF37] text-xs font-semibold text-[#D4AF37] hover:bg-white/5 transition-all cursor-pointer"
             >
@@ -93,8 +105,8 @@ export const AdminPortal: React.FC = () => {
                 <span className="font-bodoni font-black tracking-widest uppercase text-sm sm:text-base text-white">
                   LAP OF LUXURY
                 </span>
-                <span className="text-[10px] text-[#A8987E] block uppercase tracking-wider font-semibold">
-                  Mahbubnagar Portal (PIN: 7878)
+                <span className="text-[10px] text-[#D4AF37] block uppercase tracking-wider font-bold">
+                  Store Admin Portal (PIN: 7878)
                 </span>
               </div>
             </div>

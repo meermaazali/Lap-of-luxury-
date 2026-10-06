@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { UploadedLogoMark } from './UploadedLogoMark';
+import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
 
 interface HeaderProps {
   onOpenAccountModal: () => void;
@@ -130,10 +131,12 @@ export const Header: React.FC<HeaderProps> = ({
                   className="flex items-center gap-3 p-2.5 hover:bg-[#FAF6EE] cursor-pointer transition-colors"
                 >
                   <img
-                    src={item.image}
+                    src={normalizeImageUrl(item.image, item.category)}
                     alt={item.name}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
+                    }}
                     className="w-10 h-10 object-cover rounded bg-[#F2EFE9]"
-                    referrerPolicy="no-referrer"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-[#1E1E22] truncate">

@@ -15,7 +15,7 @@ import {
   INITIAL_ORDERS,
   INITIAL_MEDIA,
 } from '../data/initialData';
-import { normalizeImageUrl, compressImage } from '../utils/imageUtils';
+import { normalizeImageUrl, compressImage, FALLBACK_CATEGORY_IMAGES } from '../utils/imageUtils';
 
 interface StoreContextType {
   // Products
@@ -77,6 +77,7 @@ interface StoreContextType {
   unreadOrdersCount: number;
   latestNotification: Order | null;
   dismissNotification: () => void;
+  playOrderChime: () => void;
 
   // Payment Setup Configuration
   paymentConfig: PaymentConfig;
@@ -113,7 +114,7 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 // Web Audio API chime helper for luxury notification
-function playOrderChime() {
+export function playOrderChime() {
   try {
     const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
@@ -192,11 +193,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [categories, setCategories] = useState<CategoryItem[]>(() => {
     try {
       const saved = localStorage.getItem('lol_categories');
-      const list: CategoryItem[] = saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
-      return list.map((c) => ({
-        ...c,
-        image: normalizeImageUrl(c.image, c.slug),
-      }));
+      if (saved) {
+        const list: CategoryItem[] = JSON.parse(saved);
+        return list.map((c) => {
+          const bw = FALLBACK_CATEGORY_IMAGES[c.slug];
+          const isOld = !c.image || c.image.includes('unsplash.com') || c.image.includes('festive_edit_luxury') || c.image.includes('hero_luxury_fashion');
+          return {
+            ...c,
+            image: isOld && bw ? bw : normalizeImageUrl(c.image, c.slug),
+          };
+        });
+      }
+      return INITIAL_CATEGORIES;
     } catch {
       return INITIAL_CATEGORIES;
     }
@@ -243,7 +251,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(() => {
     try {
       const saved = localStorage.getItem('lol_media');
-      return saved ? JSON.parse(saved) : INITIAL_MEDIA;
+      const list: MediaAsset[] = saved ? JSON.parse(saved) : INITIAL_MEDIA;
+      return list.map((m) => ({
+        ...m,
+        dataUrl: normalizeImageUrl(m.dataUrl),
+      }));
     } catch {
       return INITIAL_MEDIA;
     }
@@ -706,6 +718,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         unreadOrdersCount,
         latestNotification,
         dismissNotification,
+        playOrderChime,
         mediaAssets,
         uploadMediaAsset,
         deleteMediaAsset,

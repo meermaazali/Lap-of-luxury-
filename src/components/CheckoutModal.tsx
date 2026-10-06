@@ -405,39 +405,33 @@ export const CheckoutModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Place Order CTA or Coming Soon */}
+          {/* Place Order CTA with Coming Soon indicator */}
           {!paymentConfig.acceptPaymentsOnline ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="p-3.5 bg-gradient-to-r from-[#FAF6EE] to-[#F3E7BE] border-2 border-[#D4AF37] rounded-xl text-center space-y-1">
                 <span className="text-[10px] tracking-[0.2em] font-extrabold uppercase text-[#B8860B] block">
-                  ONLINE PAYMENT COMING SOON
+                  ONLINE PAYMENT GATEWAY: COMING SOON
                 </span>
                 <p className="text-xs text-[#2C241B] font-semibold">
-                  Online gateway is in setup. You can place this order directly with our boutique desk:
+                  Complete your details above to reserve this order. Our Mahbubnagar boutique concierge (Cell: <strong>75 7888 7888</strong>) will verify your order for Cash on Delivery.
                 </p>
-                <div className="flex items-center justify-center gap-3 pt-1">
-                  <a
-                    href="tel:7578887888"
-                    className="text-xs font-black text-[#111111] bg-white px-3 py-1 rounded-full border border-[#D4AF37] hover:bg-[#D4AF37] transition-colors"
-                  >
-                    📞 Call 75 7888 7888
-                  </a>
-                </div>
               </div>
 
-              <a
-                href={`https://wa.me/917578887888?text=${encodeURIComponent(
-                  `Hello Lap of Luxury Mahbubnagar,\nI want to place an order for:\nCustomer: ${formData.name || 'Guest'}\nPhone: ${formData.phone}\nAddress: ${formData.address}, ${formData.city} - ${formData.pincode}\nItems:\n${cart
-                    .map((i) => `• ${i.product.name} (${i.selectedSize}) x${i.quantity} = ₹${i.product.price * i.quantity}`)
-                    .join('\n')}\nTotal: ₹${orderTotal}`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3.5 bg-[#111111] hover:bg-[#28282D] text-[#E5C07B] font-extrabold text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-lg transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 border border-[#D4AF37]"
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3.5 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] font-extrabold text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-lg transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2"
               >
-                <span>CONFIRM ORDER VIA WHATSAPP (₹{orderTotal.toLocaleString('en-IN')})</span>
-                <ArrowRight className="w-4 h-4" />
-              </a>
+                {isSubmitting ? (
+                  <span>RECORDING YOUR ORDER...</span>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4" />
+                    <span>CONFIRM ORDER (PAYMENT COMING SOON - ₹{orderTotal.toLocaleString('en-IN')})</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
             </div>
           ) : (
             <button

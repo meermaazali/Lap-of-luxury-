@@ -30,17 +30,6 @@ export const Footer: React.FC = () => {
               <p className="text-xs text-[#6B5F50] mt-3 leading-relaxed">
                 Experience premium in every touch. Curating luxury double-ply cotton shirts, raw selvedge denim, precision timepieces, and hand-stitched leather.
               </p>
-              <div className="mt-4 pt-3 border-t border-[#E8DFC8] w-full">
-                <p className="text-[11px] font-extrabold text-[#111111] tracking-wider uppercase">
-                  DIRECT CONCIERGE:
-                </p>
-                <a
-                  href="tel:7578887888"
-                  className="text-xs font-bold text-[#B8860B] hover:text-[#111111] transition-colors block mt-0.5"
-                >
-                  CELL : 75 7888 7888
-                </a>
-              </div>
             </div>
 
             {/* Col 2: SHOP */}
@@ -197,11 +186,27 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Bar: Zero admin mentions anywhere */}
+          {/* Bottom Bar */}
           <div className="pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#7A6C58]">
-            <p>© 2026 LAP OF LUXURY. All Rights Reserved.</p>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+              <p>© 2026 LAP OF LUXURY. All Rights Reserved.</p>
+              <span className="hidden sm:inline">·</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#FAF6EE] to-[#F3E7BE] border border-[#D4AF37]/50 shadow-2xs">
+                <span className="text-[#55493B] font-medium">Developed by</span>
+                <a
+                  href="https://www.instagram.com/maaaaz_.786/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#967018] hover:text-[#111111] font-extrabold hover:underline inline-flex items-center gap-1 transition-colors"
+                  aria-label="Developer Instagram Profile @maaaaz_.786"
+                >
+                  <Instagram className="w-3.5 h-3.5 text-[#B8860B]" />
+                  <span>maaaaz_.786</span>
+                </a>
+              </div>
+            </div>
 
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
               <button onClick={() => setPolicyTab('faq')} className="hover:text-[#111111] cursor-pointer">
                 Privacy Policy
               </button>
@@ -212,16 +217,6 @@ export const Footer: React.FC = () => {
               <span>·</span>
               <button onClick={() => setIsLocationOpen(true)} className="hover:text-[#111111] cursor-pointer">
                 Store Sitemap
-              </button>
-              <span>·</span>
-              <button
-                onClick={() => {
-                  setIsAdminMode(true);
-                }}
-                className="text-[#8C6D1F] hover:text-[#111111] font-bold flex items-center gap-1 cursor-pointer bg-[#F2EDE3] px-2 py-0.5 rounded border border-[#D5C7B0]"
-                title="Staff Portal (Password: 7878)"
-              >
-                <span>Staff Portal</span>
               </button>
             </div>
           </div>

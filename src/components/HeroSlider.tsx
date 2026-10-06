@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
+import { FALLBACK_LUXURY_IMAGE, normalizeImageUrl } from '../utils/imageUtils';
 
 export const HeroSlider: React.FC = () => {
   const { banners, bannerInterval, triggerTransition } = useStore();
@@ -50,7 +50,7 @@ export const HeroSlider: React.FC = () => {
         {/* Background Image: Full bleed, grand size */}
         <div className="absolute inset-0">
           <img
-            src={currentSlide.image}
+            src={normalizeImageUrl(currentSlide.image)}
             alt={currentSlide.title}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -59,7 +59,6 @@ export const HeroSlider: React.FC = () => {
               }
             }}
             className="w-full h-full object-cover object-center transition-all duration-1000 transform scale-100"
-            referrerPolicy="no-referrer"
           />
           {/* Subtle soft white & warm champagne gradient scrim ensuring crisp legibility */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5]/98 via-[#FAF8F5]/85 to-transparent sm:w-3/4 md:w-3/5 lg:w-1/2" />

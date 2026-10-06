@@ -1,6 +1,11 @@
 import React from 'react';
 import { X, Heart, Trash2, ShoppingBag } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import {
+  normalizeImageUrl,
+  FALLBACK_CATEGORY_IMAGES,
+  FALLBACK_LUXURY_IMAGE,
+} from '../utils/imageUtils';
 
 interface WishlistDrawerProps {
   isOpen: boolean;
@@ -67,10 +72,14 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose 
                   className="bg-white rounded-xl border border-[#E5DAC8] p-3 flex gap-4 items-center justify-between shadow-xs"
                 >
                   <img
-                    src={item.image}
+                    src={normalizeImageUrl(item.image, item.category)}
                     alt={item.name}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      const fb = FALLBACK_CATEGORY_IMAGES[item.category] || FALLBACK_LUXURY_IMAGE;
+                      if (target.src !== fb) target.src = fb;
+                    }}
                     className="w-16 h-16 object-cover rounded-lg border border-[#EFE8DD]"
-                    referrerPolicy="no-referrer"
                   />
 
                   <div className="flex-1 min-w-0">

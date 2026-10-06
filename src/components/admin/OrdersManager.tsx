@@ -25,17 +25,20 @@ export const OrdersManager: React.FC = () => {
 
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const filteredOrders = orders.filter((o) => {
     if (statusFilter === 'All') return true;
     return o.status === statusFilter;
   });
 
-  const handleClearAllOrders = () => {
-    if (confirm('Clear all orders to start with a fresh, clean list?')) {
+  const handleExecuteClearOrders = () => {
+    try {
       localStorage.setItem('lol_orders', JSON.stringify([]));
-      window.location.reload();
+    } catch {
+      // ignore
     }
+    window.location.reload();
   };
 
   // Helper to trigger a simulated customer order to test live notification & chime
@@ -73,7 +76,7 @@ export const OrdersManager: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           {orders.length > 0 && (
             <button
-              onClick={handleClearAllOrders}
+              onClick={() => setShowClearConfirm(true)}
               className="px-3 py-1.5 border border-red-300 text-red-700 hover:bg-red-50 text-xs font-bold uppercase rounded-lg transition-colors cursor-pointer"
             >
               Clear Orders
@@ -320,6 +323,39 @@ export const OrdersManager: React.FC = () => {
                 className="px-4 py-2 bg-[#1E1E22] text-white text-xs font-semibold uppercase tracking-wider rounded cursor-pointer"
               >
                 Print Slip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* In-App Clear Orders Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl border border-red-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-[#111111]">Clear All Orders?</h3>
+                <p className="text-xs text-[#7A6C58]">
+                  This will reset the incoming order history to start fresh with a clean list.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="px-4 py-2 border border-gray-300 text-xs font-semibold rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExecuteClearOrders}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase rounded-lg shadow cursor-pointer"
+              >
+                Confirm Clear
               </button>
             </div>
           </div>

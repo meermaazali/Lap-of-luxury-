@@ -3,7 +3,11 @@ import { Heart, Eye, ArrowRight, Check, ShoppingCart } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
 import { ScrollReveal } from './common/ScrollReveal';
-import { FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
+import {
+  FALLBACK_LUXURY_IMAGE,
+  FALLBACK_CATEGORY_IMAGES,
+  normalizeImageUrl,
+} from '../utils/imageUtils';
 
 export const BestSellersGrid: React.FC = () => {
   const {
@@ -123,16 +127,16 @@ export const BestSellersGrid: React.FC = () => {
                     {/* Image container */}
                     <div className="relative aspect-square w-full overflow-hidden bg-[#F6F3EE] p-1.5 flex items-center justify-center">
                       <img
-                        src={product.image}
+                        src={normalizeImageUrl(product.image, product.category)}
                         alt={product.name}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          if (target.src !== FALLBACK_LUXURY_IMAGE) {
-                            target.src = FALLBACK_LUXURY_IMAGE;
+                          const fallback = FALLBACK_CATEGORY_IMAGES[product.category] || FALLBACK_LUXURY_IMAGE;
+                          if (target.src !== fallback) {
+                            target.src = fallback;
                           }
                         }}
                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 rounded-lg"
-                        referrerPolicy="no-referrer"
                       />
 
                       {/* Wishlist toggle */}

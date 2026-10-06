@@ -38,7 +38,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onSuccess, onCance
           </div>
 
           <span className="text-[10px] tracking-[0.25em] font-extrabold uppercase text-[#D4AF37] mb-1">
-            STAFF SECURITY GATE
+            ADMIN CONSOLE GATE
           </span>
 
           <h2 className="font-bodoni text-2xl font-black tracking-[0.16em] uppercase text-white">

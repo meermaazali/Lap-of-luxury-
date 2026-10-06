@@ -102,8 +102,11 @@ export const BrandStorySection: React.FC = () => {
               >
                 <div className="absolute inset-0 opacity-40 group-hover:opacity-55 transition-opacity">
                   <img
-                    src="/src/assets/images/luxury_gold_watch_1791098572108.jpg"
+                    src="/images/luxury_gold_watch_1791098572108.jpg"
                     alt="Horology"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop';
+                    }}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
                   />

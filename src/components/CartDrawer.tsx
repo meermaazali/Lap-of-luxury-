@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import {
+  normalizeImageUrl,
+  FALLBACK_CATEGORY_IMAGES,
+  FALLBACK_LUXURY_IMAGE,
+} from '../utils/imageUtils';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -123,10 +128,14 @@ export const CartDrawer: React.FC = () => {
             cart.map((item) => (
               <div key={`${item.product.id}-${item.selectedSize}`} className="pt-3 first:pt-0 flex gap-3">
                 <img
-                  src={item.product.image}
+                  src={normalizeImageUrl(item.product.image, item.product.category)}
                   alt={item.product.name}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    const fb = FALLBACK_CATEGORY_IMAGES[item.product.category] || FALLBACK_LUXURY_IMAGE;
+                    if (target.src !== fb) target.src = fb;
+                  }}
                   className="w-18 h-18 sm:w-20 sm:h-20 object-cover rounded-lg border border-[#E5DAC8] bg-[#F2EDE2] shrink-0"
-                  referrerPolicy="no-referrer"
                 />
 
                 <div className="flex-1 min-w-0">
@@ -234,46 +243,14 @@ export const CartDrawer: React.FC = () => {
               </div>
             </div>
 
-            {/* Checkout CTA or Payment Coming Soon */}
-            {!paymentConfig.acceptPaymentsOnline ? (
-              <div className="space-y-2">
-                <div className="p-3 bg-gradient-to-r from-[#FAF6EE] to-[#F3E7BE] border-2 border-[#D4AF37] rounded-xl text-center space-y-1">
-                  <span className="text-[10px] tracking-[0.2em] font-extrabold uppercase text-[#B8860B] block">
-                    ONLINE PAYMENT COMING SOON
-                  </span>
-                  <p className="text-xs text-[#2C241B] font-semibold">
-                    Catalog ordering active. Direct boutique phone & WhatsApp orders:
-                  </p>
-                  <a
-                    href="tel:7578887888"
-                    className="inline-block text-xs font-black text-[#111111] bg-white px-3 py-1 rounded-full border border-[#D4AF37] hover:bg-[#D4AF37] transition-colors"
-                  >
-                    📞 75 7888 7888
-                  </a>
-                </div>
-
-                <a
-                  href={`https://wa.me/917578887888?text=${encodeURIComponent(
-                    `Hello Lap of Luxury, I would like to order my cart items:\n${cart
-                      .map((i) => `• ${i.product.name} (${i.selectedSize}) x${i.quantity} = ₹${i.product.price * i.quantity}`)
-                      .join('\n')}\nTotal: ₹${finalTotal}`
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-3 bg-[#111111] hover:bg-[#2A2A2E] text-[#E5C07B] text-xs font-extrabold tracking-[0.16em] uppercase rounded shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer border border-[#D4AF37]"
-                >
-                  <span>ORDER VIA WHATSAPP / CALL (75 7888 7888)</span>
-                </a>
-              </div>
-            ) : (
-              <button
-                onClick={handleProceedToCheckout}
-                className="w-full py-3 bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs sm:text-sm font-extrabold tracking-[0.16em] uppercase rounded shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>PROCEED TO CHECKOUT</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
+            {/* Checkout CTA: Customer enters full name & delivery details in checkout */}
+            <button
+              onClick={handleProceedToCheckout}
+              className="w-full py-3.5 bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs sm:text-sm font-extrabold tracking-[0.16em] uppercase rounded shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>PROCEED TO CHECKOUT</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
 
             <div className="flex items-center justify-center gap-2 text-[10px] text-[#7A6C58]">
               <ShieldCheck className="w-3.5 h-3.5 text-[#B8860B]" />

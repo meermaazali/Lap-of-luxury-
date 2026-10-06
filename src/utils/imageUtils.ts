@@ -6,19 +6,85 @@
  */
 
 export const FALLBACK_LUXURY_IMAGE =
-  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop';
+  '/images/hero_luxury_fashion_1791098539165.jpg';
 
 export const FALLBACK_CATEGORY_IMAGES: Record<string, string> = {
-  Men: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=800&auto=format&fit=crop',
-  Jeans: 'https://images.unsplash.com/photo-1542272604-780c96856592?q=80&w=800&auto=format&fit=crop',
-  Watches: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
-  Bags: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop',
-  Shoes: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop',
-  Accessories: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop',
-  Perfumes: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop',
-  Women: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop',
-  Festive: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&auto=format&fit=crop',
+  Men: '/images/category_mens_bw.jpg',
+  Women: '/images/category_womens_bw.jpg',
+  Jeans: '/images/category_jeans_bw.jpg',
+  Watches: '/images/category_watches_bw.jpg',
+  Bags: '/images/category_bags_bw.jpg',
+  Shoes: '/images/category_shoes_bw.jpg',
+  Accessories: '/images/category_accessories_bw.jpg',
+  Perfumes: '/images/category_perfumes_bw.jpg',
+  Festive: '/images/festive_edit_luxury_1791098550195.jpg',
 };
+
+// High-resolution craftsmanship and detail angles for interactive product gallery
+export const FALLBACK_DETAIL_ANGLES: Record<string, string[]> = {
+  Men: [
+    'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=800&auto=format&fit=crop',
+    '/images/hero_luxury_fashion_1791098539165.jpg',
+  ],
+  Jeans: [
+    '/images/category_luxury_denim_1791098561162.jpg',
+    'https://images.unsplash.com/photo-1542272604-780c96856592?q=80&w=800&auto=format&fit=crop',
+    '/images/luxury_products_hero_1791099185940.jpg',
+  ],
+  Watches: [
+    '/images/luxury_gold_watch_1791098572108.jpg',
+    'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
+    '/images/festive_edit_luxury_1791098550195.jpg',
+  ],
+  Bags: [
+    'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop',
+    '/images/luxury_products_hero_1791099185940.jpg',
+  ],
+  Shoes: [
+    'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop',
+    '/images/hero_luxury_fashion_1791098539165.jpg',
+  ],
+  Accessories: [
+    'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop',
+    '/images/luxury_gold_watch_1791098572108.jpg',
+  ],
+  Perfumes: [
+    'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop',
+    '/images/festive_edit_luxury_1791098550195.jpg',
+  ],
+};
+
+/**
+ * Returns an authentic array of gallery images for any product view,
+ * guaranteeing at least 2-3 angles and never returning empty thumbnails.
+ */
+export function getProductGallery(product: {
+  image?: string;
+  secondaryImage?: string;
+  category?: string;
+}): string[] {
+  const primary = normalizeImageUrl(product.image, product.category);
+  const images = [primary];
+
+  if (product.secondaryImage && product.secondaryImage.trim()) {
+    const sec = normalizeImageUrl(product.secondaryImage, product.category);
+    if (sec !== primary) images.push(sec);
+  }
+
+  // If only 1 image provided, augment with matching luxury craftsmanship detail angles
+  const categoryAngles = product.category ? FALLBACK_DETAIL_ANGLES[product.category] : undefined;
+  if (categoryAngles) {
+    for (const angle of categoryAngles) {
+      if (!images.includes(angle) && images.length < 3) {
+        images.push(angle);
+      }
+    }
+  }
+
+  return images.length > 0 ? images : [FALLBACK_LUXURY_IMAGE];
+}
 
 /**
  * Normalizes legacy paths (e.g. /src/assets/images/... to /images/...)

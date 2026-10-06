@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   Heart,
@@ -19,7 +19,12 @@ import {
   RotateCcw as ResetIcon,
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
+import {
+  FALLBACK_LUXURY_IMAGE,
+  FALLBACK_CATEGORY_IMAGES,
+  normalizeImageUrl,
+  getProductGallery,
+} from '../utils/imageUtils';
 
 export const ProductDetailModal: React.FC = () => {
   const {
@@ -41,20 +46,29 @@ export const ProductDetailModal: React.FC = () => {
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
+  // Reset image index, zoom and selections whenever a new product is selected
+  useEffect(() => {
+    if (quickViewProduct) {
+      setActiveImageIndex(0);
+      setZoomScale(1);
+      setSelectedSize(quickViewProduct.sizes[0] || 'Standard');
+      setQuantity(1);
+    }
+  }, [quickViewProduct?.id]);
+
   if (!quickViewProduct) return null;
 
   const inWish = isInWishlist(quickViewProduct.id);
   const currentSize = selectedSize || quickViewProduct.sizes[0] || 'Standard';
 
-  // Build gallery images array
-  const galleryImages = [
-    quickViewProduct.image,
-    quickViewProduct.secondaryImage || quickViewProduct.image,
-    '/src/assets/images/category_luxury_denim_1791098561162.jpg',
-    '/src/assets/images/luxury_gold_watch_1791098572108.jpg',
-  ].filter(Boolean);
+  // Build authentic multi-angle gallery images array for this specific product
+  const galleryImages = getProductGallery(quickViewProduct);
 
-  const activeImage = galleryImages[activeImageIndex] || quickViewProduct.image;
+  const safeImageIndex =
+    activeImageIndex >= galleryImages.length ? 0 : activeImageIndex;
+  const activeImage =
+    galleryImages[safeImageIndex] ||
+    normalizeImageUrl(quickViewProduct.image, quickViewProduct.category);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current) return;
@@ -166,8 +180,11 @@ export const ProductDetailModal: React.FC = () => {
                 alt={quickViewProduct.name}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  if (target.src !== FALLBACK_LUXURY_IMAGE) {
-                    target.src = FALLBACK_LUXURY_IMAGE;
+                  const fallback =
+                    FALLBACK_CATEGORY_IMAGES[quickViewProduct.category] ||
+                    FALLBACK_LUXURY_IMAGE;
+                  if (target.src !== fallback) {
+                    target.src = fallback;
                   }
                 }}
                 className="w-full h-full object-cover transition-transform duration-150"
@@ -175,7 +192,6 @@ export const ProductDetailModal: React.FC = () => {
                   transform: `scale(${zoomScale})`,
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                 }}
-                referrerPolicy="no-referrer"
               />
 
               {/* Live Zoom Status Hint */}
@@ -213,8 +229,16 @@ export const ProductDetailModal: React.FC = () => {
                   <img
                     src={img}
                     alt={`Thumbnail ${idx + 1}`}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      const fallback =
+                        FALLBACK_CATEGORY_IMAGES[quickViewProduct.category] ||
+                        FALLBACK_LUXURY_IMAGE;
+                      if (target.src !== fallback) {
+                        target.src = fallback;
+                      }
+                    }}
                     className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
                   />
                 </button>
               ))}

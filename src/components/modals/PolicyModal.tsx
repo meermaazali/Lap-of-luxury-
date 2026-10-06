@@ -163,7 +163,7 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 GET IN TOUCH WITH VIP CONCIERGE
               </h3>
               <p className="leading-relaxed">
-                Whether you need styling advice, sizing verification, or custom delivery requests, our staff is available daily.
+                Whether you need styling advice, sizing verification, or custom delivery requests, our concierge team is available daily.
               </p>
               <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8] space-y-2">
                 <p><strong>Direct Cell Line:</strong> 75 7888 7888</p>

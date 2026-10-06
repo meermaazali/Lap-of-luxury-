@@ -83,6 +83,19 @@ export const OrderSuccessModal: React.FC = () => {
           </div>
         </div>
 
+        <a
+          href={`https://wa.me/917578887888?text=${encodeURIComponent(
+            `Hello Lap of Luxury Mahbubnagar,\nI just placed an order:\nOrder #${lastPlacedOrder.trackingNumber}\nCustomer: ${lastPlacedOrder.customerName}\nPhone: ${lastPlacedOrder.phone}\nAddress: ${lastPlacedOrder.address}, ${lastPlacedOrder.city}\nTotal: ₹${lastPlacedOrder.total}\nItems:\n${lastPlacedOrder.items
+              .map((i) => `• ${i.product.name} (${i.selectedSize}) x${i.quantity}`)
+              .join('\n')}`
+          )}`}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full mb-3 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
+        >
+          <span>Share Order on WhatsApp Concierge (75 7888 7888)</span>
+        </a>
+
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setLastPlacedOrder(null)}

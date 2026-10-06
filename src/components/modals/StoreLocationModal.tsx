@@ -122,7 +122,7 @@ export const StoreLocationModal: React.FC<StoreLocationModalProps> = ({ isOpen, 
                   Direct Line:
                 </strong>
                 <p className="text-xs text-[#111111] font-bold mt-0.5">
-                  CELL : {STORE_PHONE} <span className="font-normal text-[#6B5F50]">/ +91 98765 43210</span>
+                  CELL : {STORE_PHONE}
                 </p>
               </div>
             </div>

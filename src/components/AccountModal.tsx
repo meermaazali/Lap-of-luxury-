@@ -156,7 +156,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ onClose }) => {
             </p>
             <p className="flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-[#B89758]" />
-              <span>Cell: <strong>75 7888 7888</strong> / +91 98765 43210</span>
+              <span>Cell: <strong>75 7888 7888</strong></span>
             </p>
             <p className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-[#B89758] shrink-0" />
