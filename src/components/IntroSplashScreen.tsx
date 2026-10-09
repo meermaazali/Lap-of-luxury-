@@ -52,15 +52,8 @@ export const IntroSplashScreen: React.FC<IntroSplashScreenProps> = ({ onFinish }
           LAP OF LUXURY
         </h1>
 
-        {/* Elegant Gold Accent Line */}
-        <div className="flex items-center justify-center w-full max-w-[280px] gap-2.5 my-2.5">
-          <span className="h-[1.5px] flex-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-[#D4AF37]" />
-          <span className="w-2 h-2 rotate-45 bg-[#D4AF37]" />
-          <span className="h-[1.5px] flex-1 bg-gradient-to-l from-transparent via-[#D4AF37] to-[#D4AF37]" />
-        </div>
-
-        {/* Subtitle in Bodoni Italic */}
-        <p className="font-bodoni italic tracking-[0.2em] uppercase text-xs sm:text-sm font-semibold text-[#8C6D1F]">
+        {/* Subtitle in Bodoni Italic with clean spacing, no cutting line */}
+        <p className="font-bodoni italic tracking-[0.2em] uppercase text-xs sm:text-sm font-semibold text-[#8C6D1F] mt-2">
           Experience premium in every touch
         </p>
 

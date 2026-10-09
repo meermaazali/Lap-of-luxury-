@@ -91,3 +91,12 @@ export interface MediaAsset {
   createdAt: string;
   category?: string;
 }
+
+export interface BoutiqueHeroConfig {
+  kicker: string;
+  titleLine1: string;
+  titleLine2: string;
+  subtitleItems: string[];
+  ctaText: string;
+  image: string;
+}

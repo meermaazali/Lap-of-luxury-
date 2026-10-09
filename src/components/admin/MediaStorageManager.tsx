@@ -18,18 +18,22 @@ export const MediaStorageManager: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    setErrorMsg(null);
     try {
       for (let i = 0; i < files.length; i++) {
         await uploadMediaAsset(files[i], 'Uploads');
       }
-    } catch (err) {
-      alert('Error uploading media asset: ' + err);
+    } catch (err: unknown) {
+      setErrorMsg('Error uploading media asset: ' + (err instanceof Error ? err.message : String(err)));
+      setTimeout(() => setErrorMsg(null), 4000);
     } finally {
       setIsUploading(false);
     }
@@ -165,17 +169,33 @@ export const MediaStorageManager: React.FC = () => {
                     )}
                   </button>
 
-                  <button
-                    onClick={() => {
-                      if (confirm(`Delete "${asset.name}"?`)) {
-                        deleteMediaAsset(asset.id);
-                      }
-                    }}
-                    className="p-1 text-[#A39280] hover:text-red-600 transition-colors cursor-pointer"
-                    title="Delete Asset"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {deleteConfirmId === asset.id ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          deleteMediaAsset(asset.id);
+                          setDeleteConfirmId(null);
+                        }}
+                        className="px-2 py-0.5 bg-red-600 text-white rounded text-[10px] font-bold hover:bg-red-700 cursor-pointer"
+                      >
+                        Yes, Delete
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-1.5 py-0.5 text-gray-400 hover:text-gray-200 text-[10px]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeleteConfirmId(asset.id)}
+                      className="p-1 text-[#A39280] hover:text-red-600 transition-colors cursor-pointer"
+                      title="Delete Asset"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

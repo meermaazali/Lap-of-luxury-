@@ -9,9 +9,17 @@ import {
   RefreshCw,
   Edit2,
   Save,
+  Image as ImageIcon,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Product } from '../../types';
+import {
+  normalizeImageUrl,
+  FALLBACK_CATEGORY_IMAGES,
+  FALLBACK_LUXURY_IMAGE,
+} from '../../utils/imageUtils';
 
 export const InventoryManager: React.FC = () => {
   const { products, updateStock, updateProduct } = useStore();
@@ -19,6 +27,8 @@ export const InventoryManager: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [tempPrice, setTempPrice] = useState<number>(0);
+  const [editingImageId, setEditingImageId] = useState<string | null>(null);
+  const [tempImagePath, setTempImagePath] = useState<string>('');
 
   const filtered = products.filter((p) => {
     const matchesSearch =
@@ -31,17 +41,53 @@ export const InventoryManager: React.FC = () => {
 
   const lowStockCount = products.filter((p) => p.stockCount <= 5).length;
 
+  const [restockToast, setRestockToast] = useState<string | null>(null);
+
+  const handleSaveImageLink = (productId: string) => {
+    let clean = tempImagePath.trim();
+    if (!clean) return;
+
+    // Ensure leading "/" for local PNG / JPG paths
+    if (
+      !clean.startsWith('http://') &&
+      !clean.startsWith('https://') &&
+      !clean.startsWith('data:') &&
+      !clean.startsWith('blob:') &&
+      !clean.startsWith('/')
+    ) {
+      clean = '/' + clean;
+    }
+
+    updateProduct(productId, { image: clean });
+    setRestockToast(`✓ Updated image link to: ${clean}`);
+    setTimeout(() => setRestockToast(null), 3500);
+    setEditingImageId(null);
+  };
+
+  const handleAddSlash = () => {
+    if (!tempImagePath.startsWith('/') && !tempImagePath.startsWith('http')) {
+      setTempImagePath('/' + tempImagePath);
+    }
+  };
+
   const handleRestockAllLow = () => {
     products.forEach((p) => {
       if (p.stockCount <= 5) {
         updateStock(p.id, 25);
       }
     });
-    alert('Restocked all low-stock items to 25 units!');
+    setRestockToast('Restocked all low-stock items to 25 units!');
+    setTimeout(() => setRestockToast(null), 3000);
   };
 
   return (
     <div className="space-y-6">
+      {restockToast && (
+        <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-3 rounded-xl text-xs font-bold animate-in fade-in">
+          ✓ {restockToast}
+        </div>
+      )}
+
       {/* Top Banner & Low stock warning */}
       <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -119,19 +165,53 @@ export const InventoryManager: React.FC = () => {
                     {/* Product Name & Photo */}
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-10 h-10 object-cover rounded-lg border border-[#E0D5C3] bg-[#F2EDE2]"
-                          referrerPolicy="no-referrer"
-                        />
-                        <div>
+                        <div className="relative group shrink-0">
+                          <img
+                            src={normalizeImageUrl(product.image, product.category)}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded-lg border border-[#E0D5C3] bg-[#F2EDE2]"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const fb = FALLBACK_CATEGORY_IMAGES[product.category] || FALLBACK_LUXURY_IMAGE;
+                              if (target.src !== fb) target.src = fb;
+                            }}
+                          />
+                          <button
+                            onClick={() => {
+                              setEditingImageId(product.id);
+                              setTempImagePath(product.image);
+                            }}
+                            className="absolute inset-0 bg-black/60 text-white text-[9px] font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity"
+                            title="Edit image link"
+                          >
+                            Edit /
+                          </button>
+                        </div>
+                        <div className="min-w-0">
                           <p className="font-bold text-[#1E1E22] truncate max-w-[200px]">
                             {product.name}
                           </p>
-                          <span className="text-[10px] text-[#8C7D6B]">
-                            Sizes: {product.sizes.join(', ')}
-                          </span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] text-[#8C7D6B]">
+                              Sizes: {product.sizes.join(', ')}
+                            </span>
+                          </div>
+                          {/* Image Path Status with leading / indicator */}
+                          <div className="mt-1 flex items-center gap-1">
+                            <code className="text-[9.5px] bg-[#F4EFE6] px-1.5 py-0.5 rounded text-[#5A4E3F] font-mono truncate max-w-[170px]" title={product.image}>
+                              {product.image.startsWith('/') ? product.image : `/${product.image}`}
+                            </code>
+                            <button
+                              onClick={() => {
+                                setEditingImageId(product.id);
+                                setTempImagePath(product.image);
+                              }}
+                              className="text-[10px] text-[#B89758] hover:underline font-semibold"
+                            >
+                              Edit Link
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -246,6 +326,94 @@ export const InventoryManager: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Quick Image Link Editor Modal */}
+      {editingImageId && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#D5C7B0] space-y-4 animate-in fade-in">
+            <div className="flex items-center justify-between border-b border-[#E8DFC8] pb-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[#1E1E22] flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-[#B89758]" />
+                <span>Edit Product Image Link (PNG / JPG)</span>
+              </h3>
+              <button
+                onClick={() => setEditingImageId(null)}
+                className="text-gray-400 hover:text-black cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs text-[#7A6C58]">
+                Enter relative or local image path. Ensure path starts with <code className="bg-[#FAF6EE] text-[#B8860B] font-bold px-1 rounded">/</code> for 100% Vercel production deployment support.
+              </p>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#4A4033] uppercase mb-1">
+                  Image URL / Local File Path:
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={tempImagePath}
+                    onChange={(e) => setTempImagePath(e.target.value)}
+                    placeholder="e.g. /images/cat_bag_cream.jpg or /cat_watch.png"
+                    className="flex-1 px-3 py-2 border border-[#D5C7B0] rounded-lg text-xs font-mono focus:outline-none focus:border-[#B89758]"
+                  />
+                  {!tempImagePath.startsWith('/') && !tempImagePath.startsWith('http') && (
+                    <button
+                      type="button"
+                      onClick={handleAddSlash}
+                      className="px-2.5 py-2 bg-[#FAF6EE] hover:bg-[#F2ECE1] border border-[#B89758] text-[#8C6D1F] text-xs font-bold rounded-lg cursor-pointer whitespace-nowrap"
+                      title="Add leading /"
+                    >
+                      + Add /
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Live Preview */}
+              {tempImagePath && (
+                <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8DFC8] flex items-center gap-3">
+                  <img
+                    src={normalizeImageUrl(tempImagePath)}
+                    alt="Preview"
+                    className="w-14 h-14 object-cover rounded-lg border border-[#D5C7B0] bg-white shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
+                    }}
+                  />
+                  <div className="text-xs space-y-1 min-w-0">
+                    <p className="font-bold text-[#1E1E22]">Live Preview</p>
+                    <p className="text-[10px] text-[#7A6C58] truncate">
+                      Formatted path: <code className="font-mono text-[#B8860B]">{tempImagePath.startsWith('/') ? tempImagePath : `/${tempImagePath}`}</code>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E8DFC8]">
+              <button
+                type="button"
+                onClick={() => setEditingImageId(null)}
+                className="px-3.5 py-1.5 text-xs text-gray-600 hover:text-black cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveImageLink(editingImageId)}
+                className="px-4 py-2 bg-[#1E1E22] hover:bg-[#34343A] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm cursor-pointer"
+              >
+                Save Image Path
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -146,6 +146,12 @@ export const ProductsManager: React.FC = () => {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    // Auto-normalize image path with leading "/" (e.g. "images/cat.jpg" -> "/images/cat.jpg")
+    const finalPrimaryImage = normalizeImageUrl(formData.image, formData.category);
+    const finalSecondaryImage = formData.secondaryImage
+      ? normalizeImageUrl(formData.secondaryImage, formData.category)
+      : undefined;
+
     if (editingProduct) {
       updateProduct(editingProduct.id, {
         name: formData.name,
@@ -156,8 +162,8 @@ export const ProductsManager: React.FC = () => {
         sizes: sizesArr.length > 0 ? sizesArr : ['Standard'],
         stockCount: Number(formData.stockCount),
         inStock: Number(formData.stockCount) > 0,
-        image: formData.image,
-        secondaryImage: formData.secondaryImage || undefined,
+        image: finalPrimaryImage,
+        secondaryImage: finalSecondaryImage,
         isFestiveEdit: formData.isFestiveEdit,
         isBestSeller: formData.isBestSeller,
       });
@@ -174,8 +180,8 @@ export const ProductsManager: React.FC = () => {
         inStock: Number(formData.stockCount) > 0,
         rating: 4.9,
         reviewsCount: 1,
-        image: formData.image,
-        secondaryImage: formData.secondaryImage || undefined,
+        image: finalPrimaryImage,
+        secondaryImage: finalSecondaryImage,
         isFestiveEdit: formData.isFestiveEdit,
         isBestSeller: formData.isBestSeller,
         tags: [formData.category, formData.isFestiveEdit ? 'Festive Edit' : ''],
@@ -465,11 +471,16 @@ export const ProductsManager: React.FC = () => {
 
               {/* Primary Image Input & Direct Upload / Delete */}
               <div className="p-4 bg-white rounded-xl border border-[#D5C7B0] space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
-                    <ImageIcon className="w-4 h-4 text-[#B89758]" />
-                    Primary Product Image (PNG / JPG) *
-                  </label>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-[#B89758]" />
+                      Primary Product Image (PNG / JPG) *
+                    </label>
+                    <span className="text-[10px] text-[#7A6C58] block mt-0.5">
+                      Recommended ratio: <strong>1:1 Square</strong> (800×800px) or <strong>4:5 Portrait</strong> (800×1000px) · Must start with <code className="text-[#8C6D1F] font-bold">/</code>
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     {formData.image && (
                       <button
@@ -495,15 +506,31 @@ export const ProductsManager: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-2 items-center">
                   <input
                     type="text"
                     required
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="Enter image URL or select from media library below"
-                    className="flex-1 px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none"
+                    onBlur={() => {
+                      const v = formData.image.trim();
+                      if (v && !v.startsWith('/') && !v.startsWith('http') && !v.startsWith('data:')) {
+                        setFormData((prev) => ({ ...prev, image: '/' + v }));
+                      }
+                    }}
+                    placeholder="e.g. /images/cat_watch_gold.jpg or /cat_bag.png"
+                    className="flex-1 px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded text-xs font-mono focus:border-[#B89758] focus:outline-none"
                   />
+                  {formData.image && !formData.image.startsWith('/') && !formData.image.startsWith('http') && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, image: '/' + prev.image.trim() }))}
+                      className="px-2.5 py-1.5 bg-[#FAF6EE] hover:bg-[#F2ECE1] border border-[#B89758] text-[#8C6D1F] text-xs font-bold rounded cursor-pointer whitespace-nowrap"
+                      title="Add leading / to path"
+                    >
+                      + Add /
+                    </button>
+                  )}
                   {formData.image && (
                     <div className="relative group w-12 h-12 rounded border border-[#C5B39E] overflow-hidden shrink-0 bg-[#F5EFE3]">
                       <img
@@ -557,11 +584,16 @@ export const ProductsManager: React.FC = () => {
 
               {/* Optional Secondary / Multi-Angle Image */}
               <div className="p-4 bg-white rounded-xl border border-[#D5C7B0] space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
-                    <ImageIcon className="w-4 h-4 text-[#B89758]" />
-                    Secondary / Detail Angle Image (Optional)
-                  </label>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-[#B89758]" />
+                      Secondary / Detail Angle Image (Optional)
+                    </label>
+                    <span className="text-[10px] text-[#7A6C58] block mt-0.5">
+                      Recommended: 1:1 or 4:5 · Auto-prefixes leading <code className="text-[#8C6D1F] font-bold">/</code>
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     {formData.secondaryImage && (
                       <button
@@ -587,14 +619,30 @@ export const ProductsManager: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-2 items-center">
                   <input
                     type="text"
                     value={formData.secondaryImage}
                     onChange={(e) => setFormData({ ...formData, secondaryImage: e.target.value })}
-                    placeholder="Enter secondary image URL or upload above for multi-angle zoom"
-                    className="flex-1 px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none"
+                    onBlur={() => {
+                      const v = formData.secondaryImage.trim();
+                      if (v && !v.startsWith('/') && !v.startsWith('http') && !v.startsWith('data:')) {
+                        setFormData((prev) => ({ ...prev, secondaryImage: '/' + v }));
+                      }
+                    }}
+                    placeholder="e.g. /images/cat_shoes_white.jpg or /angle_2.png"
+                    className="flex-1 px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded text-xs font-mono focus:border-[#B89758] focus:outline-none"
                   />
+                  {formData.secondaryImage && !formData.secondaryImage.startsWith('/') && !formData.secondaryImage.startsWith('http') && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, secondaryImage: '/' + prev.secondaryImage.trim() }))}
+                      className="px-2.5 py-1.5 bg-[#FAF6EE] hover:bg-[#F2ECE1] border border-[#B89758] text-[#8C6D1F] text-xs font-bold rounded cursor-pointer whitespace-nowrap"
+                      title="Add leading / to path"
+                    >
+                      + Add /
+                    </button>
+                  )}
                   {formData.secondaryImage && (
                     <div className="relative group w-12 h-12 rounded border border-[#C5B39E] overflow-hidden shrink-0 bg-[#F5EFE3]">
                       <img

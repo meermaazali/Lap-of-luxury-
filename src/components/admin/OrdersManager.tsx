@@ -11,9 +11,13 @@ import {
   DollarSign,
   Printer,
   Sparkles,
+  Mail,
+  Send,
+  ExternalLink,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Order } from '../../types';
+import { getOrderMailtoUrl, sendOrderEmailNotification } from '../../utils/orderNotification';
 
 export const OrdersManager: React.FC = () => {
   const {
@@ -26,6 +30,32 @@ export const OrdersManager: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [ownerEmail, setOwnerEmail] = useState<string>(() => {
+    return localStorage.getItem('lol_owner_email') || 'taherab375@gmail.com';
+  });
+  const [emailWebhook, setEmailWebhook] = useState<string>(() => {
+    return localStorage.getItem('lol_order_email_webhook') || '';
+  });
+  const [showEmailConfig, setShowEmailConfig] = useState<boolean>(false);
+  const [emailStatusMsg, setEmailStatusMsg] = useState<string | null>(null);
+
+  const handleSaveEmailConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('lol_owner_email', ownerEmail.trim());
+    localStorage.setItem('lol_order_email_webhook', emailWebhook.trim());
+    setEmailStatusMsg('✓ Saved email notifications settings!');
+    setTimeout(() => setEmailStatusMsg(null), 3500);
+  };
+
+  const handleSendEmailNow = async (order: Order) => {
+    // 1. Try background webhook/service if configured
+    if (emailWebhook.trim()) {
+      await sendOrderEmailNotification(order);
+    }
+    // 2. Open standard email client with pre-filled order receipt
+    const mailto = getOrderMailtoUrl(order, ownerEmail);
+    window.open(mailto, '_blank');
+  };
 
   const filteredOrders = orders.filter((o) => {
     if (statusFilter === 'All') return true;
@@ -74,6 +104,15 @@ export const OrdersManager: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowEmailConfig(!showEmailConfig)}
+            className="px-3 py-1.5 border border-[#B89758] text-[#8C6D1F] hover:bg-[#FAF6EE] text-xs font-bold uppercase rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+            title="Configure Order Email Notifications"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            <span>Email Alerts ({ownerEmail})</span>
+          </button>
+
           {orders.length > 0 && (
             <button
               onClick={() => setShowClearConfirm(true)}
@@ -93,6 +132,70 @@ export const OrdersManager: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Email Alerts Configuration Panel */}
+      {showEmailConfig && (
+        <form onSubmit={handleSaveEmailConfig} className="bg-white p-5 rounded-xl border-2 border-[#D4AF37]/60 shadow-sm space-y-4 animate-in fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-[#B89758]" />
+              <h3 className="font-bold text-sm text-[#1E1E22] uppercase tracking-wider">
+                Store Owner Order Email Notifications
+              </h3>
+            </div>
+            {emailStatusMsg && (
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                {emailStatusMsg}
+              </span>
+            )}
+          </div>
+
+          <p className="text-xs text-[#5A4F41] leading-relaxed">
+            Every customer order automatically triggers notifications to your email. You can receive them via instant <strong>1-Click Email Dispatch</strong> or via a free <strong>Formspree / Webhook</strong> endpoint.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-[#4A4033] uppercase mb-1">
+                Your Email Address (For Order Receipts) *
+              </label>
+              <input
+                type="email"
+                required
+                value={ownerEmail}
+                onChange={(e) => setOwnerEmail(e.target.value)}
+                placeholder="taherab375@gmail.com"
+                className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs font-mono focus:border-[#B89758] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#4A4033] uppercase mb-1">
+                Optional: Formspree / Webhook Endpoint
+              </label>
+              <input
+                type="url"
+                value={emailWebhook}
+                onChange={(e) => setEmailWebhook(e.target.value)}
+                placeholder="e.g. https://formspree.io/f/your_form_id"
+                className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs font-mono focus:border-[#B89758] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-[11px] text-[#7A6C58]">
+              💡 <strong>Easiest Method:</strong> Set up a free form at <a href="https://formspree.io" target="_blank" rel="noreferrer" className="text-[#B89758] underline">formspree.io</a> in 1 minute and paste the URL here. All customer orders will arrive straight into your Gmail inbox!
+            </span>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-[#1E1E22] hover:bg-[#34343A] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm cursor-pointer shrink-0 ml-3"
+            >
+              Save Email Settings
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -173,6 +276,15 @@ export const OrdersManager: React.FC = () => {
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
+
+                    <button
+                      onClick={() => handleSendEmailNow(order)}
+                      className="px-2.5 py-1 rounded-lg border border-[#B89758] hover:bg-[#FAF6EE] text-[#8C6D1F] text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Send/Receive Order Email Receipt"
+                    >
+                      <Mail className="w-3.5 h-3.5 text-[#B89758]" />
+                      <span className="hidden sm:inline">Email Order</span>
+                    </button>
 
                     <button
                       onClick={() => setSelectedOrderForInvoice(order)}

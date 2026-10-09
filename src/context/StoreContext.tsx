@@ -7,6 +7,7 @@ import {
   Order,
   MediaAsset,
   PaymentConfig,
+  BoutiqueHeroConfig,
 } from '../types';
 import {
   INITIAL_BANNERS,
@@ -16,6 +17,7 @@ import {
   INITIAL_MEDIA,
 } from '../data/initialData';
 import { normalizeImageUrl, compressImage, FALLBACK_CATEGORY_IMAGES } from '../utils/imageUtils';
+import { sendOrderEmailNotification } from '../utils/orderNotification';
 
 interface StoreContextType {
   // Products
@@ -83,6 +85,10 @@ interface StoreContextType {
   paymentConfig: PaymentConfig;
   updatePaymentConfig: (updates: Partial<PaymentConfig>) => void;
 
+  // Flagship Boutique Hero Configuration
+  boutiqueHeroConfig: BoutiqueHeroConfig;
+  updateBoutiqueHeroConfig: (updates: Partial<BoutiqueHeroConfig>) => void;
+
   // Media Library / Cloud Storage
   mediaAssets: MediaAsset[];
   uploadMediaAsset: (file: File, category?: string) => Promise<MediaAsset>;
@@ -103,6 +109,10 @@ interface StoreContextType {
   // Admin Mode
   isAdminMode: boolean;
   setIsAdminMode: (admin: boolean) => void;
+
+  // 3D Experience Voyage Mode
+  isExperienceOpen: boolean;
+  setIsExperienceOpen: (open: boolean) => void;
 
   // Category & Navigation Luxury White Screen Transition
   isTransitioning: boolean;
@@ -158,10 +168,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem('lol_products');
-      const list: Product[] = saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+      let list: Product[] = saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+      if (Array.isArray(list)) {
+        const existingIds = new Set(list.map((p) => p.id));
+        const missingInitial = INITIAL_PRODUCTS.filter((p) => !existingIds.has(p.id));
+        list = [...list, ...missingInitial];
+      } else {
+        list = INITIAL_PRODUCTS;
+      }
       return list.map((p) => ({
         ...p,
         image: normalizeImageUrl(p.image, p.category),
+        secondaryImage: p.secondaryImage ? normalizeImageUrl(p.secondaryImage, p.category) : undefined,
       }));
     } catch {
       return INITIAL_PRODUCTS;
@@ -195,14 +213,26 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const saved = localStorage.getItem('lol_categories');
       if (saved) {
         const list: CategoryItem[] = JSON.parse(saved);
-        return list.map((c) => {
-          const bw = FALLBACK_CATEGORY_IMAGES[c.slug];
-          const isOld = !c.image || c.image.includes('unsplash.com') || c.image.includes('festive_edit_luxury') || c.image.includes('hero_luxury_fashion');
-          return {
-            ...c,
-            image: isOld && bw ? bw : normalizeImageUrl(c.image, c.slug),
-          };
-        });
+        if (Array.isArray(list) && list.length > 0) {
+          // Deduplicate by slug and ensure clean valid categories
+          const seen = new Set<string>();
+          const deduped: CategoryItem[] = [];
+          for (const c of list) {
+            if (!c || !c.slug || seen.has(c.slug.toLowerCase())) continue;
+            seen.add(c.slug.toLowerCase());
+            const bw = FALLBACK_CATEGORY_IMAGES[c.slug];
+            const isOld =
+              !c.image ||
+              c.image.includes('unsplash.com') ||
+              c.image.includes('festive_edit_luxury') ||
+              c.image.includes('hero_luxury_fashion');
+            deduped.push({
+              ...c,
+              image: isOld && bw ? bw : normalizeImageUrl(c.image, c.slug),
+            });
+          }
+          if (deduped.length > 0) return deduped;
+        }
       }
       return INITIAL_CATEGORIES;
     } catch {
@@ -277,7 +307,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return path.startsWith('/admin') || hash.includes('admin') || search.includes('admin');
   };
 
+  const checkIsExperienceRoute = () => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    return path.startsWith('/experience') || hash.includes('experience') || search.includes('experience');
+  };
+
   const [isAdminMode, setIsAdminModeState] = useState<boolean>(() => checkIsAdminRoute());
+  const [isExperienceOpen, setIsExperienceOpenState] = useState<boolean>(() => checkIsExperienceRoute());
 
   const setIsAdminMode = (admin: boolean) => {
     setIsAdminModeState(admin);
@@ -302,9 +341,33 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const setIsExperienceOpen = (open: boolean) => {
+    setIsExperienceOpenState(open);
+    if (typeof window !== 'undefined') {
+      if (open) {
+        if (!window.location.pathname.startsWith('/experience') && !window.location.hash.includes('experience')) {
+          try {
+            window.history.pushState(null, '', '/experience');
+          } catch {
+            window.location.hash = 'experience';
+          }
+        }
+      } else {
+        if (window.location.pathname.startsWith('/experience') || window.location.hash.includes('experience')) {
+          try {
+            window.history.pushState(null, '', '/');
+          } catch {
+            window.location.hash = '';
+          }
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     const handleUrlChange = () => {
       setIsAdminModeState(checkIsAdminRoute());
+      setIsExperienceOpenState(checkIsExperienceRoute());
     };
     window.addEventListener('popstate', handleUrlChange);
     window.addEventListener('hashchange', handleUrlChange);
@@ -324,25 +387,30 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const saved = localStorage.getItem('lol_payment_config');
       if (saved) {
         const parsed = JSON.parse(saved);
+        const upiId = !parsed.upiId || parsed.upiId.includes('7578887888') ? 'maaz_ali_36@okaxis' : parsed.upiId;
+        const payeeName = !parsed.payeeName || parsed.payeeName.includes('7578887888') ? 'Maaz Ali' : parsed.payeeName;
         return {
           acceptPaymentsOnline: parsed.acceptPaymentsOnline !== undefined ? parsed.acceptPaymentsOnline : false,
           ...parsed,
+          upiId,
+          payeeName,
+          qrCodeImage: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D${encodeURIComponent(upiId)}%26pn%3D${encodeURIComponent(payeeName)}%26cu%3DINR`,
         };
       }
     } catch {}
     return {
       acceptPaymentsOnline: false, // Default: coming soon until admin toggles ON
-      upiId: '7578887888@ybl',
-      payeeName: 'Lap of Luxury Mahbubnagar',
-      upiNumber: '75 7888 7888',
-      qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D7578887888%40ybl%26pn%3DLap%2520of%2520Luxury%26cu%3DINR',
+      upiId: 'maaz_ali_36@okaxis',
+      payeeName: 'Maaz Ali',
+      upiNumber: 'maaz_ali_36',
+      qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dmaaz_ali_36%40okaxis%26pn%3DMaaz%2520Ali%26cu%3DINR',
       enableUPI: true,
       enableCOD: true,
       enableCard: false,
       bankAccountNumber: '50200012345678',
       bankIfsc: 'HDFC0001234',
       bankName: 'HDFC Bank, Mahbubnagar',
-      instructions: 'Scan the UPI QR code or send to the UPI ID. Enter 12-digit UTR below.',
+      instructions: 'Scan the UPI QR code or send to maaz_ali_36@okaxis. Enter 12-digit UTR below.',
     };
   });
 
@@ -353,6 +421,37 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         localStorage.setItem('lol_payment_config', JSON.stringify(next));
       } catch (e) {
         console.warn('Could not save payment config to localStorage:', e);
+      }
+      return next;
+    });
+  };
+
+  const DEFAULT_BOUTIQUE_HERO: BoutiqueHeroConfig = {
+    kicker: 'EXCLUSIVE COLLECTION',
+    titleLine1: 'Luxury',
+    titleLine2: 'For Every Moment',
+    subtitleItems: ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
+    ctaText: 'Shop Now',
+    image: '/images/flagship_banner_16_9.jpg',
+  };
+
+  const [boutiqueHeroConfig, setBoutiqueHeroConfig] = useState<BoutiqueHeroConfig>(() => {
+    try {
+      const saved = localStorage.getItem('lol_boutique_hero');
+      if (saved) {
+        return { ...DEFAULT_BOUTIQUE_HERO, ...JSON.parse(saved) };
+      }
+    } catch {}
+    return DEFAULT_BOUTIQUE_HERO;
+  });
+
+  const updateBoutiqueHeroConfig = (updates: Partial<BoutiqueHeroConfig>) => {
+    setBoutiqueHeroConfig((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('lol_boutique_hero', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Could not save boutique hero to localStorage:', e);
       }
       return next;
     });
@@ -427,17 +526,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('lol_media', JSON.stringify(mediaAssets));
   }, [mediaAssets]);
 
-  // Listen to hash changes for direct admin access #admin
+  // Listen to path & hash changes for direct admin access (/admin or #admin)
   useEffect(() => {
-    const handleHash = () => {
-      if (window.location.hash.toLowerCase().includes('admin')) {
-        setIsAdminMode(true);
+    const handleUrlChange = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      if (path.startsWith('/admin') || hash.includes('admin') || search.includes('admin')) {
+        setIsAdminModeState(true);
       } else {
-        setIsAdminMode(false);
+        setIsAdminModeState(false);
       }
     };
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+    window.addEventListener('hashchange', handleUrlChange);
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('popstate', handleUrlChange);
+    };
   }, []);
 
   // Products actions
@@ -625,6 +731,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setOrders((prev) => [newOrder, ...prev]);
     setLastPlacedOrder(newOrder);
     setLatestNotification(newOrder);
+    sendOrderEmailNotification(newOrder);
     playOrderChime();
     clearCart();
     return newOrder;
@@ -734,8 +841,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setLastPlacedOrder,
         isAdminMode,
         setIsAdminMode,
+        isExperienceOpen,
+        setIsExperienceOpen,
         paymentConfig,
         updatePaymentConfig,
+        boutiqueHeroConfig,
+        updateBoutiqueHeroConfig,
         isTransitioning,
         transitionLabel,
         triggerTransition,

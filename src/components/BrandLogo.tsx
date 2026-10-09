@@ -67,17 +67,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         </div>
       </div>
 
-      {/* Decorative Golden Divider & Tagline (Bigger and commanding) */}
+      {/* Tagline without cutting line */}
       {showSubtitle && (
-        <div className="flex flex-col items-center mt-1.5 w-full max-w-[320px] sm:max-w-[420px]">
-          <div className="flex items-center justify-center w-full gap-2.5 my-0.5">
-            <span className="h-[1.5px] flex-1 bg-gradient-to-r from-transparent via-[#C5A880] to-[#C5A880]" />
-            <span className="w-1.5 h-1.5 rotate-45 bg-[#B89758] shrink-0" />
-            <span className="h-[1.5px] flex-1 bg-gradient-to-l from-transparent via-[#C5A880] to-[#C5A880]" />
-          </div>
-
+        <div className="flex flex-col items-center mt-1 w-full max-w-[320px] sm:max-w-[420px]">
           <p
-            className={`font-bodoni italic tracking-[0.12em] sm:tracking-[0.16em] text-[11px] sm:text-xs md:text-[13px] uppercase font-semibold px-2 text-center whitespace-normal sm:whitespace-nowrap overflow-visible ${
+            className={`font-bodoni italic tracking-[0.14em] sm:tracking-[0.18em] text-[11px] sm:text-xs md:text-[13px] uppercase font-semibold px-2 text-center whitespace-normal sm:whitespace-nowrap overflow-visible ${
               isDark ? 'text-[#F3D78E]' : 'text-[#8A671A]'
             }`}
           >

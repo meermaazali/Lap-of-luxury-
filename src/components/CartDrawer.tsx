@@ -23,6 +23,7 @@ export const CartDrawer: React.FC = () => {
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   if (!isCartOpen) return null;
 
@@ -31,12 +32,14 @@ export const CartDrawer: React.FC = () => {
   const progressPercent = Math.min(100, (cartTotal / FREE_SHIPPING_THRESHOLD) * 100);
 
   const applyCoupon = () => {
+    setCouponError(null);
     if (couponCode.trim().toUpperCase() === 'FESTIVE50' || couponCode.trim().toUpperCase() === 'LUXURY') {
       const disc = Math.round(cartTotal * 0.15); // 15% off
       setCouponDiscount(disc);
       setCouponApplied(true);
     } else {
-      alert('Coupon code invalid. Try "FESTIVE50" for 15% off!');
+      setCouponError('Coupon code invalid. Try "FESTIVE50" for 15% off!');
+      setTimeout(() => setCouponError(null), 3500);
     }
   };
 
@@ -209,6 +212,12 @@ export const CartDrawer: React.FC = () => {
                 Apply
               </button>
             </div>
+
+            {couponError && (
+              <div className="text-[11px] text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-200 font-medium">
+                {couponError}
+              </div>
+            )}
 
             {couponApplied && (
               <div className="flex justify-between text-xs text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">

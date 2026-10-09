@@ -48,31 +48,31 @@ export const CategoryAutoSlider: React.FC = () => {
 
   return (
     <section
-      className="py-6 sm:py-8 bg-[#FAF8F5] border-b border-[#E8DFC8] relative select-none"
+      className="py-8 sm:py-10 bg-white/65 backdrop-blur-[2px] border-b border-[#D4AF37]/30 relative select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#E8DFC8]">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#D4AF37]/30">
+          <div className="flex items-center gap-2.5">
             <span className="w-2 h-2 rotate-45 bg-[#D4AF37]" />
-            <h2 className="font-bodoni text-sm sm:text-base tracking-[0.2em] font-extrabold uppercase text-[#111111]">
-              CURATED CATEGORIES
+            <h2 className="font-bodoni text-base sm:text-lg md:text-xl tracking-[0.2em] font-black uppercase text-[#111113]">
+              CURATED COLLECTIONS
             </h2>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => scroll('left')}
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-white bg-white flex items-center justify-center text-[#111111] transition-all cursor-pointer shadow-xs active:scale-95"
+              className="w-8 h-8 rounded-full border border-[#D4AF37]/60 hover:border-[#D4AF37] hover:bg-[#FAF6EE] bg-white flex items-center justify-center text-[#8A671A] transition-all cursor-pointer shadow-xs active:scale-95"
               aria-label="Scroll left"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => scroll('right')}
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-white bg-white flex items-center justify-center text-[#111111] transition-all cursor-pointer shadow-xs active:scale-95"
+              className="w-8 h-8 rounded-full border border-[#D4AF37]/60 hover:border-[#D4AF37] hover:bg-[#FAF6EE] bg-white flex items-center justify-center text-[#8A671A] transition-all cursor-pointer shadow-xs active:scale-95"
               aria-label="Scroll right"
             >
               <ChevronRight className="w-4 h-4" />
@@ -80,10 +80,10 @@ export const CategoryAutoSlider: React.FC = () => {
           </div>
         </div>
 
-        {/* Sliding Rail with High-Contrast Luxury Black & White Styling */}
+        {/* Sliding Rail with Modern 2026 Golden & White Luxury Cards */}
         <div
           ref={sliderRef}
-          className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-1"
+          className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth pb-2 2xl:justify-center"
         >
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat.slug;
@@ -91,14 +91,14 @@ export const CategoryAutoSlider: React.FC = () => {
               <div
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat)}
-                className={`flex-shrink-0 w-[150px] sm:w-[185px] md:w-[210px] rounded-xl overflow-hidden cursor-pointer group bg-white border transition-all duration-300 shadow-xs hover:shadow-lg flex flex-col justify-between ${
+                className={`flex-shrink-0 w-[160px] sm:w-[195px] md:w-[220px] rounded-2xl overflow-hidden cursor-pointer group bg-white border transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.2)] flex flex-col justify-between ${
                   isSelected
-                    ? 'border-[#D4AF37] ring-2 ring-[#D4AF37] shadow-md'
-                    : 'border-[#E2D5BE] hover:border-[#D4AF37]'
+                    ? 'border-[#D4AF37] ring-2 ring-[#D4AF37] shadow-[0_8px_25px_rgba(212,175,55,0.25)]'
+                    : 'border-[#D4AF37]/35 hover:border-[#D4AF37]'
                 }`}
               >
-                {/* Monochrome Black & White Studio Presentation */}
-                <div className="relative h-44 sm:h-52 md:h-56 w-full overflow-hidden bg-[#111113]">
+                {/* High-Fidelity Color Studio Visual */}
+                <div className="relative h-48 sm:h-56 md:h-60 w-full overflow-hidden bg-[#FAF8F5]">
                   <img
                     src={normalizeImageUrl(cat.image, cat.slug)}
                     alt={cat.name}
@@ -106,30 +106,30 @@ export const CategoryAutoSlider: React.FC = () => {
                       const target = e.target as HTMLImageElement;
                       const fb =
                         FALLBACK_CATEGORY_IMAGES[cat.slug] || FALLBACK_LUXURY_IMAGE;
-                      if (target.src !== fb) {
+                      if (!target.src.endsWith(fb)) {
                         target.src = fb;
                       }
                     }}
-                    className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out grayscale contrast-110 brightness-95 group-hover:brightness-105"
+                    className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out"
                   />
 
-                  {/* Gradient Scrim for Editorial Typography */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10 transition-opacity" />
+                  {/* Golden-White Gradient Scrim */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/75 transition-opacity" />
 
-                  {/* Floating Luxury Editorial Category Name in Good Font */}
-                  <div className="absolute inset-x-0 bottom-3 px-2.5 text-center flex flex-col items-center">
-                    <span className="font-bodoni font-black text-xs sm:text-sm tracking-[0.18em] uppercase text-white drop-shadow-md leading-tight group-hover:text-[#F5D88C] transition-colors">
+                  {/* Floating Luxury Editorial Category Name */}
+                  <div className="absolute inset-x-0 bottom-3 px-3 text-center flex flex-col items-center">
+                    <span className="font-bodoni font-black text-xs sm:text-sm tracking-[0.2em] uppercase text-white drop-shadow-md leading-tight group-hover:text-[#F4E09E] transition-colors">
                       {cat.name}
                     </span>
-                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#D4AF37] mt-1 opacity-90">
-                      EXPLORE →
+                    <span className="text-[9px] uppercase tracking-[0.22em] font-bold text-[#D4AF37] mt-1 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                      DISCOVER →
                     </span>
                   </div>
                 </div>
 
-                {/* Bottom Caption Bar */}
-                <div className="py-2.5 px-3 text-center bg-[#FAF8F5] group-hover:bg-[#111113] transition-colors duration-300 border-t border-[#EFE8DC]">
-                  <p className="font-bodoni font-bold text-[11px] sm:text-xs tracking-[0.14em] text-[#111111] group-hover:text-[#D4AF37] transition-colors truncate">
+                {/* Bottom Caption Bar in Pristine White & Gold */}
+                <div className="py-2.5 px-3 text-center bg-white group-hover:bg-[#FAF6EE] transition-colors duration-300 border-t border-[#D4AF37]/20">
+                  <p className="font-bodoni font-bold text-[11px] sm:text-xs tracking-[0.16em] text-[#111113] group-hover:text-[#B8860B] transition-colors truncate">
                     {cat.name}
                   </p>
                 </div>

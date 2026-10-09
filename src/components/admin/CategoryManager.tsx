@@ -25,8 +25,12 @@ export const CategoryManager: React.FC = () => {
     itemCount: 20,
   });
 
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   const handleOpenAdd = () => {
     setEditingCategory(null);
+    setFormError(null);
     setFormData({
       name: '',
       slug: '',
@@ -38,6 +42,7 @@ export const CategoryManager: React.FC = () => {
 
   const handleOpenEdit = (c: CategoryItem) => {
     setEditingCategory(c);
+    setFormError(null);
     setFormData({
       name: c.name,
       slug: c.slug,
@@ -51,11 +56,12 @@ export const CategoryManager: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsUploading(true);
+    setFormError(null);
     try {
       const asset = await uploadMediaAsset(file, 'Categories');
       setFormData((prev) => ({ ...prev, image: asset.dataUrl }));
-    } catch (err) {
-      alert('Upload failed: ' + err);
+    } catch (err: unknown) {
+      setFormError('Upload failed: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsUploading(false);
     }
@@ -64,7 +70,7 @@ export const CategoryManager: React.FC = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.image.trim()) {
-      alert('Name and category image are required.');
+      setFormError('Name and category image are required.');
       return;
     }
 
@@ -164,17 +170,33 @@ export const CategoryManager: React.FC = () => {
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 {categories.length > 3 && (
-                  <button
-                    onClick={() => {
-                      if (confirm(`Remove category "${cat.name}"?`)) {
-                        deleteCategory(cat.id);
-                      }
-                    }}
-                    className="p-1.5 text-gray-400 hover:text-red-600"
-                    title="Delete Category"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  deleteConfirmId === cat.id ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          deleteCategory(cat.id);
+                          setDeleteConfirmId(null);
+                        }}
+                        className="px-2 py-0.5 bg-red-600 text-white rounded text-[10px] font-bold hover:bg-red-700 cursor-pointer"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-1 text-gray-400 hover:text-gray-600 text-[10px]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeleteConfirmId(cat.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 cursor-pointer"
+                      title="Delete Category"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )
                 )}
               </div>
             </div>
@@ -191,6 +213,11 @@ export const CategoryManager: React.FC = () => {
             </h3>
 
             <form onSubmit={handleSave} className="space-y-4">
+              {formError && (
+                <div className="p-2.5 bg-red-50 border border-red-300 text-red-700 text-xs rounded-lg font-semibold">
+                  {formError}
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-[#4A4033] mb-1">
                   CATEGORY NAME (Uppercase) *

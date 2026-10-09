@@ -20,8 +20,8 @@ export const Footer: React.FC = () => {
 
   return (
     <>
-      <footer className="bg-[#FAF8F5] border-t-2 border-[#D4AF37]/40 pt-10 sm:pt-14 pb-8 text-[#3A332A]">
-        <div className="max-w-7xl mx-auto px-4">
+      <footer className="bg-white/80 backdrop-blur-[2px] border-t border-[#D4AF37]/30 pt-12 sm:pt-16 pb-8 text-[#3A332A]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Main Footer Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-10 border-b border-[#E8DFC8]">
             {/* Col 1: Brand Info */}
@@ -194,14 +194,14 @@ export const Footer: React.FC = () => {
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#FAF6EE] to-[#F3E7BE] border border-[#D4AF37]/50 shadow-2xs">
                 <span className="text-[#55493B] font-medium">Developed by</span>
                 <a
-                  href="https://www.instagram.com/maaaaz_.786/"
+                  href="https://www.instagram.com/maaz_ali_36/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#967018] hover:text-[#111111] font-extrabold hover:underline inline-flex items-center gap-1 transition-colors"
-                  aria-label="Developer Instagram Profile @maaaaz_.786"
+                  aria-label="Developer Instagram Profile @maaz_ali_36"
                 >
                   <Instagram className="w-3.5 h-3.5 text-[#B8860B]" />
-                  <span>maaaaz_.786</span>
+                  <span>maaz_ali_36</span>
                 </a>
               </div>
             </div>

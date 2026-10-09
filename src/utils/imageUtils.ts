@@ -20,38 +20,46 @@ export const FALLBACK_CATEGORY_IMAGES: Record<string, string> = {
   Festive: '/images/festive_edit_luxury_1791098550195.jpg',
 };
 
-// High-resolution craftsmanship and detail angles for interactive product gallery
+// High-resolution craftsmanship and detail angles for interactive product gallery (100% local, fast & infallible)
 export const FALLBACK_DETAIL_ANGLES: Record<string, string[]> = {
   Men: [
-    'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=800&auto=format&fit=crop',
+    '/images/category_mens_bw.jpg',
+    '/images/category_mens_fashion_1791290148102.jpg',
     '/images/hero_luxury_fashion_1791098539165.jpg',
   ],
+  Women: [
+    '/images/category_womens_bw.jpg',
+    '/images/category_womens_fashion_1791290162230.jpg',
+    '/images/festive_edit_luxury_1791098550195.jpg',
+  ],
   Jeans: [
+    '/images/category_jeans_bw.jpg',
     '/images/category_luxury_denim_1791098561162.jpg',
-    'https://images.unsplash.com/photo-1542272604-780c96856592?q=80&w=800&auto=format&fit=crop',
-    '/images/luxury_products_hero_1791099185940.jpg',
+    '/images/category_jeans_luxury_1791290260306.jpg',
   ],
   Watches: [
     '/images/luxury_gold_watch_1791098572108.jpg',
-    'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
-    '/images/festive_edit_luxury_1791098550195.jpg',
+    '/images/category_watches_bw.jpg',
+    '/images/category_watches_luxury_1791290199257.jpg',
   ],
   Bags: [
-    'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop',
+    '/images/category_bags_bw.jpg',
+    '/images/category_bags_luxury_1791290228052.jpg',
     '/images/luxury_products_hero_1791099185940.jpg',
   ],
   Shoes: [
-    'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop',
+    '/images/category_shoes_bw.jpg',
+    '/images/category_shoes_luxury_1791290241545.jpg',
     '/images/hero_luxury_fashion_1791098539165.jpg',
   ],
   Accessories: [
-    'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop',
+    '/images/category_accessories_bw.jpg',
+    '/images/category_accessories_luxury_1791290275377.jpg',
     '/images/luxury_gold_watch_1791098572108.jpg',
   ],
   Perfumes: [
-    'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop',
+    '/images/category_perfumes_bw.jpg',
+    '/images/category_perfumes_luxury_1791290184160.jpg',
     '/images/festive_edit_luxury_1791098550195.jpg',
   ],
 };
@@ -88,7 +96,8 @@ export function getProductGallery(product: {
 
 /**
  * Normalizes legacy paths (e.g. /src/assets/images/... to /images/...)
- * and provides safe fallbacks.
+ * and automatically adds leading "/" to any PNG, JPG, or relative image link
+ * so inventory images never break on Vercel deployment.
  */
 export function normalizeImageUrl(url?: string, category?: string): string {
   if (!url || typeof url !== 'string' || url.trim() === '') {
@@ -98,11 +107,43 @@ export function normalizeImageUrl(url?: string, category?: string): string {
     return FALLBACK_LUXURY_IMAGE;
   }
 
-  const clean = url.trim();
+  let clean = url.trim();
 
   // Fix Vite /src/assets/images dev paths to production /images/
   if (clean.startsWith('/src/assets/images/')) {
-    return clean.replace('/src/assets/images/', '/images/');
+    clean = clean.replace('/src/assets/images/', '/images/');
+  }
+
+  // Auto-prefix leading "/" to local PNG/JPG image paths (e.g. "images/cat_watch.jpg" -> "/images/cat_watch.jpg")
+  if (
+    !clean.startsWith('http://') &&
+    !clean.startsWith('https://') &&
+    !clean.startsWith('data:') &&
+    !clean.startsWith('blob:')
+  ) {
+    if (!clean.startsWith('/')) {
+      if (clean.startsWith('images/')) {
+        clean = '/' + clean;
+      } else if (
+        clean.endsWith('.png') ||
+        clean.endsWith('.jpg') ||
+        clean.endsWith('.jpeg') ||
+        clean.endsWith('.webp') ||
+        clean.endsWith('.svg')
+      ) {
+        clean = '/images/' + clean;
+      } else {
+        clean = '/' + clean;
+      }
+    }
+  }
+
+  // Convert unreliable remote Unsplash URLs to locally bundled high-definition category images
+  if (clean.includes('images.unsplash.com')) {
+    if (category && FALLBACK_CATEGORY_IMAGES[category]) {
+      return FALLBACK_CATEGORY_IMAGES[category];
+    }
+    return FALLBACK_LUXURY_IMAGE;
   }
 
   return clean;

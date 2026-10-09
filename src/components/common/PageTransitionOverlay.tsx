@@ -20,15 +20,8 @@ export const PageTransitionOverlay: React.FC = () => {
           LAP OF LUXURY
         </h2>
 
-        {/* Golden Diamond Divider */}
-        <div className="flex items-center justify-center w-full max-w-[280px] sm:max-w-[340px] gap-3 my-2.5">
-          <span className="h-[1.5px] flex-1 bg-gradient-to-r from-transparent via-[#C5A880] to-[#C5A880]" />
-          <span className="w-2 h-2 rotate-45 bg-[#B89758]" />
-          <span className="h-[1.5px] flex-1 bg-gradient-to-l from-transparent via-[#C5A880] to-[#C5A880]" />
-        </div>
-
-        {/* Tagline */}
-        <p className="font-bodoni italic tracking-[0.20em] uppercase text-xs sm:text-sm font-semibold text-[#8C6D1F]">
+        {/* Tagline without cutting line */}
+        <p className="font-bodoni italic tracking-[0.20em] uppercase text-xs sm:text-sm font-semibold text-[#8C6D1F] mt-2">
           Experience premium in every touch
         </p>
 

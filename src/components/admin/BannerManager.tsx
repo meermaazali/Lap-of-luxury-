@@ -26,6 +26,8 @@ export const BannerManager: React.FC = () => {
     setBannerInterval,
     mediaAssets,
     uploadMediaAsset,
+    boutiqueHeroConfig,
+    updateBoutiqueHeroConfig,
   } = useStore();
 
   const [editingBanner, setEditingBanner] = useState<BannerSlide | null>(null);
@@ -34,6 +36,16 @@ export const BannerManager: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Flagship Boutique Hero state
+  const [boutiqueHeroData, setBoutiqueHeroData] = useState({
+    kicker: boutiqueHeroConfig?.kicker || 'EXCLUSIVE COLLECTION',
+    titleLine1: boutiqueHeroConfig?.titleLine1 || 'Luxury',
+    titleLine2: boutiqueHeroConfig?.titleLine2 || 'For Every Moment',
+    subtitle: boutiqueHeroConfig?.subtitleItems?.join(' | ') || 'Premium Fashion | Elegant Accessories | Timeless Style',
+    ctaText: boutiqueHeroConfig?.ctaText || 'Shop Now',
+    image: boutiqueHeroConfig?.image || '/images/flagship_banner_16_9.jpg',
+  });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -50,6 +62,30 @@ export const BannerManager: React.FC = () => {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleSaveBoutiqueHero = (e: React.FormEvent) => {
+    e.preventDefault();
+    let img = boutiqueHeroData.image.trim();
+    if (!img.startsWith('/') && !img.startsWith('http') && !img.startsWith('data:')) {
+      img = '/' + img;
+    }
+
+    const items = boutiqueHeroData.subtitle
+      .split(/[|,]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    updateBoutiqueHeroConfig({
+      kicker: boutiqueHeroData.kicker,
+      titleLine1: boutiqueHeroData.titleLine1,
+      titleLine2: boutiqueHeroData.titleLine2,
+      subtitleItems: items.length ? items : ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
+      ctaText: boutiqueHeroData.ctaText,
+      image: img,
+    });
+    setBoutiqueHeroData((prev) => ({ ...prev, image: img }));
+    showToast('✓ Flagship Boutique Showcase banner & texts updated! Changes are live on the storefront.');
   };
 
   const handleOpenAdd = () => {
@@ -163,14 +199,192 @@ export const BannerManager: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Feedback Banner */}
       {toastMessage && (
-        <div className="bg-emerald-50 border-2 border-emerald-400 text-emerald-900 p-4 rounded-xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+        <div className="bg-emerald-50 border-2 border-emerald-400 text-emerald-900 p-4 rounded-xl text-xs font-bold flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-emerald-600" />
             <span>{toastMessage}</span>
           </div>
-          <span className="text-[10px] text-emerald-700">Auto-saved to catalog</span>
+          <span className="text-[10px] text-emerald-700">Live on storefront</span>
         </div>
       )}
+
+      {/* 1. FLAGSHIP BOUTIQUE SHOWCASE BANNER & TEXT EDITOR */}
+      <div className="bg-white rounded-2xl border-2 border-[#D4AF37]/60 shadow-md overflow-hidden">
+        <div className="p-5 sm:p-6 bg-gradient-to-r from-[#1E1E22] via-[#2A261F] to-[#1E1E22] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-wider">
+                MAIN HOMEPAGE
+              </span>
+              <h2 className="font-bodoni text-lg sm:text-xl font-bold tracking-wider uppercase text-white">
+                FLAGSHIP BOUTIQUE HERO BANNER & TEXTS
+              </h2>
+            </div>
+            <p className="text-xs text-gray-300 mt-1">
+              Edit the main boutique showcase banner image, headlines, kicker, subtitles, and CTA button.
+            </p>
+          </div>
+
+          <div className="text-[11px] bg-white/10 border border-[#D4AF37]/40 px-3 py-1.5 rounded-lg text-[#E5C07B] shrink-0 font-medium">
+            Desktop: 16:9 Ratio · Mobile: 4:5 or 1:1 · Prefix with /
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveBoutiqueHero} className="p-5 sm:p-6 space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left 7 cols: Inputs */}
+            <div className="lg:col-span-7 space-y-4">
+              {/* Banner Image URL */}
+              <div>
+                <label className="block text-xs font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                  HERO BANNER IMAGE (Vercel public / URL) *
+                </label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    required
+                    value={boutiqueHeroData.image}
+                    onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, image: e.target.value })}
+                    placeholder="e.g. /images/flagship_banner_16_9.jpg or https://..."
+                    className="flex-1 px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-mono text-[#111111] focus:outline-none focus:border-[#B89758]"
+                  />
+                  {!boutiqueHeroData.image.startsWith('/') && !boutiqueHeroData.image.startsWith('http') && Boolean(boutiqueHeroData.image.trim()) && (
+                    <button
+                      type="button"
+                      onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/' + boutiqueHeroData.image.trim() })}
+                      className="px-3 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black font-bold text-xs rounded-xl transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                      title="Add leading / for Vercel deployment"
+                    >
+                      + Add /
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Recommended size: <strong>1920×1080 (16:9)</strong> or <strong>1600×900</strong>. Must start with <code className="text-[#B8860B] font-bold">/</code> for Vercel.
+                </p>
+              </div>
+
+              {/* Tagline / Kicker */}
+              <div>
+                <label className="block text-xs font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                  TOP KICKER / TAGLINE
+                </label>
+                <input
+                  type="text"
+                  value={boutiqueHeroData.kicker}
+                  onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, kicker: e.target.value })}
+                  placeholder="e.g. EXCLUSIVE COLLECTION"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-bold text-[#7A5508] tracking-widest uppercase focus:outline-none focus:border-[#B89758]"
+                />
+              </div>
+
+              {/* Headlines Line 1 & Line 2 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    MAIN HEADLINE LINE 1
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={boutiqueHeroData.titleLine1}
+                    onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, titleLine1: e.target.value })}
+                    placeholder="e.g. Luxury"
+                    className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-bold text-[#111111] focus:outline-none focus:border-[#B89758]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    MAIN HEADLINE LINE 2 (Italic)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={boutiqueHeroData.titleLine2}
+                    onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, titleLine2: e.target.value })}
+                    placeholder="e.g. For Every Moment"
+                    className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-bold italic text-[#111111] focus:outline-none focus:border-[#B89758]"
+                  />
+                </div>
+              </div>
+
+              {/* Subtitle Items */}
+              <div>
+                <label className="block text-xs font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                  SUBTITLE HIGHLIGHTS (Separate with | or commas)
+                </label>
+                <input
+                  type="text"
+                  value={boutiqueHeroData.subtitle}
+                  onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, subtitle: e.target.value })}
+                  placeholder="Premium Fashion | Elegant Accessories | Timeless Style"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs text-[#1E1A16] font-medium focus:outline-none focus:border-[#B89758]"
+                />
+              </div>
+
+              {/* CTA Button Text */}
+              <div>
+                <label className="block text-xs font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                  CALL TO ACTION BUTTON TEXT
+                </label>
+                <input
+                  type="text"
+                  value={boutiqueHeroData.ctaText}
+                  onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, ctaText: e.target.value })}
+                  placeholder="e.g. Shop Now"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-bold text-[#111111] focus:outline-none focus:border-[#B89758]"
+                />
+              </div>
+            </div>
+
+            {/* Right 5 cols: Live Preview */}
+            <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
+              <div>
+                <span className="block text-[11px] font-bold text-[#7A6C58] uppercase tracking-wider mb-2">
+                  Live Showcase Preview (What Customers See)
+                </span>
+                <div className="relative rounded-2xl overflow-hidden aspect-[16/9] border-2 border-[#D4AF37]/50 shadow-md bg-[#1B1916]">
+                  <img
+                    src={normalizeImageUrl(boutiqueHeroData.image)}
+                    alt="Preview"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
+                    }}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/50 to-transparent p-4 flex flex-col justify-center">
+                    <span className="text-[9px] font-bold tracking-[0.2em] text-[#7A5508] uppercase mb-0.5">
+                      {boutiqueHeroData.kicker}
+                    </span>
+                    <h4 className="font-serif font-bold text-base text-[#111113] leading-tight">
+                      {boutiqueHeroData.titleLine1} <br />
+                      <span className="italic">{boutiqueHeroData.titleLine2}</span>
+                    </h4>
+                    <p className="text-[9px] text-[#221F1A] font-semibold mt-1 truncate">
+                      {boutiqueHeroData.subtitle}
+                    </p>
+                    <div className="mt-2.5">
+                      <span className="inline-block px-3 py-1 bg-gradient-to-r from-[#C29748] to-[#B8860B] text-[#111113] text-[9px] font-extrabold rounded-full uppercase">
+                        {boutiqueHeroData.ctaText} →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs font-black tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>SAVE & PUBLISH TO LIVE STOREFRONT</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
 
       {/* Top Banner Control Bar */}
       <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">

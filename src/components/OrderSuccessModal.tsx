@@ -1,15 +1,25 @@
 import React from 'react';
-import { CheckCircle2, PackageCheck, Copy, ArrowRight, X } from 'lucide-react';
+import { CheckCircle2, PackageCheck, Copy, ArrowRight, X, Mail } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { getOrderMailtoUrl } from '../utils/orderNotification';
 
 export const OrderSuccessModal: React.FC = () => {
   const { lastPlacedOrder, setLastPlacedOrder, setIsAdminMode } = useStore();
 
   if (!lastPlacedOrder) return null;
 
+  const [copiedTracking, setCopiedTracking] = React.useState(false);
+
   const copyTracking = () => {
     navigator.clipboard.writeText(lastPlacedOrder.trackingNumber);
-    alert(`Tracking number ${lastPlacedOrder.trackingNumber} copied to clipboard!`);
+    setCopiedTracking(true);
+    setTimeout(() => setCopiedTracking(false), 2500);
+  };
+
+  const handleEmailReceipt = () => {
+    const ownerEmail = localStorage.getItem('lol_owner_email') || 'taherab375@gmail.com';
+    const mailto = getOrderMailtoUrl(lastPlacedOrder, ownerEmail);
+    window.open(mailto, '_blank');
   };
 
   return (
@@ -48,10 +58,11 @@ export const OrderSuccessModal: React.FC = () => {
               </span>
               <button
                 onClick={copyTracking}
-                className="text-[#B89758] hover:text-[#1E1E22] p-1 cursor-pointer"
+                className="text-[#B89758] hover:text-[#1E1E22] px-2 py-0.5 rounded text-[11px] font-bold border border-[#E0D5C3] hover:border-[#B89758] transition-colors cursor-pointer flex items-center gap-1"
                 title="Copy tracking"
               >
-                <Copy className="w-3.5 h-3.5" />
+                <Copy className="w-3 h-3" />
+                <span>{copiedTracking ? 'Copied!' : 'Copy'}</span>
               </button>
             </div>
           </div>
@@ -83,36 +94,35 @@ export const OrderSuccessModal: React.FC = () => {
           </div>
         </div>
 
-        <a
-          href={`https://wa.me/917578887888?text=${encodeURIComponent(
-            `Hello Lap of Luxury Mahbubnagar,\nI just placed an order:\nOrder #${lastPlacedOrder.trackingNumber}\nCustomer: ${lastPlacedOrder.customerName}\nPhone: ${lastPlacedOrder.phone}\nAddress: ${lastPlacedOrder.address}, ${lastPlacedOrder.city}\nTotal: ₹${lastPlacedOrder.total}\nItems:\n${lastPlacedOrder.items
-              .map((i) => `• ${i.product.name} (${i.selectedSize}) x${i.quantity}`)
-              .join('\n')}`
-          )}`}
-          target="_blank"
-          rel="noreferrer"
-          className="w-full mb-3 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
-        >
-          <span>Share Order on WhatsApp Concierge (75 7888 7888)</span>
-        </a>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">
+          <a
+            href={`https://wa.me/917578887888?text=${encodeURIComponent(
+              `Hello Lap of Luxury Mahbubnagar,\nI just placed an order:\nOrder #${lastPlacedOrder.trackingNumber}\nCustomer: ${lastPlacedOrder.customerName}\nPhone: ${lastPlacedOrder.phone}\nAddress: ${lastPlacedOrder.address}, ${lastPlacedOrder.city}\nTotal: ₹${lastPlacedOrder.total}\nItems:\n${lastPlacedOrder.items
+                .map((i) => `• ${i.product.name} (${i.selectedSize}) x${i.quantity}`)
+                .join('\n')}`
+            )}`}
+            target="_blank"
+            rel="noreferrer"
+            className="py-3 px-3 bg-[#25D366] hover:bg-[#20BA5A] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <span>WhatsApp (75 7888 7888)</span>
+          </a>
+
+          <button
+            onClick={handleEmailReceipt}
+            className="py-3 px-3 bg-[#FAF6EE] hover:bg-[#F2ECE1] border border-[#B89758] text-[#8C6D1F] font-bold text-xs uppercase tracking-wider rounded-lg shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <Mail className="w-3.5 h-3.5 text-[#B89758]" />
+            <span>Email Receipt</span>
+          </button>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setLastPlacedOrder(null)}
-            className="flex-1 py-3 bg-[#1E1E22] hover:bg-[#34343A] text-white text-xs font-semibold tracking-wider uppercase rounded cursor-pointer transition-colors"
+            className="w-full py-3 bg-[#1E1E22] hover:bg-[#34343A] text-white text-xs font-semibold tracking-wider uppercase rounded-xl cursor-pointer transition-colors shadow-sm"
           >
             CONTINUE SHOPPING
-          </button>
-
-          <button
-            onClick={() => {
-              setLastPlacedOrder(null);
-              setIsAdminMode(true);
-              window.location.hash = 'admin';
-            }}
-            className="py-3 px-4 border border-[#B89758] text-[#B89758] hover:bg-[#B89758] hover:text-white text-xs font-semibold tracking-wider uppercase rounded cursor-pointer transition-colors"
-          >
-            VIEW IN ADMIN PORTAL
           </button>
         </div>
       </div>
