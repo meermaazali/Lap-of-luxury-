@@ -381,36 +381,57 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [transitionLabel, setTransitionLabel] = useState<string>('');
 
-  // Payment Setup Configuration
+  // Payment Setup Configuration (Kept empty per user request - client will add later)
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
     try {
       const saved = localStorage.getItem('lol_payment_config');
       if (saved) {
         const parsed = JSON.parse(saved);
-        const upiId = !parsed.upiId || parsed.upiId.includes('7578887888') ? 'maaz_ali_36@okaxis' : parsed.upiId;
-        const payeeName = !parsed.payeeName || parsed.payeeName.includes('7578887888') ? 'Maaz Ali' : parsed.payeeName;
+        const upiId =
+          parsed.upiId &&
+          !parsed.upiId.toLowerCase().includes('maaz') &&
+          !parsed.upiId.toLowerCase().includes('axis') &&
+          !parsed.upiId.includes('7578887888')
+            ? parsed.upiId
+            : '';
+        const payeeName =
+          parsed.payeeName &&
+          !parsed.payeeName.toLowerCase().includes('maaz') &&
+          !parsed.payeeName.includes('7578887888')
+            ? parsed.payeeName
+            : '';
+        const upiNumber =
+          parsed.upiNumber && !parsed.upiNumber.toLowerCase().includes('maaz')
+            ? parsed.upiNumber
+            : '';
         return {
-          acceptPaymentsOnline: parsed.acceptPaymentsOnline !== undefined ? parsed.acceptPaymentsOnline : false,
           ...parsed,
+          acceptPaymentsOnline: false,
           upiId,
           payeeName,
-          qrCodeImage: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D${encodeURIComponent(upiId)}%26pn%3D${encodeURIComponent(payeeName)}%26cu%3DINR`,
+          upiNumber,
+          enableCOD: false,
+          qrCodeImage: upiId
+            ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D${encodeURIComponent(
+                upiId
+              )}%26pn%3D${encodeURIComponent(payeeName)}%26cu%3DINR`
+            : '',
         };
       }
     } catch {}
     return {
-      acceptPaymentsOnline: false, // Default: coming soon until admin toggles ON
-      upiId: 'maaz_ali_36@okaxis',
-      payeeName: 'Maaz Ali',
-      upiNumber: 'maaz_ali_36',
-      qrCodeImage: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3Dmaaz_ali_36%40okaxis%26pn%3DMaaz%2520Ali%26cu%3DINR',
+      acceptPaymentsOnline: false,
+      upiId: '', // Kept empty per user request - client will add later
+      payeeName: '', // Kept empty
+      upiNumber: '',
+      qrCodeImage: '',
       enableUPI: true,
-      enableCOD: true,
+      enableCOD: false,
       enableCard: false,
-      bankAccountNumber: '50200012345678',
-      bankIfsc: 'HDFC0001234',
-      bankName: 'HDFC Bank, Mahbubnagar',
-      instructions: 'Scan the UPI QR code or send to maaz_ali_36@okaxis. Enter 12-digit UTR below.',
+      bankAccountNumber: '',
+      bankIfsc: '',
+      bankName: '',
+      instructions: '',
     };
   });
 

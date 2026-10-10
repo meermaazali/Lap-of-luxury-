@@ -1,80 +1,203 @@
 import React from 'react';
 
 /**
- * Authentic, official vector logos for Google Pay (GPay), PhonePe, and BHIM UPI
+ * Authentic, official vector logos for Google Pay (GPay), PhonePe, BHIM UPI,
+ * Powered by UPI (NPCI), Paytm, and RuPay.
  */
 
+// Official Google Pay Logo (Official Multicolor 'G' + 'Pay')
 export const GooglePayLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
-  <svg viewBox="0 0 1024 410" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* GPay G icon */}
-    <path
-      d="M366.5 208.6c0-13.4-1.2-26.2-3.4-38.6H187.3v73.1h100.6c-4.4 23.4-17.7 43.3-37.7 56.6v47.1h61c35.7-32.9 55.3-81.3 55.3-138.2z"
-      fill="#4285F4"
-    />
-    <path
-      d="M187.3 391.2c51.7 0 95.1-17.1 126.8-46.4l-61-47.1c-17.1 11.5-39 18.3-65.8 18.3-50.5 0-93.3-34.1-108.6-80H15.6v48.6c31.7 62.9 97 106.6 171.7 106.6z"
-      fill="#34A853"
-    />
-    <path
-      d="M78.7 236c-3.9-11.5-6.1-23.8-6.1-36.6s2.2-25.1 6.1-36.6V114.2H15.6C5.6 134.1 0 156.6 0 199.4s5.6 65.3 15.6 85.2l63.1-48.6z"
-      fill="#FBBC04"
-    />
-    <path
-      d="M187.3 79.9c28.1 0 53.4 9.7 73.3 28.7l55-55C282.1 20.3 238.8 0 187.3 0 112.6 0 47.3 43.7 15.6 106.6l63.1 48.6c15.3-45.9 58.1-80 108.6-80z"
-      fill="#EA4335"
-    />
-    {/* "Pay" wordmark */}
-    <path
-      d="M523.5 137.6H463v205.6h40.3V271h20.2c41.2 0 71.9-29.4 71.9-66.7s-30.7-66.7-71.9-66.7zm-1 95.7h-19.2V175h19.2c22.3 0 34.5 13.9 34.5 29.1 0 15.3-12.2 29.2-34.5 29.2z"
-      fill="#5F6368"
-    />
-    <path
-      d="M666.2 209.6c-24.5 0-42.5 18.9-42.5 44.5 0 25.4 18 44.5 42.5 44.5 12.5 0 22.8-5.3 28.4-13.4v11.7c0 19.4-10.4 29.8-27.1 29.8-13.6 0-22.1-9.7-25.6-17.7l-35.4 14.8c10.3 20.6 32.7 34.7 61 34.7 35.4 0 65.3-20.8 65.3-69.1V213.2h-38.6v11.7c-5.8-9.4-16.1-15.3-28-15.3zm4.5 61.2c-14.8 0-25.9-12.2-25.9-26.7s11.1-26.7 25.9-26.7c14.6 0 26.2 12.2 26.2 26.7s-11.6 26.7-26.2 26.7z"
-      fill="#5F6368"
-    />
-    <path
-      d="M771.6 343.2h40.3L930.5 86.8h-42.3L832.1 247l-56.1-160.2h-43.9l62.2 171-22.7 85.4z"
-      fill="#5F6368"
-    />
+  <svg
+    viewBox="0 0 160 56"
+    className={className}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Google Pay"
+  >
+    {/* Google 4-color 'G' icon */}
+    <g transform="translate(6, 6) scale(0.95)">
+      {/* Blue */}
+      <path
+        d="M44.5 23.2c0-1.6-.1-3.1-.4-4.6H23v8.8h12.1c-.5 2.8-2.1 5.2-4.5 6.8v5.6h7.3c4.3-3.9 6.6-9.8 6.6-16.6z"
+        fill="#4285F4"
+      />
+      {/* Green */}
+      <path
+        d="M23 45c6.2 0 11.4-2 15.2-5.6l-7.3-5.6c-2.1 1.4-4.7 2.2-7.9 2.2-6.1 0-11.2-4.1-13-9.6H2.4v5.8C6.2 39.8 14 45 23 45z"
+        fill="#34A853"
+      />
+      {/* Yellow */}
+      <path
+        d="M10 26.4c-.5-1.4-.7-2.9-.7-4.4s.2-3 .7-4.4V11.8H2.4C.9 14.8 0 18.3 0 22s.9 7.2 2.4 10.2l7.6-5.8z"
+        fill="#FBBC05"
+      />
+      {/* Red */}
+      <path
+        d="M23 7.8c3.4 0 6.4 1.2 8.8 3.5l6.6-6.6C34.4 1.8 29.2 0 23 0 14 0 6.2 5.2 2.4 12.8l7.6 5.8c1.8-5.5 6.9-9.6 13-9.6z"
+        fill="#EA4335"
+      />
+    </g>
+
+    {/* Official "Pay" Typography */}
+    <g fill="#3C4043">
+      {/* P */}
+      <path d="M68 14.5h8.8c4.6 0 8 3.2 8 7.6 0 4.5-3.4 7.7-8 7.7H72.2v10.7H68V14.5zm8.5 11.3c2.4 0 4.1-1.6 4.1-3.7 0-2-1.7-3.7-4.1-3.7H72.2v7.4h4.3z" />
+      {/* a */}
+      <path d="M96.7 23.3v17.2h-3.9v-2.8c-1.3 2-3.6 3.2-6.1 3.2-4.5 0-7.7-3.2-7.7-7.6 0-4.6 3.5-7.5 8.1-7.5 2.1 0 4 .7 5.3 1.9v-.4c0-2.3-1.8-3.7-4.4-3.7-2.3 0-4.3 1-5.6 2.5l-2.4-2.5c1.9-2.3 5-3.6 8.3-3.6 4.9 0 8.4 2.7 8.4 8.3zm-4 6.8c-.8-.9-2.1-1.5-3.6-1.5-2.6 0-4.4 1.7-4.4 4.3 0 2.5 1.7 4.2 4.3 4.2 1.6 0 2.9-.6 3.7-1.6v-5.4z" />
+      {/* y */}
+      <path d="M103.7 23.7l5.2 14.7 5.1-14.7h4.4l-7.7 20.3c-1.3 3.5-3.3 5.4-6.8 5.4-1.2 0-2.3-.3-3-.6l.9-3.4c.5.2 1.3.4 2 .4 1.9 0 2.9-.9 3.6-2.8l.6-1.6-7.8-17.7h4.7z" />
+    </g>
   </svg>
 );
 
+// Official PhonePe Logo (Purple rounded container with authentic Devanagari Pe + wordmark)
 export const PhonePeLogo: React.FC<{ className?: string }> = ({ className = 'h-7' }) => (
-  <svg viewBox="0 0 120 120" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Official PhonePe Purple Circle */}
-    <circle cx="60" cy="60" r="56" fill="#5F259F" />
-    {/* White 'Pe' Devanagari ligature mark */}
-    <path
-      d="M60.8 28.5H41.5c-2.2 0-4 1.8-4 4v55c0 2.2 1.8 4 4 4s4-1.8 4-4V70.8h15.3c14.8 0 25.7-10.9 25.7-21.2 0-10.2-10.9-21.1-25.7-21.1zm0 34.3H49.5V36.5h11.3c9.5 0 17.7 5.2 17.7 13.1 0 7.9-8.2 13.2-17.7 13.2z"
-      fill="#FFFFFF"
-    />
-    <path
-      d="M78.8 55.2l-23 27.5c-1.4 1.7-.9 4.2.8 5.6 1.7 1.4 4.2.9 5.6-.8l23-27.5c1.4-1.7.9-4.2-.8-5.6-1.7-1.3-4.2-.9-5.6.8z"
-      fill="#FFFFFF"
-    />
+  <svg
+    viewBox="0 0 170 56"
+    className={className}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="PhonePe"
+  >
+    {/* PhonePe Purple Icon */}
+    <rect x="4" y="6" width="44" height="44" rx="22" fill="#5F259F" />
+    <g fill="#FFFFFF">
+      {/* Devanagari 'पे' ligature */}
+      <path d="M26.2 16.5h-9c-1.1 0-2 .9-2 2v21.5c0 1.1.9 2 2 2s2-.9 2-2v-9h7c6.8 0 11.8-4.8 11.8-11.8 0-4.8-4.8-8.7-11.8-8.7zm0 15.2H21.2v-11.4h5c4.3 0 7.8 2.4 7.8 6s-3.5 5.4-7.8 5.4z" />
+      <path d="M34.8 28.2l-10.4 12.8c-.7.9-.5 2.1.4 2.7.9.6 2.1.4 2.7-.4l10.4-12.8c.6-.9.4-2.1-.4-2.7-.9-.6-2.1-.4-2.7.4z" />
+    </g>
+    {/* "PhonePe" Brand Wordmark */}
+    <text
+      x="56"
+      y="35"
+      fontFamily="Inter, Arial, sans-serif"
+      fontWeight="800"
+      fontSize="22"
+      fill="#5F259F"
+      letterSpacing="-0.5"
+    >
+      PhonePe
+    </text>
   </svg>
 );
 
+// Official BHIM UPI Logo (NPCI Authentic Triangles + UPI typography)
 export const BhimUpiLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
-  <svg viewBox="0 0 160 60" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* UPI Forward Double Triangles */}
-    <path d="M12 48L32 12H12L2 48h10z" fill="#097939" />
-    <path d="M24 48L44 12H30L16 48h8z" fill="#ED752E" />
-    {/* UPI Text */}
-    <text x="50" y="38" fontFamily="Arial, Helvetica, sans-serif" fontWeight="900" fontSize="28" fill="#1C355E" letterSpacing="1">
+  <svg
+    viewBox="0 0 150 48"
+    className={className}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="BHIM UPI"
+  >
+    {/* Official NPCI Green & Orange Forward Slashes */}
+    <path d="M8 38L24 10H10L0 38h8z" fill="#097939" />
+    <path d="M19 38L35 10H25L13 38h6z" fill="#ED752E" />
+
+    {/* "UPI" Wordmark */}
+    <text
+      x="40"
+      y="31"
+      fontFamily="Arial, Helvetica, sans-serif"
+      fontWeight="900"
+      fontSize="25"
+      fill="#1C355E"
+      letterSpacing="1.2"
+    >
       UPI
     </text>
-    <rect x="50" y="44" width="46" height="3" fill="#097939" rx="1.5" />
+
+    {/* Dual Accent Bar */}
+    <rect x="40" y="36" width="28" height="3" fill="#097939" rx="1.5" />
+    <rect x="70" y="36" width="22" height="3" fill="#ED752E" rx="1.5" />
   </svg>
 );
 
-export const PaytmLogo: React.FC<{ className?: string }> = ({ className = 'h-6' }) => (
-  <svg viewBox="0 0 120 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <text x="4" y="28" fontFamily="Arial, Helvetica, sans-serif" fontWeight="900" fontSize="24" fill="#002E6E">
+// Official "POWERED BY UPI" NPCI Certification Badge
+export const PoweredByUpiBadge: React.FC<{ className?: string }> = ({ className = 'h-7' }) => (
+  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#F4F7FB] border border-[#CBD5E1] shadow-2xs ${className}`}>
+    <span className="text-[9px] font-extrabold tracking-wider text-[#475569] uppercase whitespace-nowrap">
+      POWERED BY
+    </span>
+    <svg viewBox="0 0 95 32" className="h-4.5 w-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 26L16 6H6L0 26h5z" fill="#097939" />
+      <path d="M13 26L24 6H17L9 26h4z" fill="#ED752E" />
+      <text
+        x="27"
+        y="21"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontWeight="900"
+        fontSize="17"
+        fill="#1C355E"
+        letterSpacing="0.8"
+      >
+        UPI
+      </text>
+      <rect x="27" y="24" width="18" height="2" fill="#097939" rx="1" />
+      <rect x="46" y="24" width="16" height="2" fill="#ED752E" rx="1" />
+    </svg>
+  </div>
+);
+
+// Official Paytm Logo
+export const PaytmLogo: React.FC<{ className?: string }> = ({ className = 'h-5' }) => (
+  <svg
+    viewBox="0 0 110 36"
+    className={className}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Paytm"
+  >
+    <text
+      x="2"
+      y="26"
+      fontFamily="Arial, Helvetica, sans-serif"
+      fontWeight="900"
+      fontSize="24"
+      fill="#002E6E"
+      letterSpacing="-0.5"
+    >
       Pay
     </text>
-    <text x="48" y="28" fontFamily="Arial, Helvetica, sans-serif" fontWeight="900" fontSize="24" fill="#00BAF2">
+    <text
+      x="46"
+      y="26"
+      fontFamily="Arial, Helvetica, sans-serif"
+      fontWeight="900"
+      fontSize="24"
+      fill="#00BAF2"
+      letterSpacing="-0.5"
+    >
       tm
     </text>
+  </svg>
+);
+
+// Official RuPay Badge
+export const RuPayLogo: React.FC<{ className?: string }> = ({ className = 'h-4' }) => (
+  <svg viewBox="0 0 100 32" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text
+      x="2"
+      y="22"
+      fontFamily="Arial, sans-serif"
+      fontWeight="900"
+      fontSize="19"
+      fill="#097939"
+      fontStyle="italic"
+    >
+      Ru
+    </text>
+    <text
+      x="30"
+      y="22"
+      fontFamily="Arial, sans-serif"
+      fontWeight="900"
+      fontSize="19"
+      fill="#ED752E"
+      fontStyle="italic"
+    >
+      Pay
+    </text>
+    <path d="M72 8l10 8-10 8h8l10-8-10-8h-8z" fill="#0072BC" />
   </svg>
 );

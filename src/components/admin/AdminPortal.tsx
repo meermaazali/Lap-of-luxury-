@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Bell,
   Package,
@@ -11,6 +11,7 @@ import {
   VolumeX,
   LogOut,
   QrCode,
+  BookOpen,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { UploadedLogoMark } from '../UploadedLogoMark';
@@ -22,6 +23,7 @@ import { BannerManager } from './BannerManager';
 import { CategoryManager } from './CategoryManager';
 import { MediaStorageManager } from './MediaStorageManager';
 import { PaymentSetupManager } from './PaymentSetupManager';
+import { ClientPhotoGuide } from './ClientPhotoGuide';
 
 export const AdminPortal: React.FC = () => {
   const {
@@ -39,7 +41,7 @@ export const AdminPortal: React.FC = () => {
   });
 
   const [activeTab, setActiveTab] = useState<
-    'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media' | 'payments'
+    'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media' | 'payments' | 'guide'
   >('orders');
 
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -250,6 +252,18 @@ export const AdminPortal: React.FC = () => {
               <QrCode className="w-3.5 h-3.5" />
               <span>Payment Setup</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('guide')}
+              className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold tracking-wider uppercase rounded-md transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'guide'
+                  ? 'bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] text-[#111111]'
+                  : 'text-[#E5C07B] hover:text-white hover:bg-white/5 border border-[#D4AF37]/50 bg-[#D4AF37]/10'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Client Photo Guide</span>
+            </button>
           </div>
         </div>
       </header>
@@ -307,6 +321,7 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'categories' && <CategoryManager />}
         {activeTab === 'media' && <MediaStorageManager />}
         {activeTab === 'payments' && <PaymentSetupManager />}
+        {activeTab === 'guide' && <ClientPhotoGuide />}
       </main>
     </div>
   );

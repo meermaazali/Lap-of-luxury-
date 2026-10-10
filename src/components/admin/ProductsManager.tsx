@@ -233,6 +233,23 @@ export const ProductsManager: React.FC = () => {
         </button>
       </div>
 
+      {/* Client Photo Dimension & Upload Guide Banner */}
+      <div className="bg-[#FAF5E8] border border-[#D4AF37] rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5 text-[#382B09]">
+          <span className="p-1.5 rounded-lg bg-[#D4AF37] text-black shrink-0">
+            <ImageIcon className="w-4 h-4" />
+          </span>
+          <div>
+            <span className="font-bold uppercase tracking-wider block">
+              📸 CLIENT PHOTO RECOMMENDATIONS FOR PRODUCTS
+            </span>
+            <span className="text-[11.5px] text-[#5C4A19]">
+              Recommended ratio: <strong>1:1 Square (1000×1000 px)</strong> or <strong>4:5 Portrait (800×1000 px)</strong> with clean background. You can upload directly from your laptop or phone without typing any links.
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {products.map((p) => (

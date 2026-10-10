@@ -59,9 +59,29 @@ export const BannerManager: React.FC = () => {
     active: true,
   });
 
+  const [isUploadingHero, setIsUploadingHero] = useState(false);
+  const [showManualHeroUrl, setShowManualHeroUrl] = useState(false);
+  const [showMediaPickerHero, setShowMediaPickerHero] = useState(false);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingHero(true);
+    try {
+      const asset = await uploadMediaAsset(file, 'Banners');
+      setBoutiqueHeroData((prev) => ({ ...prev, image: asset.dataUrl }));
+      showToast('✓ Photo uploaded from device successfully! Click "Save Changes" below to publish.');
+    } catch (err: unknown) {
+      showToast('Upload failed: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsUploadingHero(false);
+      e.target.value = '';
+    }
   };
 
   const handleSaveBoutiqueHero = (e: React.FormEvent) => {
@@ -225,8 +245,21 @@ export const BannerManager: React.FC = () => {
             </p>
           </div>
 
-          <div className="text-[11px] bg-white/10 border border-[#D4AF37]/40 px-3 py-1.5 rounded-lg text-[#E5C07B] shrink-0 font-medium">
-            Desktop: 16:9 Ratio · Mobile: 4:5 or 1:1 · Prefix with /
+          <div className="text-[11px] bg-white/10 border border-[#D4AF37]/50 px-3.5 py-2 rounded-xl text-[#E5C07B] shrink-0 flex items-center gap-2">
+            <Upload className="w-4 h-4 text-[#D4AF37]" />
+            <span>Recommended: 16:9 Widescreen (1920 × 1080 px) · Direct File Upload</span>
+          </div>
+        </div>
+
+        {/* Client Guidance Tip */}
+        <div className="bg-[#FAF5E8] border-b border-[#E0D5C3] px-5 py-3 flex items-center justify-between text-xs text-[#5C4A19]">
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded bg-[#D4AF37] text-black shrink-0">
+              <ImageIcon className="w-3.5 h-3.5" />
+            </span>
+            <span>
+              <strong>Client Photo Tip:</strong> Use a 16:9 horizontal image (1920 × 1080 px). Click <strong>"Upload Photo from Device"</strong> below to select directly from your computer or phone gallery without typing any links.
+            </span>
           </div>
         </div>
 
@@ -234,34 +267,128 @@ export const BannerManager: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left 7 cols: Inputs */}
             <div className="lg:col-span-7 space-y-4">
-              {/* Banner Image URL */}
-              <div>
-                <label className="block text-xs font-bold text-[#3D3327] uppercase tracking-wider mb-1">
-                  HERO BANNER IMAGE (Vercel public / URL) *
-                </label>
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    required
-                    value={boutiqueHeroData.image}
-                    onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, image: e.target.value })}
-                    placeholder="e.g. /images/flagship_banner_16_9.jpg or https://..."
-                    className="flex-1 px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-mono text-[#111111] focus:outline-none focus:border-[#B89758]"
-                  />
-                  {!boutiqueHeroData.image.startsWith('/') && !boutiqueHeroData.image.startsWith('http') && Boolean(boutiqueHeroData.image.trim()) && (
+              {/* Banner Photo Upload (Direct Device Upload, No Links Needed) */}
+              <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#D5C7B0] space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-[#B89758]" />
+                      <span>HERO BANNER PHOTO (DIRECT UPLOAD)</span>
+                    </label>
+                    <span className="text-[10px] text-[#7A6C58] block mt-0.5">
+                      Recommended: <strong>16:9 Widescreen (1920 × 1080 px)</strong> · Pick directly from device (no links needed!)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <label className="text-xs bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] px-3.5 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 font-bold shadow-xs transition-all active:scale-95">
+                      <Upload className="w-3.5 h-3.5 text-[#111113]" />
+                      <span>{isUploadingHero ? 'Uploading...' : 'Upload Photo from Device'}</span>
+                      <input
+                        type="file"
+                        accept="image/png, image/jpeg, image/jpg, image/webp"
+                        onChange={handleHeroFileUpload}
+                        className="sr-only"
+                      />
+                    </label>
+
+                    {mediaAssets.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowMediaPickerHero(!showMediaPickerHero)}
+                        className="text-xs bg-white hover:bg-gray-50 text-[#1E1E22] border border-[#D5C7B0] px-2.5 py-1.5 rounded-lg cursor-pointer font-semibold transition-colors"
+                      >
+                        Pick from Media
+                      </button>
+                    )}
+
                     <button
                       type="button"
-                      onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/' + boutiqueHeroData.image.trim() })}
-                      className="px-3 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black font-bold text-xs rounded-xl transition-all cursor-pointer shadow-xs whitespace-nowrap"
-                      title="Add leading / for Vercel deployment"
+                      onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/images/flagship_banner_16_9.jpg' })}
+                      className="text-[11px] text-[#7A6C58] hover:text-black underline cursor-pointer"
+                      title="Reset to default luxury boutique banner"
                     >
-                      + Add /
+                      Reset Default
                     </button>
-                  )}
+                  </div>
                 </div>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Recommended size: <strong>1920×1080 (16:9)</strong> or <strong>1600×900</strong>. Must start with <code className="text-[#B8860B] font-bold">/</code> for Vercel.
-                </p>
+
+                {/* Media Library Quick Dropdown */}
+                {showMediaPickerHero && mediaAssets.length > 0 && (
+                  <div className="p-3 bg-white rounded-lg border border-[#D5C7B0] space-y-2 animate-in fade-in">
+                    <span className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider block">
+                      Select From Uploaded Media Library:
+                    </span>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-36 overflow-y-auto p-1">
+                      {mediaAssets.map((asset) => (
+                        <div
+                          key={asset.id}
+                          onClick={() => {
+                            setBoutiqueHeroData((prev) => ({ ...prev, image: asset.dataUrl }));
+                            setShowMediaPickerHero(false);
+                            showToast('Selected banner photo from Media Library!');
+                          }}
+                          className="aspect-[16/9] rounded border border-gray-200 overflow-hidden cursor-pointer hover:border-[#D4AF37] hover:scale-105 transition-all shadow-2xs"
+                        >
+                          <img src={asset.dataUrl} alt={asset.name} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Current Active Image Info Box */}
+                <div className="flex items-center gap-3 p-2.5 bg-white rounded-lg border border-[#E8DEC8]">
+                  <div className="w-16 h-10 rounded overflow-hidden bg-black shrink-0 border border-[#D4AF37]/50">
+                    <img
+                      src={normalizeImageUrl(boutiqueHeroData.image)}
+                      alt="Banner thumbnail"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 text-xs">
+                    <p className="font-bold text-[#111111] truncate">
+                      Current Banner Image
+                    </p>
+                    <p className="text-[10px] text-[#7A6C58] truncate">
+                      {boutiqueHeroData.image.startsWith('data:') ? 'Custom uploaded image (Ready)' : boutiqueHeroData.image}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualHeroUrl(!showManualHeroUrl)}
+                    className="text-[10px] text-[#8C6D1F] hover:underline cursor-pointer shrink-0"
+                  >
+                    {showManualHeroUrl ? 'Hide URL' : 'Advanced: Edit Path'}
+                  </button>
+                </div>
+
+                {/* Advanced Path / URL fallback input (Hidden by default) */}
+                {showManualHeroUrl && (
+                  <div className="pt-2 border-t border-[#E8DEC8] space-y-1">
+                    <span className="text-[10px] font-semibold text-[#7A6C58]">
+                      Manual image path (optional for developers):
+                    </span>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={boutiqueHeroData.image}
+                        onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, image: e.target.value })}
+                        placeholder="e.g. /images/flagship_banner_16_9.jpg"
+                        className="flex-1 px-3 py-1.5 bg-white border border-[#D5C7B0] rounded-lg text-xs font-mono text-[#111111] focus:outline-none focus:border-[#B89758]"
+                      />
+                      {!boutiqueHeroData.image.startsWith('/') && !boutiqueHeroData.image.startsWith('http') && Boolean(boutiqueHeroData.image.trim()) && (
+                        <button
+                          type="button"
+                          onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/' + boutiqueHeroData.image.trim() })}
+                          className="px-2.5 py-1.5 bg-[#B8860B] text-black font-bold text-xs rounded-lg cursor-pointer"
+                        >
+                          + Add /
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tagline / Kicker */}

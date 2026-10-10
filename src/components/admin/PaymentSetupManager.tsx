@@ -240,13 +240,12 @@ export const PaymentSetupManager: React.FC = () => {
                     type="text"
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    placeholder="e.g. 7578887888@ybl or lapofluxury@okhdfcbank"
+                    placeholder="Leave empty or add later (e.g. yourstore@okhdfcbank)"
                     className="w-full px-3 py-2 text-xs border border-[#D5C7B0] rounded-xl focus:outline-none focus:border-[#B89758] bg-[#FAF8F5]"
-                    required
                   />
                 </div>
                 <p className="text-[10px] text-[#8C7E6C] mt-1">
-                  Customers can pay directly to this UPI ID or scan the live QR code.
+                  Currently empty per your request. Enter your official UPI ID when you are ready to accept payments.
                 </p>
               </div>
 
@@ -258,10 +257,12 @@ export const PaymentSetupManager: React.FC = () => {
                   type="text"
                   value={payeeName}
                   onChange={(e) => setPayeeName(e.target.value)}
-                  placeholder="e.g. Lap of Luxury Mahbubnagar"
+                  placeholder="Leave empty or add later (e.g. Lap of Luxury)"
                   className="w-full px-3 py-2 text-xs border border-[#D5C7B0] rounded-xl focus:outline-none focus:border-[#B89758] bg-[#FAF8F5]"
-                  required
                 />
+                <p className="text-[10px] text-[#8C7E6C] mt-1">
+                  The account holder or store name associated with the UPI ID.
+                </p>
               </div>
 
               <div>
@@ -392,32 +393,48 @@ export const PaymentSetupManager: React.FC = () => {
             </p>
 
             {/* QR Code Container */}
-            <div className="bg-white p-3 rounded-2xl shadow-2xl border-4 border-[#D4AF37] max-w-[240px] aspect-square flex items-center justify-center">
-              <img
-                src={qrCodeImage || liveGeneratedQR}
-                alt="Store Payment QR Code"
-                className="w-full h-full object-contain rounded-lg"
-              />
+            <div className="bg-white p-3 rounded-2xl shadow-2xl border-4 border-[#D4AF37] max-w-[240px] aspect-square flex flex-col items-center justify-center text-center">
+              {upiId ? (
+                <img
+                  src={qrCodeImage || liveGeneratedQR}
+                  alt="Store Payment QR Code"
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center p-4 text-[#7A6C58]">
+                  <QrCode className="w-12 h-12 text-[#B89758] mb-2 opacity-50" />
+                  <span className="text-[11px] font-bold text-[#1E1E22]">Payment Info Empty</span>
+                  <span className="text-[9.5px] text-[#7A6C58] mt-1 leading-tight">
+                    Kept empty as requested. When you're ready, fill in your UPI ID on the left to activate scan & pay.
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* UPI ID Box */}
             <div className="w-full bg-[#111113] border border-[#D4AF37]/40 rounded-xl p-3 mt-4 text-left space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Payee:</span>
-                <span className="font-bold text-white">{payeeName}</span>
+                <span className="font-bold text-white">
+                  {payeeName || <span className="text-gray-500 italic">(Empty - add later)</span>}
+                </span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">UPI ID:</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono font-bold text-[#E5C07B]">{upiId}</span>
-                  <button
-                    type="button"
-                    onClick={copyUpi}
-                    className="p-1 hover:text-[#D4AF37] text-gray-400 cursor-pointer"
-                    title="Copy UPI ID"
-                  >
-                    <Copy className="w-3 h-3" />
-                  </button>
+                  <span className="font-mono font-bold text-[#E5C07B]">
+                    {upiId || <span className="text-gray-500 italic">(Empty - add later)</span>}
+                  </span>
+                  {upiId && (
+                    <button
+                      type="button"
+                      onClick={copyUpi}
+                      className="p-1 hover:text-[#D4AF37] text-gray-400 cursor-pointer"
+                      title="Copy UPI ID"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
               </div>
               {copied && (

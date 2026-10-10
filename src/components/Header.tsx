@@ -4,13 +4,10 @@ import {
   ShoppingBag,
   User,
   X,
-  Volume2,
-  VolumeX,
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { UploadedLogoMark } from './UploadedLogoMark';
 import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
-import { soundManager } from './experience/SoundManager';
 
 interface HeaderProps {
   onOpenAccountModal: () => void;
@@ -35,13 +32,6 @@ export const Header: React.FC<HeaderProps> = ({
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isSoundOn, setIsSoundOn] = useState(!soundManager.getIsMuted());
-
-  const toggleSound = () => {
-    const nextState = !isSoundOn;
-    setIsSoundOn(nextState);
-    soundManager.setMuted(!nextState);
-  };
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -59,28 +49,28 @@ export const Header: React.FC<HeaderProps> = ({
     : [];
 
   return (
-    <header className="bg-white/95 border-b border-[#E8DEC8]/80 sticky top-0 z-40 backdrop-blur-md transition-all shadow-[0_2px_15px_rgba(184,134,11,0.06)] rounded-t-[20px] sm:rounded-t-[28px]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-3 sm:py-4 flex items-center justify-between gap-4">
-        {/* Left: Brand Identity Logo + Title + Tagline (Matching Image exactly, Dark rich bold font) */}
+    <header className="bg-white/95 border-b border-[#E8DEC8]/80 sticky top-0 z-40 backdrop-blur-md transition-all shadow-[0_2px_15px_rgba(184,134,11,0.06)] rounded-t-[16px] sm:rounded-t-[28px]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 py-2.5 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
+        {/* Left: Brand Identity Logo + Title + Tagline (Full text, completely visible, never cut off) */}
         <div
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="flex items-center gap-2.5 sm:gap-3.5 cursor-pointer select-none group shrink-0"
+          className="flex items-center gap-2 sm:gap-3.5 cursor-pointer select-none group shrink-0"
         >
           <UploadedLogoMark
-            className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 shrink-0 transition-transform duration-300 group-hover:scale-105"
+            className="w-8 h-8 sm:w-11 sm:h-11 md:w-13 md:h-13 shrink-0 transition-transform duration-300 group-hover:scale-105"
             color="#111113"
           />
-          <div className="flex flex-col text-left min-w-0">
-            <span className="font-bodoni tracking-[0.14em] sm:tracking-[0.18em] font-bold uppercase text-sm sm:text-lg md:text-2xl text-[#111113] leading-tight whitespace-nowrap">
+          <div className="flex flex-col text-left">
+            <span className="font-bodoni tracking-[0.1em] sm:tracking-[0.16em] font-bold uppercase text-[13px] sm:text-lg md:text-2xl text-[#111113] leading-tight whitespace-nowrap">
               LAP OF LUXURY
             </span>
-            <span className="font-sans font-bold tracking-[0.14em] sm:tracking-[0.18em] text-[8.5px] sm:text-[10px] md:text-[11.5px] text-[#1A1816] uppercase mt-0.5 whitespace-nowrap">
+            <span className="font-sans font-bold tracking-[0.05em] sm:tracking-[0.12em] md:tracking-[0.16em] text-[8px] xs:text-[9.5px] sm:text-[10px] md:text-[11px] text-[#1A1816] uppercase mt-0.5 whitespace-nowrap">
               Experience Premium In Every Touch
             </span>
           </div>
         </div>
 
-        {/* Center: Classic Luxury Navigation Links (Home, Shop, Categories, About, Contact - Dark crisp font) */}
+        {/* Center: Classic Luxury Navigation Links (Home, Shop, Categories, About, Contact - Desktop & TV) */}
         <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold tracking-[0.14em] uppercase">
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -115,12 +105,12 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </nav>
 
-        {/* Right: Search, Account, Shopping Bag, and Sound Toggle */}
-        <div className="flex items-center gap-2 sm:gap-4 justify-end">
+        {/* Right: Search, Account, Shopping Bag (Sound toggle removed per user request) */}
+        <div className="flex items-center gap-1.5 sm:gap-3 justify-end shrink-0">
           {/* Search Toggle & Search Input Bar */}
           <div className="relative">
             {isSearchOpen ? (
-              <div className="flex items-center bg-[#FAF8F5] border border-[#D4AF37]/70 rounded-full px-3 py-1 shadow-inner animate-in fade-in duration-200">
+              <div className="flex items-center bg-[#FAF8F5] border border-[#D4AF37]/70 rounded-full px-2.5 sm:px-3 py-1 shadow-inner animate-in fade-in duration-200">
                 <input
                   type="text"
                   autoFocus
@@ -128,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   placeholder="Search collections..."
-                  className="w-32 sm:w-48 text-xs bg-transparent focus:outline-none text-[#111113] placeholder:text-gray-400"
+                  className="w-24 xs:w-36 sm:w-48 text-[11px] sm:text-xs bg-transparent focus:outline-none text-[#111113] placeholder:text-gray-400"
                 />
                 <button
                   onClick={() => {
@@ -143,92 +133,75 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer"
                 aria-label="Search"
                 title="Search"
               >
-                <Search className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                <Search className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" />
               </button>
             )}
 
-            {/* Quick Search Preview dropdown */}
-            {isSearchFocused && searchResults.length > 0 && (
-              <div
-                className="absolute right-0 top-full mt-2 w-72 bg-white border border-[#D4AF37]/50 rounded-2xl shadow-xl overflow-hidden z-50 divide-y divide-[#F2EBDC]"
-                onMouseDown={(e) => e.preventDefault()}
-              >
-                <div className="px-3.5 py-2 bg-[#FBF9F5] text-[10px] font-bold tracking-wider uppercase text-[#8C6D1F] flex justify-between items-center">
-                  <span>Matching Items</span>
-                  <span>{searchResults.length} Results</span>
+            {/* Quick Search Dropdown */}
+            {isSearchOpen && isSearchFocused && searchResults.length > 0 && (
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-[#D4AF37]/40 py-2 z-50 animate-in fade-in">
+                <div className="px-3 py-1 text-[10px] font-bold text-[#8A671A] uppercase tracking-wider border-b border-gray-100">
+                  Quick Matching Products
                 </div>
-                {searchResults.map((item) => (
+                {searchResults.map((prod) => (
                   <div
-                    key={item.id}
+                    key={prod.id}
                     onClick={() => {
-                      openProductDetail(item);
-                      setIsSearchFocused(false);
+                      openProductDetail(prod);
                       setIsSearchOpen(false);
+                      setSearchQuery('');
                     }}
-                    className="flex items-center gap-3 p-2.5 hover:bg-[#FAF6EE] cursor-pointer transition-colors"
+                    className="px-3 py-2 hover:bg-[#FAF6EE] flex items-center gap-3 cursor-pointer transition-colors"
                   >
                     <img
-                      src={normalizeImageUrl(item.image, item.category)}
-                      alt={item.name}
+                      src={normalizeImageUrl(prod.image, prod.category)}
+                      alt={prod.name}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
+                        const target = e.target as HTMLImageElement;
+                        target.src = FALLBACK_LUXURY_IMAGE;
                       }}
-                      className="w-10 h-10 object-cover rounded-lg bg-[#F2EFE9]"
+                      className="w-9 h-9 object-cover rounded border border-gray-200"
                     />
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-xs font-semibold text-[#1E1E22] truncate">
-                        {item.name}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-[#111113] truncate">
+                        {prod.name}
                       </p>
-                      <p className="text-[11px] text-[#7A6C58]">
-                        {item.category} · ₹{item.price.toLocaleString('en-IN')}
+                      <p className="text-[11px] font-bold text-[#B8860B]">
+                        ₹{prod.price.toLocaleString('en-IN')}
                       </p>
                     </div>
-                    <span className="text-[11px] text-[#B89758] font-bold">View →</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* User Account Button */}
+          {/* Account Button */}
           <button
             onClick={onOpenAccountModal}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer"
             aria-label="Account & Orders"
             title="My Account / Orders"
           >
-            <User className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            <User className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" />
           </button>
 
-          {/* Shopping Bag Button with Golden Count Badge (Matching Mockup) */}
+          {/* Shopping Bag Button with Golden Count Badge */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer group"
+            className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer group"
             aria-label="Shopping Bag"
             title={`Shopping Bag (${cartCount} items)`}
           >
-            <ShoppingBag className="w-4 h-4 sm:w-[19px] sm:h-[19px] text-[#2A241E] group-hover:text-[#B8860B] transition-colors" />
+            <ShoppingBag className="w-3.5 h-3.5 sm:w-[19px] sm:h-[19px] text-[#2A241E] group-hover:text-[#B8860B] transition-colors" />
             {cartCount > 0 && (
-              <span className="absolute top-1 right-1 bg-gradient-to-r from-[#DFBA53] to-[#B8860B] text-black font-extrabold text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white">
+              <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 bg-gradient-to-r from-[#DFBA53] to-[#B8860B] text-black font-extrabold text-[8.5px] sm:text-[9px] w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center shadow-xs border border-white">
                 {cartCount}
               </span>
-            )}
-          </button>
-
-          {/* Ambient Sound Toggle */}
-          <button
-            onClick={toggleSound}
-            className="hidden sm:flex items-center gap-1 p-2 rounded-full text-xs text-[#7A6C58] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-colors cursor-pointer"
-            title="Toggle Ambient Audio"
-          >
-            {isSoundOn ? (
-              <Volume2 className="w-4 h-4 text-[#B8860B]" />
-            ) : (
-              <VolumeX className="w-4 h-4 text-gray-400" />
             )}
           </button>
         </div>
