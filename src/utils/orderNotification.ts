@@ -4,12 +4,12 @@ import { Order } from '../types';
  * Dispatches an instant email notification when an order is placed.
  * Supports:
  * 1. Formspree / Webhook endpoint (configured in Vercel environment variables or local storage)
- * 2. Pre-formatted Email link fallback (mailto:) for 1-click notification to taherab375@gmail.com
+ * 2. Pre-formatted Email link fallback (mailto:) for 1-click notification to lapofluxurypremium@gmail.com
  */
 export async function sendOrderEmailNotification(order: Order): Promise<boolean> {
   const storeOwnerEmail =
     (typeof window !== 'undefined' && localStorage.getItem('lol_owner_email')) ||
-    'taherab375@gmail.com';
+    'lapofluxurypremium@gmail.com';
 
   const itemsList = order.items
     .map(
@@ -85,7 +85,7 @@ SUMMARY:
 /**
  * Generates a pre-filled mailto link for sending order receipt/dispatch alert via standard email client.
  */
-export function getOrderMailtoUrl(order: Order, recipientEmail: string = 'taherab375@gmail.com'): string {
+export function getOrderMailtoUrl(order: Order, recipientEmail: string = 'lapofluxurypremium@gmail.com'): string {
   const subject = encodeURIComponent(`👑 New Order #${order.id.slice(-6).toUpperCase()} - ₹${order.total.toLocaleString('en-IN')} [Lap of Luxury]`);
   const body = encodeURIComponent(`
 Order #${order.id.slice(-6).toUpperCase()} Details:

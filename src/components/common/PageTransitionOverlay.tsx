@@ -15,13 +15,13 @@ export const PageTransitionOverlay: React.FC = () => {
           <UploadedLogoMark className="w-20 h-20 sm:w-28 sm:h-28 text-black" color="#111111" />
         </div>
 
-        {/* Big Bodoni Title */}
-        <h2 className="font-bodoni text-3xl sm:text-5xl font-black tracking-[0.24em] uppercase text-black leading-none my-1">
+        {/* Bodoni Title */}
+        <h2 className="font-serif text-2xl sm:text-4xl font-medium tracking-[0.2em] uppercase text-black leading-none my-1">
           LAP OF LUXURY
         </h2>
 
         {/* Tagline without cutting line */}
-        <p className="font-bodoni italic tracking-[0.20em] uppercase text-xs sm:text-sm font-semibold text-[#8C6D1F] mt-2">
+        <p className="font-sans tracking-[0.14em] uppercase text-xs sm:text-sm font-normal text-[#8C6D1F] mt-2">
           Experience premium in every touch
         </p>
 

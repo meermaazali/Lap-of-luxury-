@@ -30,36 +30,36 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         <UploadedLogoMark
           className={`${
             size === 'sm'
-              ? 'w-10 h-10 sm:w-12 sm:h-12'
+              ? 'w-12 h-12 sm:w-14 sm:h-14'
               : size === 'md'
-              ? 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20'
+              ? 'w-16 h-16 sm:w-20 sm:h-20'
               : size === 'lg'
-              ? 'w-18 h-18 sm:w-22 sm:h-22 md:w-26 md:h-26'
+              ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28'
               : size === 'giant'
-              ? 'w-28 h-28 sm:w-36 sm:h-36'
-              : 'w-22 h-22 sm:w-26 sm:h-26'
+              ? 'w-32 h-32 sm:w-40 sm:h-40'
+              : 'w-24 h-24 sm:w-28 sm:h-28'
           } shrink-0 transition-transform duration-300`}
           color={logoColor}
         />
 
         <div className="flex flex-col items-center">
           <span
-            className={`font-bodoni tracking-[0.12em] sm:tracking-[0.16em] md:tracking-[0.18em] font-black uppercase transition-colors leading-none px-1.5 inline-block whitespace-nowrap overflow-visible ${
+            className={`font-serif tracking-[0.12em] sm:tracking-[0.16em] md:tracking-[0.18em] font-normal uppercase transition-colors leading-none px-1.5 inline-block whitespace-normal sm:whitespace-nowrap ${
               size === 'sm'
-                ? 'text-lg sm:text-xl'
+                ? 'text-base sm:text-lg'
                 : size === 'md'
-                ? 'text-2xl sm:text-3xl md:text-4xl'
+                ? 'text-xl sm:text-2xl md:text-3xl'
                 : size === 'lg'
-                ? 'text-3xl sm:text-4xl md:text-5xl'
+                ? 'text-2xl sm:text-3xl md:text-4xl'
                 : size === 'giant'
-                ? 'text-4xl sm:text-5xl md:text-6xl'
-                : 'text-2xl sm:text-3xl md:text-4xl'
+                ? 'text-3xl sm:text-4xl md:text-5xl'
+                : 'text-xl sm:text-2xl md:text-3xl'
             } ${
               isDark
                 ? 'text-white'
                 : isGold
                 ? 'text-[#B8860B]'
-                : 'text-[#111111]'
+                : 'text-[#111113]'
             }`}
           >
             LAP OF LUXURY
@@ -71,8 +71,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       {showSubtitle && (
         <div className="flex flex-col items-center mt-1 w-full max-w-[320px] sm:max-w-[420px]">
           <p
-            className={`font-bodoni italic tracking-[0.14em] sm:tracking-[0.18em] text-[11px] sm:text-xs md:text-[13px] uppercase font-semibold px-2 text-center whitespace-normal sm:whitespace-nowrap overflow-visible ${
-              isDark ? 'text-[#F3D78E]' : 'text-[#8A671A]'
+            className={`font-sans tracking-[0.08em] sm:tracking-[0.14em] text-[10px] sm:text-xs md:text-[11px] uppercase font-normal px-2 text-center whitespace-normal sm:whitespace-nowrap ${
+              isDark ? 'text-[#F3D78E]' : 'text-[#7A6C58]'
             }`}
           >
             Experience premium in every touch

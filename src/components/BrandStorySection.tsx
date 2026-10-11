@@ -38,7 +38,7 @@ export const BrandStorySection: React.FC = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 text-white">
-                <span className="font-editorial italic uppercase tracking-[0.2em] text-xs text-[#D4AF37] font-medium">
+                <span className="font-sans uppercase tracking-[0.16em] text-xs text-[#D4AF37] font-semibold">
                   Flagship Boutique
                 </span>
                 <p className="font-bodoni text-xl sm:text-2xl font-normal sm:font-medium tracking-wider mt-1">
@@ -55,7 +55,7 @@ export const BrandStorySection: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-1.5 h-1.5 rotate-45 bg-[#B89758]" />
-                  <span className="font-editorial text-xs italic tracking-[0.2em] uppercase text-[#8C6D1F] font-medium">
+                  <span className="font-sans text-xs tracking-[0.16em] uppercase text-[#8C6D1F] font-semibold">
                     Our Philosophy
                   </span>
                 </div>

@@ -31,7 +31,7 @@ export const OrdersManager: React.FC = () => {
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [ownerEmail, setOwnerEmail] = useState<string>(() => {
-    return localStorage.getItem('lol_owner_email') || 'taherab375@gmail.com';
+    return localStorage.getItem('lol_owner_email') || 'lapofluxurypremium@gmail.com';
   });
   const [emailWebhook, setEmailWebhook] = useState<string>(() => {
     return localStorage.getItem('lol_order_email_webhook') || '';
@@ -164,7 +164,7 @@ export const OrdersManager: React.FC = () => {
                 required
                 value={ownerEmail}
                 onChange={(e) => setOwnerEmail(e.target.value)}
-                placeholder="taherab375@gmail.com"
+                placeholder="lapofluxurypremium@gmail.com"
                 className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs font-mono focus:border-[#B89758] focus:outline-none"
               />
             </div>
@@ -387,7 +387,7 @@ export const OrdersManager: React.FC = () => {
               <p className="text-xs text-[#7A6C58] uppercase tracking-wider">
                 Store · Mahbubnagar, Telangana
               </p>
-              <p className="text-[11px] text-[#7A6C58]">D/6, Kota Complex, Telangana Chowrasta, Boyapalle Rural, Mahbubnagar 509001</p>
+              <p className="text-[11px] text-[#7A6C58]">D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Beside prashant residency, Mahbubnagar, Telangana 509001</p>
               <p className="text-[11px] text-[#7A6C58]">Cell: 75 7888 7888 · Support: lapofluxurypremium@gmail.com</p>
             </div>
 

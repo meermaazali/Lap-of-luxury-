@@ -237,11 +237,11 @@ export const BannerManager: React.FC = () => {
                 MAIN HOMEPAGE
               </span>
               <h2 className="font-bodoni text-lg sm:text-xl font-bold tracking-wider uppercase text-white">
-                FLAGSHIP BOUTIQUE HERO BANNER & TEXTS
+                FLAGSHIP FASHION HERO BANNER & TEXTS
               </h2>
             </div>
             <p className="text-xs text-gray-300 mt-1">
-              Edit the main boutique showcase banner image, headlines, kicker, subtitles, and CTA button.
+              Edit the main fashion showcase banner image, headlines, kicker, subtitles, and CTA button.
             </p>
           </div>
 
@@ -430,7 +430,7 @@ export const BannerManager: React.FC = () => {
                     value={boutiqueHeroData.titleLine2}
                     onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, titleLine2: e.target.value })}
                     placeholder="e.g. For Every Moment"
-                    className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-bold italic text-[#111111] focus:outline-none focus:border-[#B89758]"
+                    className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl text-xs font-bold text-[#111111] focus:outline-none focus:border-[#B89758]"
                   />
                 </div>
               </div>
@@ -485,7 +485,7 @@ export const BannerManager: React.FC = () => {
                     </span>
                     <h4 className="font-serif font-bold text-base text-[#111113] leading-tight">
                       {boutiqueHeroData.titleLine1} <br />
-                      <span className="italic">{boutiqueHeroData.titleLine2}</span>
+                      <span>{boutiqueHeroData.titleLine2}</span>
                     </h4>
                     <p className="text-[9px] text-[#221F1A] font-semibold mt-1 truncate">
                       {boutiqueHeroData.subtitle}
@@ -587,7 +587,7 @@ export const BannerManager: React.FC = () => {
             {/* Slide Text Content */}
             <div className="p-5 flex-1 flex flex-col justify-between">
               <div>
-                <p className="text-[11px] font-editorial italic tracking-widest uppercase text-[#B89758]">
+                <p className="text-[11px] font-sans tracking-widest uppercase text-[#B89758] font-semibold">
                   {slide.kicker || 'Experience premium in every touch'}
                 </p>
                 <h3 className="font-display text-xl font-bold tracking-wider uppercase text-[#1E1E22] mt-1">

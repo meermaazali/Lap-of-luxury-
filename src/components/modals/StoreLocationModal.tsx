@@ -6,8 +6,8 @@ interface StoreLocationModalProps {
   onClose: () => void;
 }
 
-export const MAPS_URL = "https://maps.google.com/?q=D/6,+Kota+Complex,+Telangana+Chowrasta,+2-2-2/2,+Boyapalle+Rural,+Mahbubnagar,+Telangana 509001";
-export const STORE_ADDRESS = "D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Boyapalle Rural, Mahbubnagar, Telangana 509001";
+export const MAPS_URL = "https://maps.google.com/?q=D/6,+Kota+Complex,+Telangana+Chowrasta,+2-2-2/2,+Beside+prashant+residency,+Mahbubnagar,+Telangana+509001";
+export const STORE_ADDRESS = "D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Beside prashant residency, Mahbubnagar, Telangana 509001";
 export const SUPPORT_EMAIL = "lapofluxurypremium@gmail.com";
 export const STORE_PHONE = "75 7888 7888";
 
@@ -27,7 +27,7 @@ export const StoreLocationModal: React.FC<StoreLocationModalProps> = ({ isOpen, 
               ← Back
             </button>
             <div>
-              <span className="font-editorial text-[11px] italic tracking-[0.2em] uppercase text-[#8C6D1F] font-bold">
+              <span className="font-sans text-[11px] tracking-[0.14em] uppercase text-[#8C6D1F] font-semibold">
                 Store Location
               </span>
               <h3 className="font-bodoni text-base sm:text-lg font-bold tracking-wider text-[#111111] uppercase">
@@ -57,7 +57,7 @@ export const StoreLocationModal: React.FC<StoreLocationModalProps> = ({ isOpen, 
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-3 left-4 right-4 text-white">
               <span className="bg-[#B89758] text-white text-[9px] font-bold px-2 py-0.5 rounded tracking-widest uppercase">
-                OPEN DAILY · 10:00 AM - 9:30 PM
+                Store Timings: 9:30 AM – 10:00 PM
               </span>
               <p className="font-bodoni font-bold text-base sm:text-lg mt-1">
                 LAP OF LUXURY · MAHBUBNAGAR
@@ -95,7 +95,7 @@ export const StoreLocationModal: React.FC<StoreLocationModalProps> = ({ isOpen, 
                   Store Timings:
                 </strong>
                 <p className="text-xs text-[#5C5040] mt-0.5">
-                  Monday – Sunday: <strong>10:00 AM – 9:30 PM</strong>
+                  Store Timings: <strong>9:30 AM – 10:00 PM</strong>
                 </p>
               </div>
             </div>

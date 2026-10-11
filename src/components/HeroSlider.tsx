@@ -145,7 +145,7 @@ export const HeroSlider: React.FC = () => {
             {/* Tagline kicker with Gold Emblem */}
             <div className="flex items-center gap-2 mb-2">
               <span className="w-6 h-[1.5px] bg-[#D4AF37]" />
-              <p className="font-editorial italic tracking-[0.22em] uppercase text-xs md:text-sm text-[#8A671A] font-semibold">
+              <p className="font-sans tracking-[0.16em] uppercase text-xs md:text-sm text-[#8A671A] font-semibold">
                 {currentSlide.kicker || 'Where Elegance Meets Comfort'}
               </p>
             </div>

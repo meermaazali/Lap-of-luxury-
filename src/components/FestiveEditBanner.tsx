@@ -81,8 +81,8 @@ export const FestiveEditBanner: React.FC = () => {
               </div>
             </div>
 
-            <p className="font-bodoni italic tracking-wider text-[11px] sm:text-xs uppercase text-[#8A671A] mb-6 font-semibold">
-              LIMITED-TIME COLLECTION · EXCLUSIVE TO MAHABUBNAGAR BOUTIQUE & ONLINE
+            <p className="font-sans tracking-wider text-[11px] sm:text-xs uppercase text-[#8A671A] mb-6 font-semibold">
+              LIMITED-TIME COLLECTION · EXCLUSIVE TO MAHABUBNAGAR STORE & ONLINE
             </p>
 
             {/* Golden Action Button */}

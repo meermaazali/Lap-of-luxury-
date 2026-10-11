@@ -117,7 +117,7 @@ export const ProductDetailModal: React.FC = () => {
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="font-editorial text-xs italic tracking-[0.2em] text-[#8C6D1F] uppercase font-bold hidden sm:inline">
+            <span className="font-sans text-xs tracking-[0.14em] text-[#8C6D1F] uppercase font-semibold hidden sm:inline">
               Lap of Luxury Details
             </span>
             <button
@@ -250,7 +250,7 @@ export const ProductDetailModal: React.FC = () => {
             <div className="space-y-4">
               {/* Category & Rating */}
               <div className="flex items-center justify-between">
-                <span className="font-editorial text-xs italic tracking-[0.2em] uppercase text-[#8C6D1F] font-bold">
+                <span className="font-sans text-xs tracking-[0.14em] uppercase text-[#8C6D1F] font-semibold">
                   {quickViewProduct.category} · Mahbubnagar
                 </span>
                 <div className="flex items-center gap-1 text-xs text-amber-600 font-bold">

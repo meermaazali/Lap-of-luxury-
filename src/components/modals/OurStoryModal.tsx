@@ -35,7 +35,7 @@ export const OurStoryModal: React.FC<OurStoryModalProps> = ({ isOpen, onClose })
         {/* Content */}
         <div className="p-6 sm:p-8 space-y-6 text-[#3D3327]">
           <div>
-            <span className="font-editorial text-xs italic tracking-[0.2em] uppercase text-[#8C6D1F] font-bold">
+            <span className="font-sans text-xs tracking-[0.16em] uppercase text-[#8C6D1F] font-semibold">
               Heritage & Craftsmanship
             </span>
             <h2 className="font-bodoni text-2xl sm:text-3xl font-extrabold uppercase tracking-wide text-[#111111] mt-1">

@@ -14,27 +14,42 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
 
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, isOpen]);
+
   if (!isOpen) return null;
+
+  const tabTitles: Record<string, string> = {
+    shipping: 'SHIPPING & EXPRESS DELIVERY',
+    size: 'SIZE & FIT GUIDE',
+    faq: 'FREQUENTLY ASKED QUESTIONS',
+    contact: 'STORE CONCIERGE & CONTACT',
+    careers: 'CAREERS AT LAP OF LUXURY',
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-2xl rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden relative my-6">
-        {/* Header with Back button */}
+        {/* Header with Bordered Back button */}
         <div className="px-5 sm:px-6 py-4 bg-[#FAF8F5] border-b border-[#E8DFC8] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-[#111111] hover:text-[#B89758] border border-[#D5C7B0] rounded-lg hover:bg-white transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#111111] hover:text-[#B89758] border border-[#D5C7B0] rounded-lg hover:bg-white transition-colors cursor-pointer"
             >
               ← Back
             </button>
-            <span className="font-bodoni font-extrabold tracking-wider uppercase text-sm sm:text-base text-[#111111]">
-              CUSTOMER CONCIERGE & POLICIES
+            <span className="font-serif font-semibold tracking-wider uppercase text-xs sm:text-sm text-[#111111]">
+              {tabTitles[activeTab] || 'CUSTOMER CONCIERGE & POLICIES'}
             </span>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full border border-[#D5C7B0] hover:bg-[#F2EDE2] flex items-center justify-center text-[#111111] transition-colors cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -147,11 +162,11 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 </div>
                 <div className="p-3 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
                   <strong className="block text-[#111111]">Are all items 100% genuine and verified?</strong>
-                  <p className="mt-1 text-[#6B5F50]">Absolutely. Every shirt, watch, handbag, and denim item is original and inspected at our boutique in Mahbubnagar.</p>
+                  <p className="mt-1 text-[#6B5F50]">Absolutely. Every shirt, watch, handbag, and denim item is original and inspected at our store in Mahbubnagar.</p>
                 </div>
                 <div className="p-3 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
                   <strong className="block text-[#111111]">Can I visit the store in person to try on outfits?</strong>
-                  <p className="mt-1 text-[#6B5F50]">Yes! Visit our boutique at Clock Tower Road, Mahabubnagar from 10:00 AM to 9:30 PM daily.</p>
+                  <p className="mt-1 text-[#6B5F50]">Yes! Visit our store at D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Beside prashant residency, Mahbubnagar, Telangana 509001. Store Timings: 9:30 AM – 10:00 PM.</p>
                 </div>
               </div>
             </div>
@@ -163,12 +178,13 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 GET IN TOUCH WITH VIP CONCIERGE
               </h3>
               <p className="leading-relaxed">
-                Whether you need styling advice, sizing verification, or custom delivery requests, our concierge team is available daily.
+                Whether you need styling advice, sizing verification, or custom delivery requests, our concierge team is available during Store Timings: 9:30 AM – 10:00 PM.
               </p>
               <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8] space-y-2">
+                <p><strong>Store Timings:</strong> 9:30 AM – 10:00 PM</p>
                 <p><strong>Direct Cell Line:</strong> 75 7888 7888</p>
                 <p><strong>Support Email:</strong> <a href="mailto:lapofluxurypremium@gmail.com" className="text-[#B89758] font-bold underline">lapofluxurypremium@gmail.com</a></p>
-                <p><strong>Store Address:</strong> D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Boyapalle Rural, Mahbubnagar, Telangana 509001</p>
+                <p><strong>Store Address:</strong> D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Beside prashant residency, Mahbubnagar, Telangana 509001</p>
                 <p><strong>Instagram:</strong> @_lapofluxury_</p>
               </div>
             </div>
@@ -180,7 +196,7 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 JOIN THE LAP OF LUXURY TEAM
               </h3>
               <p className="leading-relaxed">
-                We are actively looking for passionate retail stylists, inventory coordinators, and luxury brand specialists for our Mahabubnagar boutique and online growth.
+                We are actively looking for passionate retail stylists, inventory coordinators, and luxury brand specialists for our Mahabubnagar store and online growth.
               </p>
               <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8]">
                 <p>Send your profile or resume via WhatsApp to <strong>75 7888 7888</strong> with the subject <em>"Career Application"</em>.</p>

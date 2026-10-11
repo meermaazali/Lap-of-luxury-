@@ -197,7 +197,7 @@ export const ClientPhotoGuide: React.FC = () => {
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Subject:</strong> Centered close-up of item (e.g. golden blazer, luxury handbag, watch face).
+                  <strong>Subject:</strong> Centered close-up of item (e.g. tailored dress shirt, luxury handbag, watch face).
                 </span>
               </div>
               <div className="flex items-start gap-2">

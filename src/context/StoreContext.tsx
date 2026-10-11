@@ -18,6 +18,7 @@ import {
 } from '../data/initialData';
 import { normalizeImageUrl, compressImage, FALLBACK_CATEGORY_IMAGES } from '../utils/imageUtils';
 import { sendOrderEmailNotification } from '../utils/orderNotification';
+import { idbSetItem, idbGetItem } from '../utils/idbStorage';
 
 interface StoreContextType {
   // Products
@@ -510,41 +511,98 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, 640);
   };
 
-  // Sync state to LocalStorage
+  // Permanent sync state to LocalStorage & IndexedDB (ensuring products never disappear)
   useEffect(() => {
-    localStorage.setItem('lol_products', JSON.stringify(products));
+    try {
+      localStorage.setItem('lol_products', JSON.stringify(products));
+    } catch (e) {
+      console.warn('LocalStorage quota exceeded for products, syncing to IndexedDB', e);
+    }
+    idbSetItem('lol_products', products);
   }, [products]);
 
+  // On mount: rehydrate products from IndexedDB if localStorage had quota issues or was cleared
   useEffect(() => {
-    localStorage.setItem('lol_banners', JSON.stringify(banners));
+    idbGetItem<Product[]>('lol_products').then((savedProducts) => {
+      if (Array.isArray(savedProducts) && savedProducts.length > 0) {
+        setProducts((current) => {
+          const currentIds = new Set(current.map((p) => p.id));
+          const missing = savedProducts.filter((p) => !currentIds.has(p.id));
+          if (missing.length > 0) {
+            return [...current, ...missing];
+          }
+          return current;
+        });
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('lol_banners', JSON.stringify(banners));
+    } catch {
+      // safe fallback
+    }
+    idbSetItem('lol_banners', banners);
   }, [banners]);
 
   useEffect(() => {
-    localStorage.setItem('lol_banner_interval', bannerInterval.toString());
+    try {
+      localStorage.setItem('lol_banner_interval', bannerInterval.toString());
+    } catch {
+      // safe fallback
+    }
   }, [bannerInterval]);
 
   useEffect(() => {
-    localStorage.setItem('lol_categories', JSON.stringify(categories));
+    try {
+      localStorage.setItem('lol_categories', JSON.stringify(categories));
+    } catch {
+      // safe fallback
+    }
+    idbSetItem('lol_categories', categories);
   }, [categories]);
 
   useEffect(() => {
-    localStorage.setItem('lol_category_interval', categoryInterval.toString());
+    try {
+      localStorage.setItem('lol_category_interval', categoryInterval.toString());
+    } catch {
+      // safe fallback
+    }
   }, [categoryInterval]);
 
   useEffect(() => {
-    localStorage.setItem('lol_cart', JSON.stringify(cart));
+    try {
+      localStorage.setItem('lol_cart', JSON.stringify(cart));
+    } catch {
+      // safe fallback
+    }
   }, [cart]);
 
   useEffect(() => {
-    localStorage.setItem('lol_wishlist', JSON.stringify(wishlist));
+    try {
+      localStorage.setItem('lol_wishlist', JSON.stringify(wishlist));
+    } catch {
+      // safe fallback
+    }
   }, [wishlist]);
 
   useEffect(() => {
-    localStorage.setItem('lol_orders', JSON.stringify(orders));
+    try {
+      localStorage.setItem('lol_orders', JSON.stringify(orders));
+    } catch {
+      // safe fallback
+    }
+    idbSetItem('lol_orders', orders);
   }, [orders]);
 
   useEffect(() => {
-    localStorage.setItem('lol_media', JSON.stringify(mediaAssets));
+    try {
+      localStorage.setItem('lol_media', JSON.stringify(mediaAssets));
+    } catch {
+      // safe fallback
+    }
+    idbSetItem('lol_media', mediaAssets);
   }, [mediaAssets]);
 
   // Listen to path & hash changes for direct admin access (/admin or #admin)

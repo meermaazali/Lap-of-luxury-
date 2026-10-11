@@ -60,7 +60,7 @@ export const BestSellersGrid: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2 h-2 rotate-45 bg-[#D4AF37]" />
-              <span className="font-editorial italic uppercase tracking-[0.22em] text-[11px] sm:text-xs text-[#8A671A] font-medium">
+              <span className="font-sans uppercase tracking-[0.14em] text-[11px] sm:text-xs text-[#8A671A] font-semibold">
                 Hand-Finished Masterpieces
               </span>
             </div>
