@@ -8,12 +8,10 @@ import {
   Phone,
   MapPin,
   Calendar,
-  DollarSign,
   Printer,
-  Sparkles,
   Mail,
-  Send,
-  ExternalLink,
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Order } from '../../types';
@@ -24,12 +22,13 @@ export const OrdersManager: React.FC = () => {
     orders,
     updateOrderStatus,
     markOrderRead,
-    placeOrder,
   } = useStore();
 
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
+  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [ownerEmail, setOwnerEmail] = useState<string>(() => {
     return localStorage.getItem('lol_owner_email') || 'lapofluxurypremium@gmail.com';
   });
@@ -48,13 +47,37 @@ export const OrdersManager: React.FC = () => {
   };
 
   const handleSendEmailNow = async (order: Order) => {
-    // 1. Try background webhook/service if configured
     if (emailWebhook.trim()) {
       await sendOrderEmailNotification(order);
     }
-    // 2. Open standard email client with pre-filled order receipt
     const mailto = getOrderMailtoUrl(order, ownerEmail);
     window.open(mailto, '_blank');
+  };
+
+  const handleRefreshOrders = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetch('/api/orders').catch(() => null);
+    } catch {
+      // offline
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 600);
+    }
+  };
+
+  const handleVerifyOrderPayment = async (order: Order) => {
+    try {
+      await fetch('/api/orders/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      }).catch(() => null);
+    } catch {
+      // offline
+    }
+
+    order.paymentStatus = 'Verified';
+    updateOrderStatus(order.id, 'Confirmed');
   };
 
   const filteredOrders = orders.filter((o) => {
@@ -65,28 +88,8 @@ export const OrdersManager: React.FC = () => {
   const handleExecuteClearOrders = () => {
     try {
       localStorage.setItem('lol_orders', JSON.stringify([]));
-    } catch {
-      // ignore
-    }
+    } catch {}
     window.location.reload();
-  };
-
-  // Helper to trigger a simulated customer order to test live notification & chime
-  const handleSimulateOrder = () => {
-    const randomNames = ['Arjun Varma', 'Sneha Kulkarni', 'Mohammed Asif', 'Ramesh Goud', 'Ananya Sharma'];
-    const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
-    const randomMethods: Array<'COD' | 'UPI' | 'Card'> = ['COD', 'UPI', 'Card'];
-    const randomMethod = randomMethods[Math.floor(Math.random() * randomMethods.length)];
-
-    placeOrder({
-      name: randomName,
-      phone: `+91 ${Math.floor(7000000000 + Math.random() * 2999999999)}`,
-      email: `${randomName.toLowerCase().replace(' ', '.')}@example.com`,
-      address: `Shop #${Math.floor(10 + Math.random() * 80)}, Station Road, Gandhi Nagar`,
-      city: 'Mahabubnagar',
-      pincode: '509001',
-      paymentMethod: randomMethod,
-    });
   };
 
   return (
@@ -96,14 +99,26 @@ export const OrdersManager: React.FC = () => {
         <div>
           <h2 className="font-display text-lg font-bold tracking-wider uppercase text-[#1E1E22] flex items-center gap-2">
             <Bell className="w-5 h-5 text-[#B89758]" />
-            ORDER NOTIFICATIONS & DISPATCH
+            ORDER MANAGEMENT (SILENT NOTIFICATIONS)
           </h2>
           <p className="text-xs text-[#7A6C58]">
-            Real-time incoming orders with customer phone, address & status controls.
+            Silent incoming orders, verified UPI payment status, customer details & dispatch controls.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Refresh Button */}
+          <button
+            type="button"
+            onClick={handleRefreshOrders}
+            disabled={isRefreshing}
+            className="px-3 py-1.5 border border-[#D5C7B0] hover:bg-[#FAF8F5] text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Refresh Orders"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh List</span>
+          </button>
+
           <button
             onClick={() => setShowEmailConfig(!showEmailConfig)}
             className="px-3 py-1.5 border border-[#B89758] text-[#8C6D1F] hover:bg-[#FAF6EE] text-xs font-bold uppercase rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
@@ -121,15 +136,6 @@ export const OrdersManager: React.FC = () => {
               Clear Orders
             </button>
           )}
-
-          <button
-            onClick={handleSimulateOrder}
-            className="px-3.5 py-2 bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs font-bold tracking-wider uppercase rounded-lg shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
-            title="Create a sample order to test real-time notification chime"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Test Live Notification Sound</span>
-          </button>
         </div>
       </div>
 
@@ -183,13 +189,17 @@ export const OrdersManager: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-[11px] text-[#7A6C58]">
-              💡 <strong>Easiest Method:</strong> Set up a free form at <a href="https://formspree.io" target="_blank" rel="noreferrer" className="text-[#B89758] underline">formspree.io</a> in 1 minute and paste the URL here. All customer orders will arrive straight into your Gmail inbox!
-            </span>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setShowEmailConfig(false)}
+              className="px-3 py-1.5 border border-[#D5C7B0] text-xs font-bold uppercase rounded-lg hover:bg-gray-50"
+            >
+              Close
+            </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-[#1E1E22] hover:bg-[#34343A] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm cursor-pointer shrink-0 ml-3"
+              className="px-4 py-1.5 bg-[#B89758] text-white text-xs font-bold uppercase rounded-lg shadow-sm hover:brightness-105"
             >
               Save Email Settings
             </button>
@@ -197,53 +207,83 @@ export const OrdersManager: React.FC = () => {
         </form>
       )}
 
+      {/* Confirmation Modal for Clearing Orders */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-5 max-w-sm w-full space-y-4 border border-red-300 shadow-xl">
+            <div className="flex items-center gap-2 text-red-600 font-bold text-sm">
+              <AlertCircle className="w-5 h-5" />
+              <span>Confirm Reset All Orders</span>
+            </div>
+            <p className="text-xs text-[#554D42]">
+              Are you sure you want to permanently clear the orders list? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#D5C7B0]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExecuteClearOrders}
+                className="px-3 py-1.5 text-xs font-bold text-white bg-red-600 rounded-lg hover:bg-red-700"
+              >
+                Yes, Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+      <div className="flex border-b border-[#E0D5C3] bg-white rounded-t-xl px-4 pt-2 gap-2 overflow-x-auto no-scrollbar">
         {['All', 'Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].map((st) => (
           <button
             key={st}
             onClick={() => setStatusFilter(st)}
-            className={`px-3.5 py-1.5 text-xs font-semibold tracking-wider uppercase rounded-lg transition-all cursor-pointer ${
+            className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors cursor-pointer ${
               statusFilter === st
-                ? 'bg-[#1E1E22] text-[#F3E7D5] shadow-xs'
-                : 'bg-white border border-[#E0D5C3] text-[#5C5040] hover:bg-[#FAF6EE]'
+                ? 'border-[#B89758] text-[#1E1E22]'
+                : 'border-transparent text-[#7A6C58] hover:text-[#1E1E22]'
             }`}
           >
-            {st}
+            {st} (
+            {st === 'All'
+              ? orders.length
+              : orders.filter((o) => o.status === st).length}
+            )
           </button>
         ))}
       </div>
 
       {/* Orders List */}
       {filteredOrders.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E0D5C3] p-12 text-center">
-          <Package className="w-12 h-12 text-[#C5B39E] mx-auto mb-2" />
-          <h3 className="font-display font-bold text-base text-[#1E1E22] uppercase tracking-wider">
-            NO ORDERS FOUND
-          </h3>
-          <p className="text-xs text-[#7A6C58] mt-1">
-            No orders match the selected filter. Click "Test Live Notification Sound" to simulate one!
-          </p>
+        <div className="bg-white rounded-b-xl border border-t-0 border-[#E0D5C3] p-12 text-center text-[#7A6C58] space-y-2">
+          <Package className="w-8 h-8 mx-auto text-[#D5C7B0]" />
+          <p className="font-semibold text-sm">No orders found in "{statusFilter}".</p>
+          <p className="text-xs">Incoming customer orders appear here silently with verified payment status.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => {
             const isUnread = !order.isRead;
+            const isVerified = order.paymentStatus === 'Verified';
 
             return (
               <div
                 key={order.id}
                 onClick={() => markOrderRead(order.id)}
-                className={`bg-white rounded-xl border p-5 transition-all shadow-xs ${
+                className={`bg-white rounded-xl border p-4 sm:p-5 transition-all shadow-xs space-y-3 ${
                   isUnread
-                    ? 'border-[#B89758] ring-1 ring-[#B89758]/50 bg-[#FFFCF7]'
+                    ? 'border-[#B89758] bg-[#FAF8F5] ring-1 ring-[#B89758]/30'
                     : 'border-[#E0D5C3]'
                 }`}
               >
                 {/* Header row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE8DD]">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm sm:text-base font-bold text-[#1E1E22]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0EAE0] pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-sm text-[#111113]">
                       #{order.trackingNumber}
                     </span>
                     {isUnread && (
@@ -251,6 +291,20 @@ export const OrdersManager: React.FC = () => {
                         NEW ORDER
                       </span>
                     )}
+
+                    {/* Verified vs Pending Badge */}
+                    {isVerified ? (
+                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1 border border-emerald-300">
+                        <CheckCircle className="w-3 h-3 text-emerald-700" />
+                        <span>Payment Verified</span>
+                      </span>
+                    ) : (
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1 border border-amber-300">
+                        <AlertCircle className="w-3 h-3 text-amber-700" />
+                        <span>Payment Pending</span>
+                      </span>
+                    )}
+
                     <span className="text-xs text-[#7A6C58] flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {new Date(order.createdAt).toLocaleString('en-IN', {
@@ -260,8 +314,23 @@ export const OrdersManager: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Order Status Select */}
-                  <div className="flex items-center gap-2">
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {!isVerified && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleVerifyOrderPayment(order);
+                        }}
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1 cursor-pointer transition-colors"
+                        title="Verify incoming payment"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Verify & Confirm Payment</span>
+                      </button>
+                    )}
+
                     <span className="text-xs font-semibold text-[#5A4F41]">Status:</span>
                     <select
                       value={order.status}
@@ -280,7 +349,7 @@ export const OrdersManager: React.FC = () => {
                     <button
                       onClick={() => handleSendEmailNow(order)}
                       className="px-2.5 py-1 rounded-lg border border-[#B89758] hover:bg-[#FAF6EE] text-[#8C6D1F] text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                      title="Send/Receive Order Email Receipt"
+                      title="Send Order Email Receipt"
                     >
                       <Mail className="w-3.5 h-3.5 text-[#B89758]" />
                       <span className="hidden sm:inline">Email Order</span>
@@ -288,7 +357,7 @@ export const OrdersManager: React.FC = () => {
 
                     <button
                       onClick={() => setSelectedOrderForInvoice(order)}
-                      className="p-1.5 rounded-lg border border-[#D5C7B0] hover:bg-[#FAF6EE] text-[#5A4F41]"
+                      className="p-1.5 rounded-lg border border-[#D5C7B0] hover:bg-[#FAF6EE] text-[#5A4F41] cursor-pointer"
                       title="Print Invoice / Packing Slip"
                     >
                       <Printer className="w-4 h-4" />
@@ -297,7 +366,7 @@ export const OrdersManager: React.FC = () => {
                 </div>
 
                 {/* Details Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 text-xs">
                   {/* Customer Info */}
                   <div className="space-y-1">
                     <p className="font-bold text-[#1E1E22] text-sm">
@@ -340,7 +409,7 @@ export const OrdersManager: React.FC = () => {
                 </div>
 
                 {/* Ordered Items Preview */}
-                <div className="mt-3 pt-3 border-t border-[#F0EAE0] flex flex-wrap items-center gap-3">
+                <div className="mt-2 pt-2 border-t border-[#F0EAE0] flex flex-wrap items-center gap-3">
                   <span className="text-[11px] font-bold text-[#7A6C58] uppercase">
                     Items ({order.items.length}):
                   </span>
@@ -349,125 +418,167 @@ export const OrdersManager: React.FC = () => {
                       key={idx}
                       className="flex items-center gap-2 bg-[#FAF8F5] border border-[#E5DAC8] px-2.5 py-1 rounded text-xs"
                     >
-                      <img
-                        src={it.product.image}
-                        alt={it.product.name}
-                        className="w-6 h-6 object-cover rounded"
-                        referrerPolicy="no-referrer"
-                      />
-                      <span className="font-semibold text-[#1E1E22]">
-                        {it.product.name}
+                      <span className="font-semibold text-[#111113]">{it.product.name}</span>
+                      <span className="text-[10px] text-[#7A6C58]">
+                        ({it.selectedSize}) × {it.quantity}
                       </span>
-                      <span className="text-[#8C7D6B]">({it.selectedSize})</span>
-                      <span className="font-bold text-[#B89758]">×{it.quantity}</span>
+                      <span className="text-[#8A671A] font-bold">
+                        ₹{(it.product.price * it.quantity).toLocaleString('en-IN')}
+                      </span>
                     </div>
                   ))}
                 </div>
+
+                {/* Customer Payment Screenshot Preview if uploaded on desktop */}
+                {order.paymentScreenshot && (
+                  <div className="mt-2 p-2.5 bg-[#FAF6EE] rounded-xl border border-[#D4AF37] flex items-center gap-3">
+                    <img
+                      src={order.paymentScreenshot}
+                      alt="Customer Payment Screenshot"
+                      className="w-14 h-14 object-cover rounded-lg border border-[#D4AF37] cursor-pointer hover:opacity-85 transition-opacity"
+                      onClick={() => setPreviewScreenshotUrl(order.paymentScreenshot || null)}
+                    />
+                    <div className="flex-1">
+                      <span className="text-[11px] font-bold text-[#8A671A] block uppercase tracking-wider">
+                        Customer Payment Screenshot Attached
+                      </span>
+                      <p className="text-[10px] text-[#554D42]">
+                        Uploaded from desktop during checkout. Click to inspect full image for bank UTR & time.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewScreenshotUrl(order.paymentScreenshot || null)}
+                        className="text-[11px] text-[#B8860B] font-bold hover:underline inline-block mt-0.5 cursor-pointer"
+                      >
+                        View Full Screenshot ↗
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Invoice Modal */}
+      {/* Invoice Modal Preview */}
       {selectedOrderForInvoice && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-xl rounded-2xl p-6 sm:p-8 border shadow-2xl relative">
-            <button
-              onClick={() => setSelectedOrderForInvoice(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold p-1 cursor-pointer"
-            >
-              ✕
-            </button>
-
-            <div className="text-center pb-4 border-b border-gray-200">
-              <h2 className="font-display text-xl font-bold tracking-[0.2em] text-[#1E1E22]">
-                LAP OF LUXURY
-              </h2>
-              <p className="text-xs text-[#7A6C58] uppercase tracking-wider">
-                Store · Mahbubnagar, Telangana
-              </p>
-              <p className="text-[11px] text-[#7A6C58]">D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Beside prashant residency, Mahbubnagar, Telangana 509001</p>
-              <p className="text-[11px] text-[#7A6C58]">Cell: 75 7888 7888 · Support: lapofluxurypremium@gmail.com</p>
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <h3 className="font-bold text-base text-[#111113] uppercase tracking-wider">
+                  LAP OF LUXURY · TAX INVOICE
+                </h3>
+                <p className="text-[11px] text-[#7A6C58]">
+                  D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, Beside prashant residency, Mahbubnagar, Telangana 509001
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedOrderForInvoice(null)}
+                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="py-4 space-y-2 text-xs">
+            <div className="text-xs space-y-2">
               <div className="flex justify-between">
-                <span>Invoice / Tracking:</span>
-                <span className="font-mono font-bold">#{selectedOrderForInvoice.trackingNumber}</span>
+                <span>Invoice / Order:</span>
+                <strong className="font-mono">#{selectedOrderForInvoice.trackingNumber}</strong>
               </div>
               <div className="flex justify-between">
-                <span>Customer:</span>
-                <span className="font-bold">{selectedOrderForInvoice.customerName}</span>
+                <span>Customer Name:</span>
+                <strong>{selectedOrderForInvoice.customerName}</strong>
               </div>
               <div className="flex justify-between">
-                <span>Phone:</span>
-                <span>{selectedOrderForInvoice.phone}</span>
+                <span>Contact Phone:</span>
+                <strong>{selectedOrderForInvoice.phone}</strong>
               </div>
               <div className="flex justify-between">
-                <span>Delivery Address:</span>
-                <span className="text-right max-w-xs">{selectedOrderForInvoice.address}, {selectedOrderForInvoice.city}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Payment Mode:</span>
-                <span className="font-bold">{selectedOrderForInvoice.paymentMethod}</span>
+                <span>Payment Method / Status:</span>
+                <strong>{selectedOrderForInvoice.paymentMethod} ({selectedOrderForInvoice.paymentStatus || 'Verified'})</strong>
               </div>
             </div>
 
-            <div className="border-t border-b border-gray-200 py-3 space-y-2">
-              {selectedOrderForInvoice.items.map((it, idx) => (
-                <div key={idx} className="flex justify-between text-xs">
-                  <span>{it.product.name} ({it.selectedSize}) × {it.quantity}</span>
-                  <span className="font-bold tabular-nums">₹{(it.product.price * it.quantity).toLocaleString('en-IN')}</span>
-                </div>
-              ))}
+            <table className="w-full text-xs border border-gray-200 mt-3">
+              <thead className="bg-[#FAF8F5] border-b">
+                <tr>
+                  <th className="p-2 text-left">Item</th>
+                  <th className="p-2 text-center">Size</th>
+                  <th className="p-2 text-center">Qty</th>
+                  <th className="p-2 text-right">Price</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {selectedOrderForInvoice.items.map((it, idx) => (
+                  <tr key={idx}>
+                    <td className="p-2 font-medium">{it.product.name}</td>
+                    <td className="p-2 text-center">{it.selectedSize}</td>
+                    <td className="p-2 text-center">{it.quantity}</td>
+                    <td className="p-2 text-right font-semibold">
+                      ₹{(it.product.price * it.quantity).toLocaleString('en-IN')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="flex justify-between pt-2 font-bold text-sm border-t">
+              <span>Total Payable Amount:</span>
+              <span>₹{selectedOrderForInvoice.total.toLocaleString('en-IN')}</span>
             </div>
 
-            <div className="pt-3 text-right">
-              <p className="text-sm font-bold text-[#1E1E22]">
-                Total Amount: ₹{selectedOrderForInvoice.total.toLocaleString('en-IN')}
-              </p>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="flex justify-end gap-2 pt-3">
               <button
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-[#1E1E22] text-white text-xs font-semibold uppercase tracking-wider rounded cursor-pointer"
+                className="px-4 py-2 bg-[#111113] text-white rounded-lg text-xs font-bold uppercase flex items-center gap-1.5"
               >
-                Print Slip
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Invoice</span>
               </button>
             </div>
           </div>
         </div>
       )}
-      {/* In-App Clear Orders Confirmation Modal */}
-      {showClearConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl border border-red-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 text-red-600">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
+
+      {/* Full-Size Customer Payment Screenshot Lightbox Modal */}
+      {previewScreenshotUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-4 space-y-3 border-2 border-[#D4AF37] shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-[#E8DEC8] pb-2.5">
               <div>
-                <h3 className="font-bold text-sm text-[#111111]">Clear All Orders?</h3>
-                <p className="text-xs text-[#7A6C58]">
-                  This will reset the incoming order history to start fresh with a clean list.
+                <h4 className="font-bold text-xs uppercase tracking-wider text-[#111113]">
+                  Customer Payment Screenshot
+                </h4>
+                <p className="text-[10px] text-[#7A6C58]">
+                  Verified UPI receipt uploaded by customer during checkout
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={() => setPreviewScreenshotUrl(null)}
+                className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-black hover:bg-gray-100 cursor-pointer font-bold"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+            <div className="max-h-[70vh] overflow-auto flex items-center justify-center bg-[#FAF8F5] rounded-xl p-2 border border-gray-200">
+              <img
+                src={previewScreenshotUrl}
+                alt="Payment Screenshot Full"
+                className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-sm"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
               <button
-                onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 border border-gray-300 text-xs font-semibold rounded-lg hover:bg-gray-50 cursor-pointer"
+                type="button"
+                onClick={() => setPreviewScreenshotUrl(null)}
+                className="px-4 py-1.5 bg-[#111113] hover:bg-black text-[#F4E09E] text-xs font-bold uppercase rounded-lg cursor-pointer"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleExecuteClearOrders}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase rounded-lg shadow cursor-pointer"
-              >
-                Confirm Clear
+                Close Preview
               </button>
             </div>
           </div>

@@ -22,12 +22,12 @@ export const Footer: React.FC = () => {
     <>
       <footer id="contact-footer" className="bg-white/80 backdrop-blur-[2px] border-t border-[#D4AF37]/30 pt-12 sm:pt-16 pb-8 text-[#3A332A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          {/* Main Footer Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-10 border-b border-[#E8DFC8]">
-            {/* Col 1: Brand Info */}
-            <div className="lg:col-span-1 flex flex-col items-start">
-              <BrandLogo variant="header" showSubtitle={true} className="items-start text-left" />
-              <p className="text-xs text-[#6B5F50] mt-3 leading-relaxed font-normal">
+          {/* Main Footer Grid with generous width for brand column to prevent clipping on large screens */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 pb-10 border-b border-[#E8DFC8]">
+            {/* Col 1: Brand Info (Spans 2 columns on desktop so logo & tagline never collapse or clip) */}
+            <div className="sm:col-span-2 lg:col-span-2 flex flex-col items-start pr-2 sm:pr-4">
+              <BrandLogo variant="header" showSubtitle={true} className="items-start text-left w-full max-w-sm" />
+              <p className="text-xs text-[#6B5F50] mt-3 leading-relaxed font-normal max-w-sm">
                 Experience premium in every touch. Curating luxury double-ply cotton shirts, tailored trousers, precision timepieces, handbags, and lifestyle fashion.
               </p>
             </div>
@@ -202,10 +202,6 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
               <button type="button" onClick={() => setPolicyTab('faq')} className="hover:text-[#111111] cursor-pointer">
                 Privacy Policy
-              </button>
-              <span>·</span>
-              <button type="button" onClick={() => setPolicyTab('faq')} className="hover:text-[#111111] cursor-pointer">
-                Terms & Conditions
               </button>
               <span>·</span>
               <button type="button" onClick={() => setIsLocationOpen(true)} className="hover:text-[#111111] cursor-pointer">

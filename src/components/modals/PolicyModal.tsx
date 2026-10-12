@@ -199,7 +199,7 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
                 We are actively looking for passionate retail stylists, inventory coordinators, and luxury brand specialists for our Mahabubnagar store and online growth.
               </p>
               <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8]">
-                <p>Send your profile or resume via WhatsApp to <strong>75 7888 7888</strong> with the subject <em>"Career Application"</em>.</p>
+                <p>Send your profile or resume via WhatsApp to <strong>75 7888 7888</strong> with the subject <strong className="font-semibold not-italic text-[#111113]">"Career Application"</strong>.</p>
               </div>
             </div>
           )}

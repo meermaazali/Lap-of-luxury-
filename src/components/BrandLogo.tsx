@@ -8,6 +8,12 @@ interface BrandLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'giant';
 }
 
+/**
+ * BrandLogo Component
+ * Renders the exact original LAP OF LUXURY trademark logo and typography.
+ * Completely stable without unwanted vertical movement or shifting on any screen.
+ * High-definition, properly proportioned with zero clipping.
+ */
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   variant = 'header',
   showSubtitle = true,
@@ -21,40 +27,44 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     ? '#FFFFFF'
     : isGold
     ? '#D4AF37'
-    : '#111111';
+    : '#111113';
+
+  const logoDimension =
+    size === 'sm'
+      ? 'w-12 h-12 sm:w-14 sm:h-14'
+      : size === 'md'
+      ? 'w-16 h-16 sm:w-20 sm:h-20'
+      : size === 'lg'
+      ? 'w-22 h-22 sm:w-26 sm:h-26'
+      : size === 'giant'
+      ? 'w-28 h-28 sm:w-36 sm:h-36'
+      : 'w-16 h-16 sm:w-20 sm:h-20';
+
+  const titleSize =
+    size === 'sm'
+      ? 'text-sm sm:text-base'
+      : size === 'md'
+      ? 'text-lg sm:text-xl md:text-2xl'
+      : size === 'lg'
+      ? 'text-2xl sm:text-3xl'
+      : size === 'giant'
+      ? 'text-3xl sm:text-4xl md:text-5xl'
+      : 'text-xl sm:text-2xl';
 
   return (
     <div className={`flex flex-col items-center select-none text-center ${className}`}>
-      {/* Exact Monogram + Bodoni Typography (Enlarged for grand luxury presence) */}
+      {/* Trademark Logo & Brand Typography */}
       <div className="flex items-center gap-2.5 sm:gap-3.5">
-        <UploadedLogoMark
-          className={`${
-            size === 'sm'
-              ? 'w-12 h-12 sm:w-14 sm:h-14'
-              : size === 'md'
-              ? 'w-16 h-16 sm:w-20 sm:h-20'
-              : size === 'lg'
-              ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28'
-              : size === 'giant'
-              ? 'w-32 h-32 sm:w-40 sm:h-40'
-              : 'w-24 h-24 sm:w-28 sm:h-28'
-          } shrink-0 transition-transform duration-300`}
-          color={logoColor}
-        />
+        <div className={`${logoDimension} shrink-0 aspect-square flex items-center justify-center p-0.5`}>
+          <UploadedLogoMark
+            className="w-full h-full"
+            color={logoColor}
+          />
+        </div>
 
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-start text-left justify-center min-w-0">
           <span
-            className={`font-serif tracking-[0.12em] sm:tracking-[0.16em] md:tracking-[0.18em] font-normal uppercase transition-colors leading-none px-1.5 inline-block whitespace-normal sm:whitespace-nowrap ${
-              size === 'sm'
-                ? 'text-base sm:text-lg'
-                : size === 'md'
-                ? 'text-xl sm:text-2xl md:text-3xl'
-                : size === 'lg'
-                ? 'text-2xl sm:text-3xl md:text-4xl'
-                : size === 'giant'
-                ? 'text-3xl sm:text-4xl md:text-5xl'
-                : 'text-xl sm:text-2xl md:text-3xl'
-            } ${
+            className={`font-serif tracking-[0.14em] font-normal uppercase leading-tight ${titleSize} ${
               isDark
                 ? 'text-white'
                 : isGold
@@ -64,21 +74,17 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           >
             LAP OF LUXURY
           </span>
+          {showSubtitle && (
+            <span
+              className={`font-sans tracking-[0.08em] sm:tracking-[0.12em] text-[9px] sm:text-[10px] md:text-xs uppercase font-normal leading-normal mt-0.5 ${
+                isDark ? 'text-[#F3D78E]' : 'text-[#7A6C58]'
+              }`}
+            >
+              Experience premium in every touch
+            </span>
+          )}
         </div>
       </div>
-
-      {/* Tagline without cutting line */}
-      {showSubtitle && (
-        <div className="flex flex-col items-center mt-1 w-full max-w-[320px] sm:max-w-[420px]">
-          <p
-            className={`font-sans tracking-[0.08em] sm:tracking-[0.14em] text-[10px] sm:text-xs md:text-[11px] uppercase font-normal px-2 text-center whitespace-normal sm:whitespace-nowrap ${
-              isDark ? 'text-[#F3D78E]' : 'text-[#7A6C58]'
-            }`}
-          >
-            Experience premium in every touch
-          </p>
-        </div>
-      )}
     </div>
   );
 };

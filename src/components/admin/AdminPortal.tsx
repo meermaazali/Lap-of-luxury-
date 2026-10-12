@@ -44,7 +44,7 @@ export const AdminPortal: React.FC = () => {
     'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media' | 'payments' | 'guide'
   >('orders');
 
-  const [soundEnabled, setSoundEnabled] = useState(true);
+
 
   const handleLogout = () => {
     sessionStorage.removeItem('lol_admin_authed');
@@ -81,10 +81,11 @@ export const AdminPortal: React.FC = () => {
     <div className="min-h-screen bg-[#F4F1EA] text-[#1E1E22] flex flex-col font-sans">
       {/* Top Admin Header */}
       <header className="bg-[#111113] text-white border-b-2 border-[#D4AF37] sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 flex-wrap sm:flex-nowrap">
           {/* Left: Brand & Return to Store */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button
+              type="button"
               onClick={() => {
                 setIsAdminMode(false);
                 try {
@@ -93,22 +94,24 @@ export const AdminPortal: React.FC = () => {
                   window.location.hash = '';
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#444] hover:border-[#D4AF37] text-xs font-semibold text-[#D4AF37] hover:bg-white/5 transition-all cursor-pointer"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-[#D4AF37] bg-[#1F1E22] text-xs font-semibold text-[#F4E09E] hover:bg-[#D4AF37] hover:text-[#111113] transition-all cursor-pointer shadow-2xs"
+              title="Return to customer storefront"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>← Back to Storefront</span>
+              <span className="hidden xs:inline">← Back to Storefront</span>
+              <span className="xs:hidden">← Store</span>
             </button>
 
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#1A1A1E] border border-[#D4AF37] p-1 flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1A1A1E] border border-[#D4AF37] p-1 flex items-center justify-center shrink-0">
                 <UploadedLogoMark className="w-full h-full" color="#D4AF37" />
               </div>
-              <div>
-                <span className="font-bodoni font-black tracking-widest uppercase text-sm sm:text-base text-white">
+              <div className="min-w-0">
+                <span className="font-bodoni font-black tracking-widest uppercase text-xs sm:text-base text-white block truncate">
                   LAP OF LUXURY
                 </span>
-                <span className="text-[10px] text-[#D4AF37] block uppercase tracking-wider font-bold">
-                  Store Admin Portal (PIN: 7878)
+                <span className="text-[9px] sm:text-[10px] text-[#D4AF37] block uppercase tracking-wider font-bold truncate">
+                  Admin Portal (PIN: 7878)
                 </span>
               </div>
             </div>
@@ -116,17 +119,7 @@ export const AdminPortal: React.FC = () => {
 
           {/* Right: Quick actions & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-2 rounded-lg border transition-colors cursor-pointer ${
-                soundEnabled
-                  ? 'border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10'
-                  : 'border-gray-700 text-gray-500 hover:text-gray-300'
-              }`}
-              title={soundEnabled ? 'Order sound alert ON' : 'Order sound alert OFF'}
-            >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
+
 
             <button
               onClick={() => setActiveTab('orders')}

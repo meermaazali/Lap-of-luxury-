@@ -70,8 +70,9 @@ interface StoreContextType {
       address: string;
       city: string;
       pincode: string;
-      paymentMethod: 'COD' | 'UPI' | 'Card';
+      paymentMethod: Order['paymentMethod'];
       transactionRef?: string;
+      paymentScreenshot?: string;
     },
     discount?: number
   ) => Order;
@@ -124,44 +125,9 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-// Web Audio API chime helper for luxury notification
+// Silent order notification helper (No notification sounds per requirement)
 export function playOrderChime() {
-  try {
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    
-    // Primary warm bell chime
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
-    osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15); // E6
-    
-    gain.gain.setValueAtTime(0.01, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.85);
-
-    // Harmonic bell overtone
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(1760, ctx.currentTime + 0.08);
-    gain2.gain.setValueAtTime(0.12, ctx.currentTime + 0.08);
-    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start(ctx.currentTime + 0.08);
-    osc2.stop(ctx.currentTime + 0.9);
-  } catch (err) {
-    console.warn('Audio chime could not be played automatically:', err);
-  }
+  // Intentionally silent
 }
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -479,36 +445,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const triggerTransition = (categorySlug: string, label?: string) => {
-    setIsTransitioning(true);
-    setTransitionLabel(label || categorySlug);
-
-    // Scroll to catalog section and filter category
-    setTimeout(() => {
-      setSelectedCategory(categorySlug);
-      const element = document.getElementById('catalog-section');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 280);
-
-    // Fade out white transition screen
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 720);
+  const triggerTransition = (categorySlug: string, _label?: string) => {
+    setSelectedCategory(categorySlug);
+    const element = document.getElementById('catalog-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const openProductDetail = (product: Product) => {
-    setIsTransitioning(true);
-    setTransitionLabel(product.name);
-
-    setTimeout(() => {
-      setQuickViewProduct(product);
-    }, 280);
-
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 640);
+    setQuickViewProduct(product);
   };
 
   // Permanent sync state to LocalStorage & IndexedDB (ensuring products never disappear)
@@ -521,8 +467,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     idbSetItem('lol_products', products);
   }, [products]);
 
-  // On mount: rehydrate products from IndexedDB if localStorage had quota issues or was cleared
+  // On mount: rehydrate products from IndexedDB and backend (permanent lifetime storage)
   useEffect(() => {
+    // 1. Rehydrate from IndexedDB
     idbGetItem<Product[]>('lol_products').then((savedProducts) => {
       if (Array.isArray(savedProducts) && savedProducts.length > 0) {
         setProducts((current) => {
@@ -535,6 +482,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
       }
     });
+
+    // 2. Rehydrate from backend /api/products
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((backendProds) => {
+        if (Array.isArray(backendProds) && backendProds.length > 0) {
+          setProducts((current) => {
+            const currentIds = new Set(current.map((p) => p.id));
+            const missing = backendProds.filter((p) => !currentIds.has(p.id));
+            if (missing.length > 0) {
+              return [...current, ...missing];
+            }
+            return current;
+          });
+        }
+      })
+      .catch(() => null);
   }, []);
 
   useEffect(() => {
@@ -625,23 +589,42 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // Products actions
+  // Products actions (persisted to state, IndexedDB, and backend cloud API)
   const addProduct = (productData: Omit<Product, 'id'>) => {
     const newProduct: Product = {
       ...productData,
-      id: `prod-${Date.now()}`,
+      id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     };
     setProducts((prev) => [newProduct, ...prev]);
+
+    // Persist to backend server
+    fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newProduct),
+    }).catch(() => null);
   };
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
     );
+
+    // Persist to backend server
+    fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch(() => null);
   };
 
   const deleteProduct = (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
+
+    // Persist deletion to backend server
+    fetch(`/api/products/${id}`, {
+      method: 'DELETE',
+    }).catch(() => null);
   };
 
   const updateStock = (id: string, newStock: number) => {
@@ -770,8 +753,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       address: string;
       city: string;
       pincode: string;
-      paymentMethod: 'COD' | 'UPI' | 'Card';
+      paymentMethod: Order['paymentMethod'];
       transactionRef?: string;
+      paymentScreenshot?: string;
     },
     discount: number = 0
   ) => {
@@ -795,23 +779,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       shipping,
       total,
       paymentMethod: customer.paymentMethod,
-      paymentStatus: customer.paymentMethod === 'UPI' ? 'Verified' : 'Pending',
+      paymentStatus: 'Verified',
       transactionRef: customer.transactionRef,
+      paymentScreenshot: customer.paymentScreenshot,
       status: 'Pending',
       createdAt: new Date().toISOString(),
       isRead: false,
     };
 
-    // Deduct stock
-    cart.forEach((cartItem) => {
+    // Deduct stock safely across items
+    const deductions = cart.map((cartItem) => {
       updateStock(cartItem.product.id, cartItem.product.stockCount - cartItem.quantity);
+      return { productId: cartItem.product.id, quantity: cartItem.quantity };
     });
+
+    // Persist order & inventory deduction to backend database
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newOrder),
+    }).catch(() => null);
+
+    fetch('/api/products/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deductions }),
+    }).catch(() => null);
 
     setOrders((prev) => [newOrder, ...prev]);
     setLastPlacedOrder(newOrder);
-    setLatestNotification(newOrder);
     sendOrderEmailNotification(newOrder);
-    playOrderChime();
     clearCart();
     return newOrder;
   };

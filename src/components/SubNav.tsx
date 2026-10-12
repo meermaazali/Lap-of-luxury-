@@ -22,7 +22,6 @@ const DEFAULT_NAV_ITEMS: NavCategory[] = [
   { name: 'LUXURY COUTURE', slug: 'Women' },
   { name: 'THE FESTIVE EDIT', slug: 'Festive', badge: 'SPECIAL' },
   { name: 'NEW ARRIVALS', slug: 'All', badge: 'NEW' },
-  { name: 'SIGNATURE JEWELRY', slug: 'Accessories' },
 ];
 
 export const SubNav: React.FC = () => {

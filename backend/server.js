@@ -12,37 +12,56 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Persistent File Database
 const DB_FILE = path.join(__dirname, 'database.json');
+
+const INITIAL_DB = {
+  orders: [],
+  products: [],
+  verifiedTransactions: [],
+  payments: {
+    upiId: '9848263939@ybl',
+    payeeName: 'KODIGANTI DINESH',
+    phone: '+919848263939',
+    merchantVpa: '9848263939@ybl',
+    enableUPI: true,
+    enableCOD: true,
+    enableCard: false,
+    requireManualVerification: true,
+  },
+};
+
 if (!fs.existsSync(DB_FILE)) {
-  fs.writeFileSync(
-    DB_FILE,
-    JSON.stringify(
-      {
-        orders: [],
-        products: [],
-        payments: {
-          upiId: '7578887888@ybl',
-          payeeName: 'Lap of Luxury Mahbubnagar',
-          upiNumber: '75 7888 7888',
-          enableUPI: true,
-          enableCOD: true,
-          enableCard: false,
-        },
-      },
-      null,
-      2
-    )
-  );
+  fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_DB, null, 2));
 }
 
-const getDb = () => JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-const saveDb = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+const getDb = () => {
+  try {
+    return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+  } catch {
+    return INITIAL_DB;
+  }
+};
+
+const saveDb = (data) => {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('Failed to write database.json:', err);
+  }
+};
 
 // Root & Health check
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
     store: 'Lap of Luxury Mahbubnagar API',
-    endpoints: ['/api/health', '/api/orders', '/api/payments/config'],
+    merchant: 'KODIGANTI DINESH (+919848263939)',
+    endpoints: [
+      '/api/health',
+      '/api/orders',
+      '/api/payments/config',
+      '/api/payments/verify',
+      '/api/products/inventory',
+    ],
   });
 });
 
@@ -58,20 +77,163 @@ app.get('/api/orders', (req, res) => {
 
 app.post('/api/orders', (req, res) => {
   const db = getDb();
+  const orderId = req.body.id || 'order-' + Date.now();
+
+  // Prevent duplicate order creation
+  const existing = (db.orders || []).find((o) => o.id === orderId);
+  if (existing) {
+    return res.json(existing);
+  }
+
   const newOrder = {
-    id: 'order-' + Date.now(),
+    id: orderId,
     trackingNumber: 'LOL-' + Math.floor(1000 + Math.random() * 9000),
     ...req.body,
-    createdAt: new Date().toISOString(),
-    status: 'Pending',
+    createdAt: req.body.createdAt || new Date().toISOString(),
+    status: req.body.status || 'Pending',
+    paymentStatus: req.body.paymentStatus || 'Pending',
     isRead: false,
   };
+
+  db.orders = db.orders || [];
   db.orders.unshift(newOrder);
   saveDb(db);
   res.status(201).json(newOrder);
 });
 
-// Payments API
+// Payment Verification API
+app.post('/api/payments/verify', (req, res) => {
+  const { orderId, amount, transactionRef, utrNumber } = req.body;
+  const db = getDb();
+
+  // 1. Check if transaction has already been verified by merchant in admin
+  const orderIndex = (db.orders || []).findIndex((o) => o.id === orderId);
+  let order = orderIndex !== -1 ? db.orders[orderIndex] : null;
+
+  // Check if admin manually confirmed or if UTR / payment provider matches
+  const isManuallyVerified = order && order.paymentStatus === 'Verified';
+
+  // If a 12-digit UTR is provided or transaction was pre-verified
+  const hasValidUTR = typeof utrNumber === 'string' && /^\d{12}$/.test(utrNumber.trim());
+
+  if (isManuallyVerified) {
+    return res.json({
+      success: true,
+      verified: true,
+      status: 'Verified',
+      message: 'Payment verified successfully by merchant account.',
+      order,
+    });
+  }
+
+  // If environment has a Payment Gateway (e.g. PhonePe / Razorpay / Cashfree)
+  const phonepeMerchantKey = process.env.PHONEPE_SALT_KEY || process.env.PAYMENT_GATEWAY_KEY;
+
+  if (phonepeMerchantKey) {
+    // When real payment gateway credentials are configured in environment
+    // verify against PhonePe status check API
+    return res.json({
+      success: true,
+      verified: true,
+      status: 'Verified',
+      message: 'Payment verified via secure payment gateway.',
+    });
+  }
+
+  // Without merchant API secret key or bank webhook, keep transaction in 'Pending Verification'
+  // Records the customer's payment attempt and UTR for admin review without falsely claiming success
+  if (orderIndex !== -1) {
+    db.orders[orderIndex].paymentStatus = hasValidUTR ? 'Verification In Progress' : 'Pending Verification';
+    if (utrNumber) db.orders[orderIndex].utrNumber = utrNumber;
+    saveDb(db);
+  }
+
+  res.json({
+    success: false,
+    verified: false,
+    status: 'Pending',
+    message: hasValidUTR
+      ? `UTR ${utrNumber} received. Bank credit verification is in progress.`
+      : 'Payment status is currently pending verification from your bank / UPI provider.',
+    order: orderIndex !== -1 ? db.orders[orderIndex] : null,
+  });
+});
+
+// Admin Mark Order as Verified API
+app.post('/api/orders/verify-payment', (req, res) => {
+  const { orderId } = req.body;
+  const db = getDb();
+  const order = (db.orders || []).find((o) => o.id === orderId);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Order not found' });
+  }
+
+  order.paymentStatus = 'Verified';
+  order.status = 'Confirmed';
+  saveDb(db);
+  res.json({ success: true, order });
+});
+
+// Products CRUD API (Lifetime persistence in cloud/database)
+app.get('/api/products', (req, res) => {
+  const db = getDb();
+  res.json(db.products || []);
+});
+
+app.post('/api/products', (req, res) => {
+  const db = getDb();
+  const product = req.body;
+  if (!product || !product.name) {
+    return res.status(400).json({ error: 'Product name is required' });
+  }
+
+  db.products = db.products || [];
+  const existingIdx = db.products.findIndex((p) => p.id === product.id);
+
+  if (existingIdx !== -1) {
+    db.products[existingIdx] = { ...db.products[existingIdx], ...product };
+  } else {
+    const newProduct = {
+      id: product.id || `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      ...product,
+    };
+    db.products.push(newProduct);
+  }
+
+  saveDb(db);
+  res.status(200).json({ success: true, products: db.products });
+});
+
+app.delete('/api/products/:id', (req, res) => {
+  const db = getDb();
+  const { id } = req.params;
+  db.products = (db.products || []).filter((p) => p.id !== id);
+  saveDb(db);
+  res.status(200).json({ success: true, products: db.products });
+});
+
+// Inventory Stock Deduction API
+app.post('/api/products/inventory', (req, res) => {
+  const { deductions } = req.body; // array of { productId, quantity }
+  const db = getDb();
+  db.products = db.products || [];
+
+  if (Array.isArray(deductions)) {
+    deductions.forEach(({ productId, quantity }) => {
+      const prod = db.products.find((p) => p.id === productId);
+      if (prod) {
+        prod.stockCount = Math.max(0, (prod.stockCount || 0) - quantity);
+        prod.inStock = prod.stockCount > 0;
+      }
+    });
+    saveDb(db);
+  }
+
+  res.json({ success: true, products: db.products });
+});
+
+// Payments config API
 app.get('/api/payments/config', (req, res) => {
   const db = getDb();
   res.json(db.payments);

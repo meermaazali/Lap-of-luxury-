@@ -107,13 +107,16 @@ export const ProductDetailModal: React.FC = () => {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-5xl rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-4 sm:my-8 relative">
         {/* Top Control Bar with Back Button & Close */}
-        <div className="px-4 py-2.5 bg-[#FAF8F5] border-b border-[#EAE0CD] flex items-center justify-between">
+        <div className="px-3 sm:px-4 py-2.5 bg-[#FAF8F5] border-b border-[#EAE0CD] flex items-center justify-between gap-3">
           <button
+            type="button"
             onClick={() => setQuickViewProduct(null)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#D5C7B0] hover:border-[#111111] hover:bg-[#F5EFE3] text-[#111111] text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-xs"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#D5C7B0] hover:border-[#111111] hover:bg-[#F5EFE3] text-[#111111] text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-xs"
+            title="Back to products collection"
           >
             <ArrowLeft className="w-4 h-4 text-[#B89758]" />
-            <span>← Back to Store</span>
+            <span className="hidden xs:inline">← Back to Store</span>
+            <span className="xs:hidden">← Back</span>
           </button>
 
           <div className="flex items-center gap-2">

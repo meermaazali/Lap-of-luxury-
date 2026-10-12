@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import { StoreProvider, useStore } from './context/StoreContext';
-import { PageTransitionOverlay } from './components/common/PageTransitionOverlay';
 import { Header } from './components/Header';
 import { SubNav } from './components/SubNav';
 import { BestSellersGrid } from './components/BestSellersGrid';
@@ -16,60 +15,46 @@ import { OrderSuccessModal } from './components/OrderSuccessModal';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { WishlistDrawer } from './components/WishlistDrawer';
 import { AboutUsModal } from './components/modals/AboutUsModal';
+import { PolicyModal } from './components/modals/PolicyModal';
 import { AdminPortal } from './components/admin/AdminPortal';
-import { OrderNotificationBanner } from './components/admin/OrderNotificationBanner';
-import { Global3DClothBackground } from './components/experience/Global3DClothBackground';
-import { InteractiveLuxuryLightGlow } from './components/common/InteractiveLuxuryLightGlow';
 import { FlagshipBoutiqueHero } from './components/FlagshipBoutiqueHero';
 
 const MainLayout: React.FC = () => {
   const { isAdminMode } = useStore();
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
+  const [isContactUsOpen, setIsContactUsOpen] = useState(false);
 
   // If Admin Mode is active via #admin or separate link
   if (isAdminMode) {
-    return (
-      <>
-        <AdminPortal />
-        <OrderNotificationBanner />
-      </>
-    );
+    return <AdminPortal />;
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-[#111113] flex flex-col font-sans selection:bg-[#D4AF37] selection:text-[#111113] relative overflow-x-hidden px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6">
-      {/* 3D WebGL Cloth Background (Living golden silk background framing the entire website) */}
-      <Global3DClothBackground />
-
-      {/* Interactive Cursor Light & Touch Glow across total website */}
-      <InteractiveLuxuryLightGlow />
-
-      {/* Dynamic White Screen Transition Overlay (On Category Click) */}
-      <PageTransitionOverlay />
-
-      {/* MAIN WEBSITE CARD CONTAINER (Framed with golden border matching uploaded image) */}
-      <div className="relative z-10 w-full max-w-[1540px] mx-auto rounded-2xl sm:rounded-[30px] md:rounded-[36px] overflow-hidden shadow-[0_25px_90px_rgba(184,134,11,0.28)] border border-[#D4AF37]/50 sm:border-2 sm:border-[#D4AF37]/60 bg-white flex flex-col">
-        {/* Main Header (All interactive buttons, Categories dropdown, Wishlist, Cart, Mobile Menu) */}
+    <div className="min-h-screen bg-[#FAF8F5] text-[#111113] flex flex-col font-sans selection:bg-[#D4AF37] selection:text-[#111113] relative overflow-x-hidden px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6">
+      {/* MAIN WEBSITE CARD CONTAINER (Clean, ultra-fast luxury container, zero GPU lag) */}
+      <div className="relative z-10 w-full max-w-[1540px] mx-auto rounded-2xl sm:rounded-[30px] md:rounded-[36px] overflow-hidden shadow-[0_15px_60px_rgba(184,134,11,0.12)] border border-[#D4AF37]/40 sm:border-2 sm:border-[#D4AF37]/50 bg-white flex flex-col">
+        {/* Main Header (Clean desktop navigation + mobile hamburger menu) */}
         <Header
           onOpenWishlist={() => setIsWishlistOpen(true)}
           onOpenAboutUs={() => setIsAboutUsOpen(true)}
+          onOpenContactUs={() => setIsContactUsOpen(true)}
         />
 
-        {/* Categories Bar: Visible on Desktop & Laptop, Hidden on Mobile */}
+        {/* Categories Bar: Visible on Desktop & Laptop */}
         <div className="hidden md:block">
           <SubNav />
         </div>
 
-        {/* Flagship Showcase Hero + Shop By Category + Golden Trust Bar (Updated with Shirts & Pants Banner) */}
+        {/* Flagship Showcase Hero with Original Uploaded Banner + Shop By Category + Golden Trust Bar */}
         <FlagshipBoutiqueHero />
 
-        {/* Products Collection (Best Sellers & All Products with Category Tabs) */}
+        {/* Products Collection (Instant loading without delays or pop-in) */}
         <main className="flex-1">
           <BestSellersGrid />
         </main>
 
-        {/* Comprehensive Store Footer (Story removed per prompt) */}
+        {/* Comprehensive Store Footer with Mahbubnagar Address */}
         <Footer />
       </div>
 
@@ -86,7 +71,11 @@ const MainLayout: React.FC = () => {
         isOpen={isAboutUsOpen}
         onClose={() => setIsAboutUsOpen(false)}
       />
-      <OrderNotificationBanner />
+      <PolicyModal
+        isOpen={isContactUsOpen}
+        initialTab="contact"
+        onClose={() => setIsContactUsOpen(false)}
+      />
     </div>
   );
 };

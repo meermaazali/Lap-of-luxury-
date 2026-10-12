@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Heart, Eye, ArrowRight, Check, ShoppingCart } from 'lucide-react';
+import { Heart, ArrowRight, Check, ShoppingCart } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
-import { ScrollReveal } from './common/ScrollReveal';
 import {
   FALLBACK_LUXURY_IMAGE,
   FALLBACK_CATEGORY_IMAGES,
@@ -23,7 +22,7 @@ export const BestSellersGrid: React.FC = () => {
 
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
 
-  // Filter products based on selectedCategory
+  // Filter products based on selectedCategory - Products never disappear when in/out of stock
   const filteredProducts = products.filter((p) => {
     if (selectedCategory === 'All') return true;
     if (selectedCategory === 'Festive') return p.isFestiveEdit;
@@ -47,13 +46,14 @@ export const BestSellersGrid: React.FC = () => {
 
   const handleAdd = (e: React.MouseEvent, product: Product) => {
     e.stopPropagation();
+    if (product.stockCount <= 0 || !product.inStock) return;
     addToCart(product, product.sizes[0] || 'Standard', 1);
     setAddedProductId(product.id);
     setTimeout(() => setAddedProductId(null), 1500);
   };
 
   return (
-    <section id="catalog-section" className="py-10 sm:py-14 bg-white/65 backdrop-blur-[2px] border-b border-[#D4AF37]/30">
+    <section id="catalog-section" className="py-8 sm:py-12 bg-white/70 backdrop-blur-[2px] border-b border-[#D4AF37]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 pb-3 border-b border-[#D4AF37]/30">
@@ -80,7 +80,7 @@ export const BestSellersGrid: React.FC = () => {
           </div>
         </div>
 
-        {/* Category Tabs in Golden & White */}
+        {/* Category Tabs */}
         <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar pb-3 mb-6">
           {categoriesTab.map((tab) => {
             const isActive = selectedCategory === tab.value;
@@ -100,7 +100,7 @@ export const BestSellersGrid: React.FC = () => {
           })}
         </div>
 
-        {/* Products Grid */}
+        {/* Products Grid - Instant rendering without opacity delay */}
         {filteredProducts.length === 0 ? (
           <div className="py-16 text-center bg-[#FAF8F5] rounded-3xl border border-[#D4AF37]/40 p-8">
             <p className="text-sm font-semibold text-[#6E6457] mb-4">
@@ -115,104 +115,112 @@ export const BestSellersGrid: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
-            {filteredProducts.map((product, idx) => {
+            {filteredProducts.map((product) => {
               const inWish = isInWishlist(product.id);
               const isAdded = addedProductId === product.id;
+              const isAvailable = product.inStock && product.stockCount > 0;
 
               return (
-                <ScrollReveal key={product.id} delay={idx * 50}>
-                  <div
-                    onClick={() => openProductDetail(product)}
-                    className="h-full group bg-white rounded-2xl border border-[#D4AF37]/30 overflow-hidden flex flex-col justify-between hover:border-[#D4AF37] hover:shadow-[0_12px_32px_rgba(212,175,55,0.18)] transition-all duration-500 cursor-pointer"
-                  >
-                    {/* Image container */}
-                    <div className="relative aspect-square w-full overflow-hidden bg-[#FAF8F5] p-2 flex items-center justify-center">
-                      <img
-                        src={normalizeImageUrl(product.image, product.category)}
-                        alt={product.name}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          const fallback = FALLBACK_CATEGORY_IMAGES[product.category] || FALLBACK_LUXURY_IMAGE;
-                          if (target.src !== fallback) {
-                            target.src = fallback;
-                          }
-                        }}
-                        className="w-full h-full object-cover object-center group-hover:scale-106 transition-transform duration-700 rounded-xl"
-                      />
+                <div
+                  key={product.id}
+                  onClick={() => openProductDetail(product)}
+                  className="h-full group bg-white rounded-2xl border border-[#D4AF37]/30 overflow-hidden flex flex-col justify-between hover:border-[#D4AF37] hover:shadow-[0_12px_32px_rgba(212,175,55,0.18)] transition-all duration-300 cursor-pointer"
+                >
+                  {/* Image container */}
+                  <div className="relative aspect-square w-full overflow-hidden bg-[#FAF8F5] p-2 flex items-center justify-center">
+                    <img
+                      src={normalizeImageUrl(product.image, product.category)}
+                      alt={product.name}
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        const fallback = FALLBACK_CATEGORY_IMAGES[product.category] || FALLBACK_LUXURY_IMAGE;
+                        if (target.src !== fallback) {
+                          target.src = fallback;
+                        }
+                      }}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 rounded-xl"
+                    />
 
-                      {/* Floating Gold Quality Tag */}
+                    {/* Stock Status Badge */}
+                    {!isAvailable ? (
+                      <div className="absolute top-3 left-3 z-10 px-2 py-0.5 rounded bg-black/80 text-white text-[9px] font-bold tracking-wider uppercase">
+                        Sold Out
+                      </div>
+                    ) : (
                       <div className="absolute bottom-3 left-3 z-10 px-2 py-0.5 rounded bg-white/90 backdrop-blur-xs border border-[#D4AF37]/50 text-[9px] font-bold tracking-wider uppercase text-[#8A671A]">
                         ★ 4.9
                       </div>
+                    )}
 
-                      {/* Wishlist toggle */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleWishlist(product);
-                        }}
-                        className="absolute top-3 right-3 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-white flex items-center justify-center shadow-xs transition-all cursor-pointer z-10 border border-[#D4AF37]/40"
-                        aria-label="Wishlist"
-                      >
-                        <Heart
-                          className={`w-3.5 h-3.5 transition-colors ${
-                            inWish
-                              ? 'fill-red-600 text-red-600'
-                              : 'text-[#6C604F] hover:text-red-500'
-                          }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Details Area */}
-                    <div className="p-3 sm:p-3.5 text-center flex flex-col flex-1 justify-between bg-white">
-                      <div>
-                        <p className="text-[10px] font-medium uppercase tracking-wider text-[#8A671A] mb-0.5">
-                          {product.category}
-                        </p>
-                        <h3 className="font-bodoni text-xs sm:text-sm font-normal sm:font-medium text-[#241F1B] truncate group-hover:text-[#B8860B] transition-colors">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-center justify-center gap-1.5 mt-1 mb-2.5">
-                          <span className="font-sans text-xs sm:text-sm font-semibold text-[#241F1B] tabular-nums">
-                            ₹{product.price.toLocaleString('en-IN')}
-                          </span>
-                          {product.originalPrice && product.originalPrice > product.price && (
-                            <span className="text-[10px] sm:text-xs text-[#A09382] line-through tabular-nums">
-                              ₹{product.originalPrice.toLocaleString('en-IN')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Golden Add to Cart Button */}
-                      <button
-                        onClick={(e) => handleAdd(e, product)}
-                        disabled={!product.inStock}
-                        className={`w-full py-2.5 px-2 text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase transition-all rounded-xl shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
-                          !product.inStock
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : isAdded
-                            ? 'bg-[#111113] text-[#F4E09E]'
-                            : 'bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113]'
+                    {/* Wishlist toggle */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWishlist(product);
+                      }}
+                      className="absolute top-3 right-3 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-white flex items-center justify-center shadow-xs transition-all cursor-pointer z-10 border border-[#D4AF37]/40"
+                      aria-label="Wishlist"
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 transition-colors ${
+                          inWish
+                            ? 'fill-red-600 text-red-600'
+                            : 'text-[#6C604F] hover:text-red-500'
                         }`}
-                      >
-                        {isAdded ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" /> ADDED
-                          </>
-                        ) : !product.inStock ? (
-                          'OUT OF STOCK'
-                        ) : (
-                          <>
-                            <ShoppingCart className="w-3.5 h-3.5 text-[#111113]" />
-                            <span>ADD TO CART</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
+                      />
+                    </button>
                   </div>
-                </ScrollReveal>
+
+                  {/* Details Area */}
+                  <div className="p-3 sm:p-3.5 text-center flex flex-col flex-1 justify-between bg-white">
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8A671A] mb-0.5">
+                        {product.category}
+                      </p>
+                      <h3 className="font-bodoni text-xs sm:text-sm font-normal sm:font-medium text-[#241F1B] truncate group-hover:text-[#B8860B] transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center justify-center gap-1.5 mt-1 mb-2.5">
+                        <span className="font-sans text-xs sm:text-sm font-semibold text-[#241F1B] tabular-nums">
+                          ₹{product.price.toLocaleString('en-IN')}
+                        </span>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="text-[10px] sm:text-xs text-[#A09382] line-through tabular-nums">
+                            ₹{product.originalPrice.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Add to Cart / Sold Out Button */}
+                    <button
+                      onClick={(e) => handleAdd(e, product)}
+                      disabled={!isAvailable}
+                      className={`w-full py-2.5 px-2 text-[10px] sm:text-[11px] font-bold tracking-[0.14em] uppercase transition-all rounded-xl shadow-xs flex items-center justify-center gap-1.5 ${
+                        !isAvailable
+                          ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                          : isAdded
+                          ? 'bg-[#111113] text-[#F4E09E] cursor-pointer'
+                          : 'bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] cursor-pointer active:scale-95'
+                      }`}
+                    >
+                      {!isAvailable ? (
+                        <span>Out of Stock</span>
+                      ) : isAdded ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Added</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                          <span>Add to Cart</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>

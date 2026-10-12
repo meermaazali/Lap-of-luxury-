@@ -56,6 +56,7 @@ export const FlagshipBoutiqueHero: React.FC = () => {
   const { triggerTransition, selectedCategory, boutiqueHeroConfig } = useStore();
   const sliderRef = useRef<HTMLDivElement>(null);
 
+  // Directly use the exact uploaded banner asset maintaining 16:9 proportions
   const heroImage = boutiqueHeroConfig?.image || '/images/banner_shirts_pants.jpg';
   const heroKicker = boutiqueHeroConfig?.kicker || 'EXCLUSIVE FASHION COLLECTION';
   const heroTitleLine1 = boutiqueHeroConfig?.titleLine1 || 'Luxury Fashion';
@@ -79,73 +80,66 @@ export const FlagshipBoutiqueHero: React.FC = () => {
   return (
     <div className="relative w-full bg-white text-[#111113] overflow-hidden select-none flex flex-col">
       {/* 1. HERO SHOWCASE BANNER:
-          Desktop/TV: SubNav (category in text) is right above this, so visual order is:
-          1) Category text -> 2) Banner main -> 3) Shop by category icons.
-          Mobile: Banner main comes first! No cutting, full responsiveness.
+          Medium, balanced height per user request for optimal screen presence
       */}
-      <div className="order-1 relative w-full min-h-[420px] sm:min-h-[500px] md:min-h-[560px] lg:min-h-[620px] flex items-center overflow-hidden bg-[#1A1815]">
-        {/* Full-bleed Luxury Photography focusing on shirts, pants, handbags, watches */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden">
+      <div className="order-1 relative w-full overflow-hidden bg-[#FAF8F5]">
+        <div className="relative w-full aspect-[16/8] sm:aspect-[21/8] md:aspect-[24/8] min-h-[290px] max-h-[430px] overflow-hidden flex items-center justify-center">
           <img
             src={heroImage}
-            alt="Lap of Luxury Fashion Collection"
+            alt="LAP OF LUXURY Fashion Collection"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = '/images/banner_shirts_pants.jpg';
             }}
-            className="w-full h-full object-cover object-center sm:object-right md:object-center transition-transform duration-700"
+            className="w-full h-full object-cover object-center"
           />
-          {/* Subtle directional gradient to ensure text legibility while keeping banner crisp */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/92 via-white/60 to-transparent sm:via-white/45 md:via-white/20 pointer-events-none" />
-        </div>
 
-        {/* Content Column */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-8 sm:py-16 w-full">
-          <div className="max-w-xl text-left p-0 rounded-2xl">
-            {/* Tagline kicker */}
-            <p className="font-sans text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.22em] uppercase text-[#7A5508] mb-2 sm:mb-3">
-              {heroKicker}
-            </p>
+          {/* Luminous White Overlay requested by user to make the banner look pristine & elegant */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/45 to-transparent sm:from-white/75 sm:via-white/30 pointer-events-none" />
 
-            {/* Main Headline */}
-            <h1 className="font-serif font-normal text-2xl sm:text-4xl md:text-5xl lg:text-[60px] text-[#111113] leading-[1.1] tracking-tight mb-3 sm:mb-5">
-              {heroTitleLine1} <br />
-              <span className="font-serif font-normal text-[#1F1710]">{heroTitleLine2}</span>
-            </h1>
+          {/* Luxury Banner Content in Luminous Frosted Card */}
+          <div className="absolute inset-0 flex items-center">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 w-full">
+              <div className="max-w-md sm:max-w-lg text-left bg-white/85 backdrop-blur-sm p-3.5 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border border-[#D4AF37]/50 shadow-[0_6px_25px_rgba(184,134,11,0.12)]">
+                <p className="font-sans text-[9px] sm:text-xs md:text-sm font-bold tracking-[0.22em] uppercase text-[#8A671A] mb-1">
+                  {heroKicker}
+                </p>
 
-            {/* Subtitle with vertical gold pipe dividers */}
-            <p className="font-sans font-normal text-xs sm:text-sm md:text-base text-[#1E1A16] tracking-wide mb-5 sm:mb-8 flex flex-wrap items-center gap-1.5 sm:gap-2.5">
-              {heroSubtitleItems.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  <span className="whitespace-normal">{item}</span>
-                  {idx < heroSubtitleItems.length - 1 && (
-                    <span className="text-[#C5A059] font-bold">|</span>
-                  )}
-                </React.Fragment>
-              ))}
-            </p>
+                <h1 className="font-serif font-normal text-lg sm:text-2xl md:text-3xl text-[#111113] leading-[1.18] tracking-tight mb-1.5 sm:mb-2">
+                  {heroTitleLine1} <br />
+                  <span className="font-serif font-normal text-[#B8860B]">{heroTitleLine2}</span>
+                </h1>
 
-            {/* Shop Now CTA Button */}
-            <button
-              type="button"
-              onClick={handleShopNow}
-              className="inline-flex items-center gap-2 px-6 sm:px-9 py-2.5 sm:py-3.5 rounded-full bg-gradient-to-r from-[#C29748] via-[#B8860B] to-[#996D19] hover:brightness-105 text-[#111113] text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all shadow-[0_6px_22px_rgba(184,134,11,0.35)] hover:shadow-[0_8px_28px_rgba(184,134,11,0.5)] cursor-pointer active:scale-95"
-            >
-              <span>{heroCtaText}</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#111113]" />
-            </button>
+                <p className="font-sans font-normal text-[10px] sm:text-xs md:text-sm text-[#4A4033] tracking-wide mb-3 sm:mb-5 hidden sm:flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  {heroSubtitleItems.map((item, idx) => (
+                    <React.Fragment key={idx}>
+                      <span>{item}</span>
+                      {idx < heroSubtitleItems.length - 1 && (
+                        <span className="text-[#D4AF37] font-bold">|</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleShopNow}
+                  className="inline-flex items-center gap-2 px-5 sm:px-7 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-xs sm:text-sm font-bold tracking-wider uppercase transition-all shadow-[0_4px_18px_rgba(212,175,55,0.35)] cursor-pointer active:scale-95"
+                >
+                  <span>{heroCtaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#111113]" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 2. SHOP BY CATEGORY BAR:
-          1. SubNav (text categories) -> 2. Banner Main -> 3. Shop by Category Icons!
-      */}
+      {/* 2. SHOP BY CATEGORY BAR */}
       <div
         id="shop-by-category"
         className="order-2 py-5 sm:py-8 md:py-9 px-2.5 sm:px-6 md:px-8 bg-[#FCFBF8] border-b border-[#F0E6D2] relative"
       >
-        {/* Section Title with delicate flanking gold lines */}
         <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-7">
           <span className="w-8 sm:w-24 h-[1.5px] bg-[#D4AF37]/60" />
           <h2 className="font-serif font-medium text-sm sm:text-xl md:text-2xl text-[#111113] tracking-wider uppercase">
@@ -154,7 +148,6 @@ export const FlagshipBoutiqueHero: React.FC = () => {
           <span className="w-8 sm:w-24 h-[1.5px] bg-[#D4AF37]/60" />
         </div>
 
-        {/* 8 Category Tiles Grid (4 cols on mobile x 2 rows, 8 cols on desktop) */}
         <div
           ref={sliderRef}
           className="max-w-7xl mx-auto grid grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4 md:gap-5"
@@ -171,7 +164,6 @@ export const FlagshipBoutiqueHero: React.FC = () => {
                     : 'bg-white hover:bg-[#FAF6EE] border border-[#EBE3D3] hover:border-[#D4AF37] shadow-2xs hover:shadow-sm'
                 }`}
               >
-                {/* Product Image Thumbnail */}
                 <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-[#F8F6F0] mb-1.5 sm:mb-2 p-1 sm:p-1.5 flex items-center justify-center">
                   <img
                     src={normalizeImageUrl(tile.image, tile.slug)}
@@ -184,7 +176,6 @@ export const FlagshipBoutiqueHero: React.FC = () => {
                   />
                 </div>
 
-                {/* Category Label */}
                 <p className="font-sans text-[9px] xs:text-[10px] sm:text-xs font-semibold text-[#111113] group-hover:text-[#B8860B] transition-colors text-center leading-[1.15] break-words line-clamp-2 px-0.5">
                   {tile.name}
                 </p>
@@ -196,11 +187,7 @@ export const FlagshipBoutiqueHero: React.FC = () => {
 
       {/* 3. GOLDEN TRUST BAR */}
       <div className="order-3 relative bg-gradient-to-r from-[#D8B456] via-[#F8E7AB] via-[#E8CB79] to-[#C99C3E] text-[#1E1604] border-t border-[#D4AF37]/50 shadow-inner py-3 sm:py-5 px-3 sm:px-8 overflow-hidden">
-        {/* Specular satin light reflections */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-black/10 pointer-events-none" />
-
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-around gap-2.5 sm:gap-4 md:gap-6 text-xs sm:text-sm font-semibold tracking-wider">
-          {/* Feature 1 */}
           <div className="flex items-center gap-2">
             <Gem className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#241A04] shrink-0" />
             <span className="text-[#1E1604] font-medium text-[11px] sm:text-sm">100% Original Premium Products</span>
@@ -208,7 +195,6 @@ export const FlagshipBoutiqueHero: React.FC = () => {
 
           <span className="hidden md:inline w-[1.5px] h-4 bg-[#7A5B0B]/35" />
 
-          {/* Feature 2 */}
           <div className="flex items-center gap-2">
             <Truck className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#241A04] shrink-0" />
             <span className="text-[#1E1604] font-medium text-[11px] sm:text-sm">Free Delivery Above ₹999</span>
@@ -216,7 +202,6 @@ export const FlagshipBoutiqueHero: React.FC = () => {
 
           <span className="hidden md:inline w-[1.5px] h-4 bg-[#7A5B0B]/35" />
 
-          {/* Feature 3 */}
           <div className="flex items-center gap-2">
             <Headphones className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#241A04] shrink-0" />
             <span className="text-[#1E1604] font-medium text-[11px] sm:text-sm">Store Timings: 9:30 AM – 10:00 PM</span>

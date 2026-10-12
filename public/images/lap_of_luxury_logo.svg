@@ -1,14 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
-  <!-- Lap of Luxury Authentic Interlocking Monogram (L - O - L) -->
-  <g fill="#111113">
-    <!-- Circle "O" Ring (Center 300, 280, Outer Radius 110, Inner Radius 80) -->
-    <path fill-rule="evenodd" clip-rule="evenodd" d="M 300 160 C 366.27 160 420 213.73 420 280 C 420 346.27 366.27 400 300 400 C 233.73 400 180 346.27 180 280 C 180 213.73 233.73 160 300 160 Z M 300 190 C 349.71 190 390 230.29 390 280 C 390 329.71 349.71 370 300 370 C 250.29 370 210 329.71 210 280 C 210 230.29 250.29 190 300 190 Z" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" fill="none">
+  <!-- Exact LAP OF LUXURY Official Trademark Logo -->
+  <g fill="#111113" fill-rule="evenodd" clip-rule="evenodd">
+    <!-- 1. Upper Roman Serif 'L' -->
+    <path d="M 370 120 H 530 V 138 C 502 138 485 148 475 170 V 545 C 475 558 485 565 505 565 H 550 C 572 565 588 554 595 532 L 602 510 H 614 L 600 588 H 425 V 570 C 445 570 455 562 455 545 V 170 C 455 148 438 138 410 138 H 370 V 120 Z"/>
+    
+    <!-- 2. The 'O' Ring: Starts on right of L stem at x=475, loops clockwise all the way around to x=425 on left of L stem, OPEN at top left -->
+    <path d="M 475 309 C 484 307.5 493 307 502 307 C 589.26 307 660 377.74 660 465 C 660 552.26 589.26 623 502 623 C 414.74 623 344 552.26 344 465 C 344 411.8 375 365.8 425 327 L 425 373 C 392 401 372 431 372 465 C 372 536.8 430.2 595 502 595 C 573.8 595 632 536.8 632 465 C 632 393.2 573.8 335 502 335 C 493 335 484 336 475 348 Z"/>
 
-    <!-- Upper "L" Glyph: Classic Roman Bodoni Serif L with Stem & Upturned Arm -->
-    <!-- Top Horizontal Serif -->
-    <path d="M 200 100 H 310 V 110 C 295 110 282 116 280 128 V 350 H 340 C 360 350 370 342 375 320 H 385 L 372 370 H 250 V 360 C 262 360 268 354 268 342 V 128 C 268 116 256 110 240 110 V 100 H 200 Z" />
-
-    <!-- Lower Extended Horizontal "L" Base with Upward Terminal Hook Underneath the "O" -->
-    <path d="M 200 430 C 220 430 230 424 235 412 C 237 406 238 398 238 385 H 268 C 270 402 285 418 315 422 C 348 426 385 422 415 395 C 424 386 430 375 435 360 H 445 L 430 445 C 390 446 340 450 300 450 C 245 450 200 445 200 430 Z" />
+    <!-- 3. Lower Horizontal Base 'L': Detached flourish base with upward wing finial -->
+    <path d="M 370 750 C 405 750 422 735 425 680 H 465 C 475 705 500 720 535 722 C 585 725 630 710 660 670 L 670 615 H 682 L 655 750 H 370 Z"/>
   </g>
 </svg>
