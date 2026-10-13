@@ -11,6 +11,9 @@ import {
   ShieldCheck,
   Building,
   Info,
+  Key,
+  Globe,
+  Lock,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 
@@ -30,6 +33,13 @@ export const PaymentSetupManager: React.FC = () => {
   const [bankName, setBankName] = useState(paymentConfig.bankName || '');
   const [instructions, setInstructions] = useState(paymentConfig.instructions || '');
 
+  // PhonePe Payment Gateway State
+  const [phonepeEnabled, setPhonepeEnabled] = useState(paymentConfig.phonepeEnabled ?? true);
+  const [phonepeMerchantId, setPhonepeMerchantId] = useState(paymentConfig.phonepeMerchantId || '');
+  const [phonepeSaltKey, setPhonepeSaltKey] = useState(paymentConfig.phonepeSaltKey || '');
+  const [phonepeSaltIndex, setPhonepeSaltIndex] = useState(paymentConfig.phonepeSaltIndex || '1');
+  const [phonepeEnv, setPhonepeEnv] = useState<'SANDBOX' | 'PRODUCTION'>(paymentConfig.phonepeEnv || 'PRODUCTION');
+
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -47,12 +57,17 @@ export const PaymentSetupManager: React.FC = () => {
       upiNumber,
       qrCodeImage: qrCodeImage || liveGeneratedQR,
       enableUPI,
-      enableCOD,
+      enableCOD: false,
       enableCard,
       bankAccountNumber,
       bankIfsc,
       bankName,
       instructions,
+      phonepeEnabled,
+      phonepeMerchantId: phonepeMerchantId.trim(),
+      phonepeSaltKey: phonepeSaltKey.trim(),
+      phonepeSaltIndex: phonepeSaltIndex.trim() || '1',
+      phonepeEnv,
     });
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
@@ -212,6 +227,152 @@ export const PaymentSetupManager: React.FC = () => {
                   {enableCard ? 'Enabled' : 'Disabled (Setup when ready)'}
                 </span>
               </label>
+            </div>
+          </div>
+
+          {/* PhonePe Payment Gateway (Official Integration) */}
+          <div className="bg-white rounded-2xl p-6 border-2 border-[#5f259f]/30 shadow-xs space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#5f259f]/5 rounded-bl-full pointer-events-none" />
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#5f259f] flex items-center justify-center text-white font-bold shadow-sm">
+                  <span className="text-sm font-sans font-black">पे</span>
+                </div>
+                <div>
+                  <h3 className="font-bodoni text-sm font-bold tracking-wider text-[#111111] uppercase flex items-center gap-2">
+                    PHONEPE PAYMENT GATEWAY
+                  </h3>
+                  <p className="text-[11px] text-[#7A6C58]">
+                    Official PhonePe PG standard checkout with automatic instant verification.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                    phonepeEnabled && phonepeMerchantId && phonepeSaltKey
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {phonepeEnabled && phonepeMerchantId && phonepeSaltKey
+                    ? 'Connected & Ready'
+                    : 'Credentials Needed'}
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={phonepeEnabled}
+                    onChange={(e) => setPhonepeEnabled(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#5f259f]" />
+                </label>
+              </div>
+            </div>
+
+            {/* Environment Selector */}
+            <div className="flex items-center gap-3 p-3 bg-[#FAF8F5] rounded-xl border border-[#E0D5C3]">
+              <Globe className="w-4 h-4 text-[#5f259f]" />
+              <span className="text-xs font-bold text-[#4A4033]">GATEWAY MODE:</span>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setPhonepeEnv('PRODUCTION')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    phonepeEnv === 'PRODUCTION'
+                      ? 'bg-[#5f259f] text-white shadow-xs'
+                      : 'bg-white text-[#7A6C58] border border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  Live Production
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPhonepeEnv('SANDBOX')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    phonepeEnv === 'SANDBOX'
+                      ? 'bg-[#5f259f] text-white shadow-xs'
+                      : 'bg-white text-[#7A6C58] border border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  Sandbox (Test)
+                </button>
+              </div>
+            </div>
+
+            {/* Credential Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
+              <div className="sm:col-span-6">
+                <label className="block text-xs font-bold text-[#4A4033] mb-1">
+                  MERCHANT ID (MID):
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={phonepeMerchantId}
+                    onChange={(e) => setPhonepeMerchantId(e.target.value)}
+                    placeholder="e.g. M22XXXXXXXX or PGTESTPAYUAT"
+                    className="w-full px-3 py-2 text-xs border border-[#D5C7B0] rounded-xl focus:outline-none focus:border-[#5f259f] bg-[#FAF8F5] font-mono"
+                  />
+                </div>
+                <p className="text-[10.5px] text-[#8C7E6C] mt-1">
+                  Provided in PhonePe Business / Developer Dashboard.
+                </p>
+              </div>
+
+              <div className="sm:col-span-4">
+                <label className="block text-xs font-bold text-[#4A4033] mb-1">
+                  SALT KEY (API SECRET KEY):
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={phonepeSaltKey}
+                    onChange={(e) => setPhonepeSaltKey(e.target.value)}
+                    placeholder="e.g. 099eb0cd-02cf-4e2a-8aca-..."
+                    className="w-full px-3 py-2 text-xs border border-[#D5C7B0] rounded-xl focus:outline-none focus:border-[#5f259f] bg-[#FAF8F5] font-mono"
+                  />
+                </div>
+                <p className="text-[10.5px] text-[#8C7E6C] mt-1">
+                  36-character secret key for signing checksums.
+                </p>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-[#4A4033] mb-1">
+                  SALT INDEX:
+                </label>
+                <input
+                  type="text"
+                  value={phonepeSaltIndex}
+                  onChange={(e) => setPhonepeSaltIndex(e.target.value)}
+                  placeholder="1"
+                  className="w-full px-3 py-2 text-xs border border-[#D5C7B0] rounded-xl focus:outline-none focus:border-[#5f259f] bg-[#FAF8F5] font-mono text-center"
+                />
+                <p className="text-[10.5px] text-[#8C7E6C] mt-1 text-center">
+                  Usually 1.
+                </p>
+              </div>
+            </div>
+
+            {/* How to Get PhonePe Gateway Details Guide */}
+            <div className="p-3.5 bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl text-xs space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-[#5f259f]">
+                <Key className="w-3.5 h-3.5" />
+                <span>What are PhonePe Gateway Details & where do I get them?</span>
+              </div>
+              <p className="text-[11px] text-[#581c87] leading-relaxed">
+                To accept automatic PhonePe payments, PhonePe provides 4 specific credentials when you register at <strong>business.phonepe.com</strong>:
+              </p>
+              <ul className="text-[11px] text-[#581c87] list-disc pl-4 space-y-1">
+                <li><strong>Merchant ID (MID):</strong> Your store account identifier (e.g. <span className="font-mono">M22...</span>).</li>
+                <li><strong>Salt Key:</strong> Your private secret API key (e.g. <span className="font-mono">099eb0cd-02cf-4e2a-8aca-3e6c6aff0399</span>).</li>
+                <li><strong>Salt Index:</strong> The index number of your key (typically <span className="font-mono">1</span>).</li>
+                <li><strong>Mode:</strong> Set to <strong>Live Production</strong> once PhonePe activates your merchant account.</li>
+              </ul>
             </div>
           </div>
 

@@ -21,6 +21,7 @@ export const CheckoutModal: React.FC = () => {
     cartTotal,
     placeOrder,
     setIsCartOpen,
+    paymentConfig,
   } = useStore();
 
   const [currentStep, setCurrentStep] = useState<'address' | 'payment'>('address');
@@ -61,9 +62,9 @@ export const CheckoutModal: React.FC = () => {
   const [isUploadingScreenshot, setIsUploadingScreenshot] = useState<boolean>(false);
 
   // Merchant Details
-  const MERCHANT_PHONE = '+919848263939';
-  const MERCHANT_VPA = '9848263939@ybl';
-  const MERCHANT_NAME = 'KODIGANTI DINESH';
+  const MERCHANT_PHONE = paymentConfig?.upiNumber || '9848263939';
+  const MERCHANT_VPA = paymentConfig?.upiId || '9848263939@ybl';
+  const MERCHANT_NAME = paymentConfig?.payeeName || 'KODIGANTI DINESH';
 
   const shippingCost = cartTotal >= 2999 ? 0 : 150;
   const orderTotal = Math.max(0, cartTotal + shippingCost);
@@ -168,26 +169,11 @@ export const CheckoutModal: React.FC = () => {
     }
   };
 
-  // Mobile: Trigger native UPI app directly with prefilled amount & merchant details
-  const handleOpenMobileUPI = (appName: string) => {
+  // Mobile: Trigger native UPI app or PhonePe Gateway with prefilled amount & merchant details
+  const handleOpenMobileUPI = async (appName: string) => {
     setSelectedMobileApp(appName);
     setIsSubmitting(true);
-
-    const baseUpi = `pa=${MERCHANT_VPA}&pn=${encodeURIComponent(
-      MERCHANT_NAME
-    )}&am=${orderTotal}&cu=INR&tn=${encodeURIComponent(
-      `Lap of Luxury Order ${orderRef.current}`
-    )}`;
-
-    let targetUri = `upi://pay?${baseUpi}`;
-
-    if (appName === 'PhonePe') {
-      targetUri = `phonepe://pay?${baseUpi}`;
-    } else if (appName === 'Google Pay') {
-      targetUri = `tez://upi/pay?${baseUpi}`;
-    } else if (appName === 'Paytm') {
-      targetUri = `paytmmp://pay?${baseUpi}`;
-    }
+    setErrorMessage(null);
 
     // Place the order in "Payment Pending" state so order details are securely preserved
     try {
@@ -206,6 +192,47 @@ export const CheckoutModal: React.FC = () => {
       );
     } catch (err) {
       console.warn('Order place error:', err);
+    }
+
+    // 1. If PhonePe Gateway is configured, initiate secure server-to-server PhonePe checkout
+    if (appName === 'PhonePe') {
+      try {
+        const response = await fetch('/api/phonepe/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: orderTotal,
+            orderId: `order-${orderRef.current}`,
+            customerPhone: formData.phone.trim() || MERCHANT_PHONE,
+            customerName: formData.name.trim() || 'Guest Customer',
+          }),
+        });
+
+        const data = await response.json();
+        if (data && data.success && data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+          return;
+        }
+      } catch (err) {
+        console.warn('PhonePe gateway error, using UPI intent fallback:', err);
+      }
+    }
+
+    // 2. Standard UPI intent fallback
+    const baseUpi = `pa=${MERCHANT_VPA}&pn=${encodeURIComponent(
+      MERCHANT_NAME
+    )}&am=${orderTotal}&cu=INR&tn=${encodeURIComponent(
+      `Lap of Luxury Order ${orderRef.current}`
+    )}`;
+
+    let targetUri = `upi://pay?${baseUpi}`;
+
+    if (appName === 'PhonePe') {
+      targetUri = `phonepe://pay?${baseUpi}`;
+    } else if (appName === 'Google Pay') {
+      targetUri = `tez://upi/pay?${baseUpi}`;
+    } else if (appName === 'Paytm') {
+      targetUri = `paytmmp://pay?${baseUpi}`;
     }
 
     // Launch UPI intent

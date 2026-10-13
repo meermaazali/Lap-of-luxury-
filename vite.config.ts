@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { defineConfig, Plugin } from 'vite';
 
 const DB_PATH = path.resolve('backend/database.json');
@@ -59,7 +60,7 @@ function devApiPlugin(): Plugin {
           bodyStr += chunk;
         });
 
-        req.on('end', () => {
+        req.on('end', async () => {
           let body: any = {};
           try {
             if (bodyStr) body = JSON.parse(bodyStr);
@@ -263,6 +264,173 @@ function devApiPlugin(): Plugin {
                   'Payment verification is pending bank settlement confirmation. If you completed the transfer, please input your 12-digit UTR reference or await bank confirmation.',
               })
             );
+          }
+
+          // 4B. PHONEPE PAYMENT GATEWAY APIS
+          if (pathname === '/api/phonepe/initiate' && req.method === 'POST') {
+            try {
+              const { amount, orderId, customerPhone, customerName } = body || {};
+              const payments = db.payments || {};
+
+              const merchantId = payments.phonepeMerchantId || process.env.PHONEPE_MERCHANT_ID;
+              const saltKey = payments.phonepeSaltKey || process.env.PHONEPE_SALT_KEY;
+              const saltIndex = payments.phonepeSaltIndex || process.env.PHONEPE_SALT_INDEX || '1';
+              const env = payments.phonepeEnv || process.env.PHONEPE_ENV || 'SANDBOX';
+
+              if (!merchantId || !saltKey) {
+                res.statusCode = 200;
+                return res.end(
+                  JSON.stringify({
+                    success: false,
+                    configured: false,
+                    code: 'GATEWAY_CREDENTIALS_REQUIRED',
+                    message:
+                      'PhonePe Payment Gateway requires your Merchant ID (MID) and Salt Key to process live payments.',
+                    requiredFields: ['phonepeMerchantId', 'phonepeSaltKey', 'phonepeSaltIndex', 'phonepeEnv'],
+                  })
+                );
+              }
+
+              const txnId = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+              const numericAmount = Math.round(Number(amount || 0) * 100); // in paise
+              const hostUrl = req.headers.referer ? new URL(req.headers.referer).origin : 'http://localhost:3000';
+              const redirectUrl = `${hostUrl}/?payment_status=success&txn=${txnId}&orderId=${orderId || ''}`;
+              const callbackUrl = `${hostUrl}/api/phonepe/callback`;
+
+              const payload = {
+                merchantId,
+                merchantTransactionId: txnId,
+                merchantUserId: `CUST_${(customerPhone || '9848263939').replace(/\D/g, '') || '9848263939'}`,
+                amount: numericAmount,
+                redirectUrl,
+                redirectMode: 'REDIRECT',
+                callbackUrl,
+                mobileNumber: (customerPhone || '9848263939').replace(/\D/g, '').slice(-10),
+                paymentInstrument: {
+                  type: 'PAY_PAGE',
+                },
+              };
+
+              const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
+              const stringToHash = base64Payload + '/pg/v1/pay' + saltKey;
+              const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
+              const xVerify = `${sha256}###${saltIndex}`;
+
+              const apiUrl =
+                env === 'PRODUCTION'
+                  ? 'https://api.phonepe.com/apis/hermes/pg/v1/pay'
+                  : 'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay';
+
+              const phonepeResponse = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-VERIFY': xVerify,
+                },
+                body: JSON.stringify({ request: base64Payload }),
+              });
+
+              const phonepeData: any = await phonepeResponse.json().catch(() => ({}));
+
+              if (phonepeData && phonepeData.success && phonepeData.data?.instrumentResponse?.redirectInfo?.url) {
+                if (!db.pendingTransactions) db.pendingTransactions = {};
+                db.pendingTransactions[txnId] = {
+                  orderId,
+                  amount,
+                  createdAt: new Date().toISOString(),
+                  merchantId,
+                  status: 'PAYMENT_INITIATED',
+                };
+                saveDatabase(db);
+
+                res.statusCode = 200;
+                return res.end(
+                  JSON.stringify({
+                    success: true,
+                    configured: true,
+                    transactionId: txnId,
+                    redirectUrl: phonepeData.data.instrumentResponse.redirectInfo.url,
+                  })
+                );
+              }
+
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  success: false,
+                  configured: true,
+                  error: phonepeData?.message || 'PhonePe gateway returned an error',
+                  details: phonepeData,
+                })
+              );
+            } catch (err: any) {
+              res.statusCode = 500;
+              return res.end(JSON.stringify({ success: false, error: err.message }));
+            }
+          }
+
+          if (pathname === '/api/phonepe/status' && req.method === 'POST') {
+            try {
+              const { transactionId } = body || {};
+              const payments = db.payments || {};
+              const merchantId = payments.phonepeMerchantId || process.env.PHONEPE_MERCHANT_ID;
+              const saltKey = payments.phonepeSaltKey || process.env.PHONEPE_SALT_KEY;
+              const saltIndex = payments.phonepeSaltIndex || process.env.PHONEPE_SALT_INDEX || '1';
+              const env = payments.phonepeEnv || process.env.PHONEPE_ENV || 'SANDBOX';
+
+              if (!merchantId || !saltKey || !transactionId) {
+                res.statusCode = 200;
+                return res.end(JSON.stringify({ success: false, status: 'UNKNOWN' }));
+              }
+
+              const stringToHash = `/pg/v1/status/${merchantId}/${transactionId}` + saltKey;
+              const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
+              const xVerify = `${sha256}###${saltIndex}`;
+
+              const statusApiUrl =
+                env === 'PRODUCTION'
+                  ? `https://api.phonepe.com/apis/hermes/pg/v1/status/${merchantId}/${transactionId}`
+                  : `https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status/${merchantId}/${transactionId}`;
+
+              const response = await fetch(statusApiUrl, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-VERIFY': xVerify,
+                  'X-MERCHANT-ID': merchantId,
+                },
+              });
+
+              const data: any = await response.json().catch(() => ({}));
+
+              if (data && data.code === 'PAYMENT_SUCCESS') {
+                const pending = db.pendingTransactions?.[transactionId];
+                if (pending && pending.orderId && Array.isArray(db.orders)) {
+                  const ordIdx = db.orders.findIndex((o: any) => o.id === pending.orderId);
+                  if (ordIdx !== -1) {
+                    db.orders[ordIdx].paymentStatus = 'Paid';
+                    db.orders[ordIdx].transactionRef = transactionId;
+                    saveDatabase(db);
+                  }
+                }
+
+                res.statusCode = 200;
+                return res.end(JSON.stringify({ success: true, verified: true, status: 'Paid', data }));
+              }
+
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  success: false,
+                  verified: false,
+                  status: data?.code || 'PENDING',
+                  message: data?.message || 'Payment pending or not confirmed',
+                })
+              );
+            } catch (err: any) {
+              res.statusCode = 500;
+              return res.end(JSON.stringify({ success: false, error: err.message }));
+            }
           }
 
           // 5. ORDERS API

@@ -81,6 +81,12 @@ export interface PaymentConfig {
   bankIfsc?: string;
   bankName?: string;
   instructions?: string;
+  // PhonePe Payment Gateway Integration
+  phonepeEnabled?: boolean;
+  phonepeMerchantId?: string;
+  phonepeSaltKey?: string;
+  phonepeSaltIndex?: string;
+  phonepeEnv?: 'SANDBOX' | 'PRODUCTION';
 }
 
 export interface MediaAsset {
