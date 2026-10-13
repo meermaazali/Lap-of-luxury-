@@ -21,6 +21,7 @@ export const BestSellersGrid: React.FC = () => {
   } = useStore();
 
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(24);
 
   // Filter products based on selectedCategory - Products never disappear when in/out of stock
   const filteredProducts = products.filter((p) => {
@@ -30,6 +31,8 @@ export const BestSellersGrid: React.FC = () => {
     if (selectedCategory === 'New Arrivals') return true;
     return p.category.toLowerCase() === selectedCategory.toLowerCase();
   });
+
+  const displayedProducts = filteredProducts.slice(0, visibleCount);
 
   const categoriesTab = [
     { label: 'All Collection', value: 'All' },
@@ -64,14 +67,20 @@ export const BestSellersGrid: React.FC = () => {
                 Hand-Finished Masterpieces
               </span>
             </div>
-            <h2 className="font-bodoni text-2xl sm:text-3xl md:text-4xl font-normal sm:font-medium tracking-[0.14em] uppercase text-[#241F1B]">
+            <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl font-semibold tracking-wide uppercase text-[#241F1B]">
               BEST SELLERS & NEW ARRIVALS
             </h2>
           </div>
 
           <div className="flex items-center gap-3">
+            <span className="text-xs text-[#7A6C58] font-medium hidden sm:inline">
+              Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} items
+            </span>
             <button
-              onClick={() => triggerTransition('All', 'Complete Collection')}
+              onClick={() => {
+                setVisibleCount(24);
+                triggerTransition('All', 'Complete Collection');
+              }}
               className="text-xs font-medium tracking-[0.16em] uppercase text-[#8A671A] hover:text-[#B8860B] flex items-center gap-1.5 group transition-colors cursor-pointer py-1"
             >
               <span>View All Collection</span>
@@ -114,8 +123,9 @@ export const BestSellersGrid: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
-            {filteredProducts.map((product) => {
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
+            {displayedProducts.map((product) => {
               const inWish = isInWishlist(product.id);
               const isAdded = addedProductId === product.id;
               const isAvailable = product.inStock && product.stockCount > 0;
@@ -178,7 +188,7 @@ export const BestSellersGrid: React.FC = () => {
                       <p className="text-[10px] font-medium uppercase tracking-wider text-[#8A671A] mb-0.5">
                         {product.category}
                       </p>
-                      <h3 className="font-bodoni text-xs sm:text-sm font-normal sm:font-medium text-[#241F1B] truncate group-hover:text-[#B8860B] transition-colors">
+                      <h3 className="font-sans text-xs sm:text-sm font-medium text-[#241F1B] truncate group-hover:text-[#B8860B] transition-colors">
                         {product.name}
                       </h3>
                       <div className="flex items-center justify-center gap-1.5 mt-1 mb-2.5">
@@ -224,8 +234,25 @@ export const BestSellersGrid: React.FC = () => {
               );
             })}
           </div>
-        )}
-      </div>
-    </section>
+
+          {/* Load More Pagination for Large Catalogs */}
+          {visibleCount < filteredProducts.length && (
+            <div className="mt-8 text-center flex flex-col items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + 24)}
+                className="px-8 py-3 bg-white hover:bg-[#FAF8F5] border-2 border-[#D4AF37] text-[#111113] hover:text-[#8A671A] text-xs font-bold uppercase tracking-wider rounded-full shadow-sm transition-all cursor-pointer active:scale-95"
+              >
+                Load More Masterpieces ({filteredProducts.length - visibleCount} remaining)
+              </button>
+              <span className="text-[11px] text-[#7A6C58]">
+                Showing {visibleCount} of {filteredProducts.length} items
+              </span>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  </section>
   );
 };

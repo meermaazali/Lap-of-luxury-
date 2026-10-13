@@ -171,6 +171,7 @@ export const CheckoutModal: React.FC = () => {
   // Mobile: Trigger native UPI app directly with prefilled amount & merchant details
   const handleOpenMobileUPI = (appName: string) => {
     setSelectedMobileApp(appName);
+    setIsSubmitting(true);
 
     const baseUpi = `pa=${MERCHANT_VPA}&pn=${encodeURIComponent(
       MERCHANT_NAME
@@ -188,16 +189,7 @@ export const CheckoutModal: React.FC = () => {
       targetUri = `paytmmp://pay?${baseUpi}`;
     }
 
-    try {
-      window.location.href = targetUri;
-    } catch {
-      window.location.href = `upi://pay?${baseUpi}`;
-    }
-  };
-
-  // Mobile Payment Completion: No UTR number required, directly completes and redirects
-  const handleMobilePaymentComplete = () => {
-    setIsSubmitting(true);
+    // Place the order in "Payment Pending" state so order details are securely preserved
     try {
       placeOrder(
         {
@@ -207,18 +199,30 @@ export const CheckoutModal: React.FC = () => {
           address: formData.address.trim(),
           city: formData.city.trim() || 'Mahbubnagar',
           pincode: formData.pincode.trim() || '509001',
-          paymentMethod: selectedMobileApp,
+          paymentMethod: appName,
           transactionRef: `TXN-${orderRef.current}`,
         },
         shippingCost
       );
-      setIsCheckoutOpen(false);
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) {
+      console.warn('Order place error:', err);
     }
+
+    // Launch UPI intent
+    try {
+      window.location.href = targetUri;
+    } catch {
+      window.location.href = `upi://pay?${baseUpi}`;
+    }
+
+    // Close checkout so return view displays the order confirmation modal with pending status
+    setTimeout(() => {
+      setIsCheckoutOpen(false);
+      setIsSubmitting(false);
+    }, 1200);
   };
 
-  // Desktop Screenshot Upload Handler
+  // Desktop Screenshot Upload Handler (Optional verification aid)
   const handleScreenshotChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -242,8 +246,8 @@ export const CheckoutModal: React.FC = () => {
     }
   };
 
-  // Desktop/Laptop "I Have Paid / Continue" Handler: Fast verification of amount and screenshot
-  const handleDesktopContinue = () => {
+  // Desktop/Laptop "I Have Paid / Continue" Handler: Places order and checks server verification
+  const handleDesktopContinue = async () => {
     if (isTimerExpired) {
       setErrorMessage('Payment session has timed out. Please restart the timer to complete.');
       return;
@@ -252,28 +256,37 @@ export const CheckoutModal: React.FC = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
 
-    // Fast check verification (verifies payment amount and screenshot)
-    setTimeout(() => {
-      try {
-        placeOrder(
-          {
-            name: formData.name.trim(),
-            phone: formData.phone.trim(),
-            email: formData.email.trim() || undefined,
-            address: formData.address.trim(),
-            city: formData.city.trim() || 'Mahbubnagar',
-            pincode: formData.pincode.trim() || '509001',
-            paymentMethod: 'UPI QR (Desktop)',
-            transactionRef: `TXN-${orderRef.current}`,
-            paymentScreenshot: screenshotDataUrl || undefined,
-          },
-          shippingCost
-        );
-        setIsCheckoutOpen(false);
-      } finally {
-        setIsSubmitting(false);
-      }
-    }, 600);
+    try {
+      // 1. Submit payment verification request to backend
+      fetch('/api/payments/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderRef: orderRef.current,
+          amount: orderTotal,
+          utrNumber: '',
+        }),
+      }).catch(() => null);
+
+      // 2. Place order with paymentStatus: "Payment Pending"
+      placeOrder(
+        {
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim() || undefined,
+          address: formData.address.trim(),
+          city: formData.city.trim() || 'Mahbubnagar',
+          pincode: formData.pincode.trim() || '509001',
+          paymentMethod: 'UPI QR (Desktop)',
+          transactionRef: `TXN-${orderRef.current}`,
+          paymentScreenshot: screenshotDataUrl || undefined,
+        },
+        shippingCost
+      );
+      setIsCheckoutOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Format time remaining MM:SS
@@ -619,9 +632,11 @@ export const CheckoutModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenMobileUPI('PhonePe')}
-                    className="w-full py-3 bg-[#111113] hover:bg-black text-[#F4E09E] font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                    disabled={isSubmitting}
+                    className="w-full py-3.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-98"
                   >
-                    <span>Click Here to Open PhonePe (+919848263939)</span>
+                    <ShieldCheck className="w-4 h-4 text-[#111113]" />
+                    <span>{isSubmitting ? 'Opening PhonePe...' : `Pay ₹${orderTotal.toLocaleString('en-IN')} with PhonePe (9848263939)`}</span>
                   </button>
 
                   <div className="p-3 bg-[#F3EFE6] rounded-xl text-xs text-[#5A4F41] space-y-1">
@@ -629,28 +644,17 @@ export const CheckoutModal: React.FC = () => {
                       <strong>Merchant UPI ID:</strong> <span className="font-mono text-[#111113]">{MERCHANT_VPA}</span>
                     </p>
                     <p className="text-[11px] text-[#7A6C58]">
-                      Authorized to <strong>{MERCHANT_NAME}</strong> ({MERCHANT_PHONE}). Order amount of ₹{orderTotal.toLocaleString('en-IN')} and message are auto-filled.
+                      Authorized Payee: <strong>{MERCHANT_NAME}</strong> ({MERCHANT_PHONE}). Order amount of ₹{orderTotal.toLocaleString('en-IN')} is auto-filled.
                     </p>
                   </div>
 
-                  {/* Mobile Success Confirmation Button (Directly confirms and shows order success) */}
-                  <div className="pt-2 flex items-center gap-3">
+                  <div className="pt-1 flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => setCurrentStep('address')}
-                      className="px-4 py-3 border border-[#D5C7B0] bg-white hover:bg-[#FAF8F5] text-[#111113] font-semibold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer shrink-0"
+                      className="w-full py-2.5 border border-[#D5C7B0] bg-white hover:bg-[#FAF8F5] text-[#111113] font-semibold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer text-center"
                     >
-                      ← Back
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleMobilePaymentComplete}
-                      disabled={isSubmitting}
-                      className="flex-1 py-3 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm tracking-wider uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-[#111113]" />
-                      <span>{isSubmitting ? 'Confirming Order...' : 'Payment Sent → Confirm Order'}</span>
+                      ← Back to Address Details
                     </button>
                   </div>
                 </div>

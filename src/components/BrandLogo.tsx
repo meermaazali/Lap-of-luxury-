@@ -52,19 +52,19 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       : 'text-xl sm:text-2xl';
 
   return (
-    <div className={`flex flex-col items-center select-none text-center ${className}`}>
+    <div className={`flex flex-col select-none ${className}`}>
       {/* Trademark Logo & Brand Typography */}
-      <div className="flex items-center gap-2.5 sm:gap-3.5">
-        <div className={`${logoDimension} shrink-0 aspect-square flex items-center justify-center p-0.5`}>
+      <div className="flex items-center gap-2.5 sm:gap-3.5 w-full">
+        <div className={`${logoDimension} shrink-0 aspect-square flex items-center justify-center`}>
           <UploadedLogoMark
             className="w-full h-full"
             color={logoColor}
           />
         </div>
 
-        <div className="flex flex-col items-start text-left justify-center min-w-0">
+        <div className="flex flex-col items-start text-left justify-center flex-1 min-w-0">
           <span
-            className={`font-serif tracking-[0.14em] font-normal uppercase leading-tight ${titleSize} ${
+            className={`font-serif tracking-[0.14em] font-normal uppercase leading-tight truncate w-full ${titleSize} ${
               isDark
                 ? 'text-white'
                 : isGold
@@ -76,7 +76,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           </span>
           {showSubtitle && (
             <span
-              className={`font-sans tracking-[0.08em] sm:tracking-[0.12em] text-[9px] sm:text-[10px] md:text-xs uppercase font-normal leading-normal mt-0.5 ${
+              className={`font-sans tracking-[0.06em] sm:tracking-[0.12em] text-[9px] sm:text-[10px] md:text-xs uppercase font-normal leading-normal mt-0.5 break-words ${
                 isDark ? 'text-[#F3D78E]' : 'text-[#7A6C58]'
               }`}
             >

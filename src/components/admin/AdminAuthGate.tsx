@@ -14,6 +14,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onSuccess, onCance
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (password.trim() === '7878') {
       sessionStorage.setItem('lol_admin_authed', 'true');
       setError(false);
@@ -31,10 +32,13 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onSuccess, onCance
       <div className="absolute w-96 h-96 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md bg-[#1A1A1E] rounded-2xl border-2 border-[#D4AF37]/60 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-300">
-        {/* Monogram and Title */}
+        {/* Larger Golden Logo and Title */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 rounded-full bg-[#111113] border border-[#D4AF37] flex items-center justify-center mb-3 p-3">
-            <UploadedLogoMark className="w-full h-full" color="#D4AF37" />
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#111113] border-2 border-[#D4AF37] flex items-center justify-center mb-4 p-2 overflow-hidden shrink-0 shadow-lg shadow-[#D4AF37]/10">
+            <UploadedLogoMark
+              className="w-full h-full object-contain"
+              color="#D4AF37"
+            />
           </div>
 
           <span className="text-[10px] tracking-[0.25em] font-extrabold uppercase text-[#D4AF37] mb-1">
@@ -50,7 +54,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onSuccess, onCance
           </p>
         </div>
 
-        {/* Error message */}
+        {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 bg-red-950/80 border border-red-500/80 rounded-xl flex items-center gap-2 text-xs text-red-200">
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />

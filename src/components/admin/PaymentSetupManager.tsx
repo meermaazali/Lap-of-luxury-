@@ -178,26 +178,17 @@ export const PaymentSetupManager: React.FC = () => {
                 <span className="text-[10px] text-[#7A6C58]">GPay, PhonePe, Paytm</span>
               </label>
 
-              {/* COD */}
-              <label
-                className={`p-4 rounded-xl border flex flex-col justify-between cursor-pointer transition-all ${
-                  enableCOD
-                    ? 'border-[#B89758] bg-[#FAF8F3] ring-1 ring-[#B89758]'
-                    : 'border-gray-200 bg-gray-50 opacity-60'
-                }`}
+              {/* PhonePe / UPI Direct Intent */}
+              <div
+                className="p-4 rounded-xl border border-[#B89758] bg-[#FAF8F3] ring-1 ring-[#B89758] flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Banknote className="w-5 h-5 text-[#B89758]" />
-                  <input
-                    type="checkbox"
-                    checked={enableCOD}
-                    onChange={(e) => setEnableCOD(e.target.checked)}
-                    className="accent-[#B89758] w-4 h-4 cursor-pointer"
-                  />
+                  <Smartphone className="w-5 h-5 text-[#B89758]" />
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Active</span>
                 </div>
-                <span className="text-xs font-bold text-[#111111]">Cash on Delivery</span>
-                <span className="text-[10px] text-[#7A6C58]">Pay upon delivery</span>
-              </label>
+                <span className="text-xs font-bold text-[#111111]">PhonePe & UPI</span>
+                <span className="text-[10px] text-[#7A6C58]">9848263939 · KODIGANTI DINESH</span>
+              </div>
 
               {/* Card / Online Gateway */}
               <label

@@ -48,6 +48,27 @@ export const ProductsManager: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Pagination & Filtering for 1,000+ products
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminCategory, setAdminCategory] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  const filteredAdminProducts = products.filter((p) => {
+    const matchesCat = adminCategory === 'All' || p.category.toLowerCase() === adminCategory.toLowerCase();
+    const matchesSearch =
+      !adminSearch.trim() ||
+      p.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
+      p.description.toLowerCase().includes(adminSearch.toLowerCase());
+    return matchesCat && matchesSearch;
+  });
+
+  const totalPages = Math.ceil(filteredAdminProducts.length / itemsPerPage) || 1;
+  const paginatedProducts = filteredAdminProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
@@ -250,79 +271,174 @@ export const ProductsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {products.map((p) => (
-          <div
-            key={p.id}
-            className="bg-white rounded-xl border border-[#E0D5C3] overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
-          >
-            <div className="relative aspect-square bg-[#F5F2EB] overflow-hidden">
-              <img
-                src={normalizeImageUrl(p.image, p.category)}
-                alt={p.name}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  const fb = FALLBACK_CATEGORY_IMAGES[p.category] || FALLBACK_LUXURY_IMAGE;
-                  if (target.src !== fb) target.src = fb;
-                }}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-                {p.isFestiveEdit && (
-                  <span className="bg-[#B89758] text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">
-                    FESTIVE
-                  </span>
-                )}
-                {p.stockCount <= 5 && (
-                  <span className="bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">
-                    LOW: {p.stockCount}
-                  </span>
-                )}
-              </div>
-            </div>
+      {/* Filter and Pagination Controls */}
+      <div className="bg-white p-3.5 rounded-xl border border-[#E0D5C3] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <input
+            type="text"
+            value={adminSearch}
+            onChange={(e) => {
+              setAdminSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search products..."
+            className="px-3 py-1.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs w-full sm:w-60 focus:outline-none focus:border-[#B8860B]"
+          />
 
-            <div className="p-4 flex-1 flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-[#7A6C58]">
-                  {p.category}
-                </span>
-                <h3 className="font-bold text-sm text-[#1E1E22] mt-0.5 truncate">
-                  {p.name}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="font-bold text-sm text-[#1E1E22] tabular-nums">
-                    ₹{p.price.toLocaleString('en-IN')}
-                  </span>
-                  {p.originalPrice && p.originalPrice > p.price && (
-                    <span className="text-xs text-[#998A77] line-through tabular-nums">
-                      ₹{p.originalPrice.toLocaleString('en-IN')}
+          <select
+            value={adminCategory}
+            onChange={(e) => {
+              setAdminCategory(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-3 py-1.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs focus:outline-none focus:border-[#B8860B]"
+          >
+            <option value="All">All Categories ({products.length})</option>
+            <option value="Men">Men's Shirts</option>
+            <option value="Women">Women's Collection</option>
+            <option value="Jeans">Jeans & Denim</option>
+            <option value="Watches">Watches</option>
+            <option value="Bags">Bags</option>
+            <option value="Shoes">Shoes</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Perfumes">Perfumes</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <span className="text-[#7A6C58]">
+            Showing {(currentPage - 1) * itemsPerPage + 1}–
+            {Math.min(currentPage * itemsPerPage, filteredAdminProducts.length)} of {filteredAdminProducts.length} items
+          </span>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="px-2.5 py-1 border border-[#D5C7B0] rounded hover:bg-[#FAF8F5] disabled:opacity-40 cursor-pointer text-xs"
+            >
+              Prev
+            </button>
+            <span className="px-2 py-1 font-semibold text-[#111113]">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="px-2.5 py-1 border border-[#D5C7B0] rounded hover:bg-[#FAF8F5] disabled:opacity-40 cursor-pointer text-xs"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Products Grid */}
+      {paginatedProducts.length === 0 ? (
+        <div className="bg-white p-12 rounded-xl border border-[#E0D5C3] text-center text-xs text-[#7A6C58]">
+          No products match the search or filter criteria.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {paginatedProducts.map((p) => (
+            <div
+              key={p.id}
+              className="bg-white rounded-xl border border-[#E0D5C3] overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+            >
+              <div className="relative aspect-square bg-[#F5F2EB] overflow-hidden">
+                <img
+                  src={normalizeImageUrl(p.image, p.category)}
+                  alt={p.name}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    const fb = FALLBACK_CATEGORY_IMAGES[p.category] || FALLBACK_LUXURY_IMAGE;
+                    if (target.src !== fb) target.src = fb;
+                  }}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                  {p.isFestiveEdit && (
+                    <span className="bg-[#B89758] text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">
+                      FESTIVE
+                    </span>
+                  )}
+                  {p.stockCount <= 5 && (
+                    <span className="bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">
+                      LOW: {p.stockCount}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#F0EAE0] flex items-center justify-between">
-                <button
-                  onClick={() => handleOpenEdit(p)}
-                  className="px-3 py-1.5 bg-[#FAF8F5] border border-[#D5C7B0] hover:bg-[#F2EDE2] text-[#1E1E22] text-xs font-semibold rounded flex items-center gap-1 cursor-pointer transition-colors"
-                >
-                  <Edit2 className="w-3 h-3 text-[#B89758]" />
-                  <span>Edit</span>
-                </button>
+              <div className="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#7A6C58]">
+                    {p.category}
+                  </span>
+                  <h3 className="font-bold text-sm text-[#1E1E22] mt-0.5 truncate">
+                    {p.name}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="font-bold text-sm text-[#1E1E22] tabular-nums">
+                      ₹{p.price.toLocaleString('en-IN')}
+                    </span>
+                    {p.originalPrice && p.originalPrice > p.price && (
+                      <span className="text-xs text-[#998A77] line-through tabular-nums">
+                        ₹{p.originalPrice.toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-                <button
-                  onClick={() => setDeleteConfirmProduct(p)}
-                  className="p-1.5 text-[#A39280] hover:text-red-600 transition-colors cursor-pointer hover:bg-red-50 rounded"
-                  title="Delete Product"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="mt-4 pt-3 border-t border-[#F0EAE0] flex items-center justify-between">
+                  <button
+                    onClick={() => handleOpenEdit(p)}
+                    className="px-3 py-1.5 bg-[#FAF8F5] border border-[#D5C7B0] hover:bg-[#F2EDE2] text-[#1E1E22] text-xs font-semibold rounded flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Edit2 className="w-3 h-3 text-[#B89758]" />
+                    <span>Edit</span>
+                  </button>
+
+                  <button
+                    onClick={() => setDeleteConfirmProduct(p)}
+                    className="p-1.5 text-[#A39280] hover:text-red-600 transition-colors cursor-pointer hover:bg-red-50 rounded"
+                    title="Delete Product"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            type="button"
+            disabled={currentPage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            className="px-4 py-2 border border-[#D5C7B0] bg-white rounded-lg hover:bg-[#FAF8F5] disabled:opacity-40 cursor-pointer text-xs font-medium"
+          >
+            Previous Page
+          </button>
+          <span className="text-xs font-semibold text-[#111113] px-3">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            className="px-4 py-2 border border-[#D5C7B0] bg-white rounded-lg hover:bg-[#FAF8F5] disabled:opacity-40 cursor-pointer text-xs font-medium"
+          >
+            Next Page
+          </button>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal (In-App, safe for iFrames) */}
       {deleteConfirmProduct && (

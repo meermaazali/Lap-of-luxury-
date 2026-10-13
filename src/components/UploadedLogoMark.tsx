@@ -12,10 +12,16 @@ export const UploadedLogoMark: React.FC<UploadedLogoMarkProps> = ({
   return (
     <div className={`${className} flex items-center justify-center overflow-visible`}>
       <img
-        src="https://i.ibb.co/BHNLzMnv/file-00000000b5608208b2b3a47d71987b34.png"
+        src="/images/lap_of_luxury_logo.png"
         alt="LAP OF LUXURY official logo"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          if (!target.src.includes('ibb.co')) {
+            target.src = 'https://i.ibb.co/rKsk7rdq/file-00000000b5608208b2b3a47d71987b34.png';
+          }
+        }}
         className="w-full h-full object-contain"
-        style={{ transform: 'scale(1.2)' }}
+        style={{ transform: 'scale(1.15)' }}
       />
     </div>
   );

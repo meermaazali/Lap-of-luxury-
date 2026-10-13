@@ -404,12 +404,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updatePaymentConfig = (updates: Partial<PaymentConfig>) => {
     setPaymentConfig((prev) => {
-      const next = { ...prev, ...updates };
+      const next = { ...prev, ...updates, enableCOD: false };
       try {
         localStorage.setItem('lol_payment_config', JSON.stringify(next));
       } catch (e) {
         console.warn('Could not save payment config to localStorage:', e);
       }
+      fetch('/api/payments/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(next),
+      }).catch(() => null);
       return next;
     });
   };
@@ -441,6 +446,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch (e) {
         console.warn('Could not save boutique hero to localStorage:', e);
       }
+      fetch('/api/banners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boutiqueHero: next }),
+      }).catch(() => null);
       return next;
     });
   };
@@ -467,7 +477,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     idbSetItem('lol_products', products);
   }, [products]);
 
-  // On mount: rehydrate products from IndexedDB and backend (permanent lifetime storage)
+  // On mount: rehydrate products, banners, and payments from backend authoritative database
   useEffect(() => {
     // 1. Rehydrate from IndexedDB
     idbGetItem<Product[]>('lol_products').then((savedProducts) => {
@@ -483,19 +493,35 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     });
 
-    // 2. Rehydrate from backend /api/products
+    // 2. Authoritative sync from backend /api/products
     fetch('/api/products')
       .then((res) => res.json())
       .then((backendProds) => {
         if (Array.isArray(backendProds) && backendProds.length > 0) {
-          setProducts((current) => {
-            const currentIds = new Set(current.map((p) => p.id));
-            const missing = backendProds.filter((p) => !currentIds.has(p.id));
-            if (missing.length > 0) {
-              return [...current, ...missing];
-            }
-            return current;
-          });
+          setProducts(backendProds);
+        }
+      })
+      .catch(() => null);
+
+    // 3. Authoritative sync from backend /api/banners
+    fetch('/api/banners')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.boutiqueHero) {
+          setBoutiqueHeroConfig((prev) => ({ ...prev, ...data.boutiqueHero }));
+        }
+        if (Array.isArray(data?.banners) && data.banners.length > 0) {
+          setBanners(data.banners);
+        }
+      })
+      .catch(() => null);
+
+    // 4. Authoritative sync from backend /api/payments/config
+    fetch('/api/payments/config')
+      .then((res) => res.json())
+      .then((config) => {
+        if (config) {
+          setPaymentConfig((prev) => ({ ...prev, ...config, enableCOD: false }));
         }
       })
       .catch(() => null);
@@ -779,7 +805,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       shipping,
       total,
       paymentMethod: customer.paymentMethod,
-      paymentStatus: 'Verified',
+      paymentStatus: 'Payment Pending',
       transactionRef: customer.transactionRef,
       paymentScreenshot: customer.paymentScreenshot,
       status: 'Pending',
@@ -831,11 +857,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLatestNotification(null);
   };
 
-  // Media upload with automatic web optimization (<150KB compression) to ensure unlimited uploads without storage quota limits
+  // Media upload with direct storage upload to avoid storing base64 blobs in product records
   const uploadMediaAsset = async (file: File, category: string = 'Products'): Promise<MediaAsset> => {
     let dataUrl: string;
     try {
-      dataUrl = await compressImage(file, 1000, 0.82);
+      dataUrl = await compressImage(file, 1200, 0.85);
     } catch {
       dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -845,12 +871,27 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
+    let storageUrl = dataUrl;
+    try {
+      const res = await fetch('/api/media/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUrl, filename: file.name }),
+      });
+      const data = await res.json();
+      if (data && data.url) {
+        storageUrl = data.url;
+      }
+    } catch (e) {
+      console.warn('Backend media upload error, using local url:', e);
+    }
+
     const newAsset: MediaAsset = {
       id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       name: file.name,
       size: Math.round(dataUrl.length * 0.75),
       type: 'image/jpeg',
-      dataUrl,
+      dataUrl: storageUrl,
       createdAt: new Date().toISOString(),
       category,
     };

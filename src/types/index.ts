@@ -59,8 +59,8 @@ export interface Order {
   discount: number;
   shipping: number;
   total: number;
-  paymentMethod: 'COD' | 'UPI' | 'Card' | 'PhonePe' | 'Google Pay' | 'Paytm' | 'Other UPI Apps' | 'UPI QR' | string;
-  paymentStatus?: 'Pending' | 'Verified' | 'Unpaid' | 'Verification In Progress' | string;
+  paymentMethod: 'UPI' | 'Card' | 'PhonePe' | 'Google Pay' | 'Paytm' | 'Other UPI Apps' | 'UPI QR' | string;
+  paymentStatus?: 'Payment Pending' | 'Paid' | 'Verified' | 'Pending' | 'Failed' | 'Refunded' | string;
   transactionRef?: string;
   paymentScreenshot?: string;
   status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';

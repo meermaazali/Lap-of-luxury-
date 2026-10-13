@@ -67,16 +67,16 @@ export const OrdersManager: React.FC = () => {
 
   const handleVerifyOrderPayment = async (order: Order) => {
     try {
-      await fetch('/api/orders/verify-payment', {
-        method: 'POST',
+      await fetch(`/api/orders/${order.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id }),
+        body: JSON.stringify({ paymentStatus: 'Paid', status: 'Confirmed' }),
       }).catch(() => null);
     } catch {
       // offline
     }
 
-    order.paymentStatus = 'Verified';
+    order.paymentStatus = 'Paid';
     updateOrderStatus(order.id, 'Confirmed');
   };
 

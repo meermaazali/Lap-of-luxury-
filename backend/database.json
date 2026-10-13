@@ -1,0 +1,205 @@
+{
+  "orders": [],
+  "products": [
+    {
+      "id": "prod-1",
+      "name": "Premium Shirt",
+      "category": "Men",
+      "price": 1000,
+      "originalPrice": 1999,
+      "rating": 4.9,
+      "reviewsCount": 128,
+      "image": "/images/category_mens_bw.jpg",
+      "secondaryImage": "/images/category_mens_fashion_1791290148102.jpg",
+      "description": "Impeccably tailored double-ply Egyptian cotton shirt with mother-of-pearl buttons. Crafted for refined comfort and commanding presence.",
+      "sizes": [
+        "38",
+        "40",
+        "42",
+        "44"
+      ],
+      "inStock": true,
+      "stockCount": 45,
+      "isBestSeller": true,
+      "isFestiveEdit": true,
+      "tags": [
+        "Festive Edit",
+        "Best Seller",
+        "Shirts"
+      ]
+    },
+    {
+      "id": "prod-2",
+      "name": "Premium Jeans",
+      "category": "Jeans",
+      "price": 1200,
+      "originalPrice": 2499,
+      "rating": 4.8,
+      "reviewsCount": 94,
+      "image": "/images/category_jeans_bw.jpg",
+      "secondaryImage": "/images/category_luxury_denim_1791098561162.jpg",
+      "description": "Signature selvedge raw indigo denim crafted with comfort stretch. Features custom antique brass rivets and an ergonomic slim-straight contour.",
+      "sizes": [
+        "30",
+        "32",
+        "34",
+        "36",
+        "38"
+      ],
+      "inStock": true,
+      "stockCount": 38,
+      "isBestSeller": true,
+      "isFestiveEdit": true,
+      "tags": [
+        "Festive Edit",
+        "Best Seller",
+        "Raw Denim"
+      ]
+    },
+    {
+      "id": "prod-3",
+      "name": "Men's Watch",
+      "category": "Watches",
+      "price": 3499,
+      "originalPrice": 5999,
+      "rating": 5,
+      "reviewsCount": 82,
+      "image": "/images/luxury_gold_watch_1791098572108.jpg",
+      "secondaryImage": "/images/category_watches_bw.jpg",
+      "description": "Precision Japanese automatic movement encased in 18k brushed gold plating with sapphire crystal anti-reflective glass and luminous hands.",
+      "sizes": [
+        "Standard 41mm"
+      ],
+      "inStock": true,
+      "stockCount": 14,
+      "isBestSeller": true,
+      "isFestiveEdit": false,
+      "tags": [
+        "Luxury Timepieces",
+        "Best Seller",
+        "Water Resistant"
+      ]
+    },
+    {
+      "id": "prod-4",
+      "name": "Women's Handbag",
+      "category": "Bags",
+      "price": 3499,
+      "originalPrice": 6499,
+      "rating": 4.9,
+      "reviewsCount": 110,
+      "image": "/images/category_bags_bw.jpg",
+      "secondaryImage": "/images/category_bags_luxury_1791290228052.jpg",
+      "description": "Iconic structured top-handle bag in textured grain calfskin with gold hardware padlock and detachable crossbody shoulder strap.",
+      "sizes": [
+        "Medium 28cm"
+      ],
+      "inStock": true,
+      "stockCount": 12,
+      "isBestSeller": true,
+      "isFestiveEdit": true,
+      "tags": [
+        "Handcrafted",
+        "Calfskin",
+        "Best Seller"
+      ]
+    },
+    {
+      "id": "prod-5",
+      "name": "Premium Sneakers",
+      "category": "Shoes",
+      "price": 2999,
+      "originalPrice": 4999,
+      "rating": 4.7,
+      "reviewsCount": 76,
+      "image": "/images/category_shoes_bw.jpg",
+      "secondaryImage": "/images/category_shoes_luxury_1791290241545.jpg",
+      "description": "Monochrome architectural sneakers engineered with Italian Nappa leather, memory foam cushioned insoles, and durable lightweight rubber cupsole.",
+      "sizes": [
+        "7 UK",
+        "8 UK",
+        "9 UK",
+        "10 UK",
+        "11 UK"
+      ],
+      "inStock": true,
+      "stockCount": 22,
+      "isBestSeller": true,
+      "isFestiveEdit": false,
+      "tags": [
+        "Footwear",
+        "Casual Luxury"
+      ]
+    },
+    {
+      "id": "prod-6",
+      "name": "Premium Sunglasses",
+      "category": "Accessories",
+      "price": 1999,
+      "originalPrice": 3499,
+      "rating": 4.8,
+      "reviewsCount": 51,
+      "image": "/images/category_accessories_bw.jpg",
+      "secondaryImage": "/images/category_accessories_luxury_1791290275377.jpg",
+      "description": "Handcrafted acetate frames with polarized 100% UV400 protective scratch-resistant lenses and 24k gold-plated hinges.",
+      "sizes": [
+        "One Size"
+      ],
+      "inStock": true,
+      "stockCount": 29,
+      "isBestSeller": true,
+      "isFestiveEdit": false,
+      "tags": [
+        "Accessories",
+        "Eyewear"
+      ]
+    },
+    {
+      "id": "prod-7",
+      "name": "Signature Amber Oud Parfum",
+      "category": "Perfumes",
+      "price": 2499,
+      "originalPrice": 4200,
+      "rating": 4.9,
+      "reviewsCount": 88,
+      "image": "/images/category_perfumes_bw.jpg",
+      "secondaryImage": "/images/category_perfumes_luxury_1791290184160.jpg",
+      "description": "Rich royal extrait de parfum featuring Madagascar vanilla, smoked amber, Cambodian oud, and spiced bergamot.",
+      "sizes": [
+        "100ml Extrait"
+      ],
+      "inStock": true,
+      "stockCount": 35,
+      "isBestSeller": true,
+      "isFestiveEdit": true,
+      "tags": [
+        "Perfume",
+        "Oud",
+        "Fragrance"
+      ]
+    }
+  ],
+  "verifiedTransactions": [],
+  "payments": {
+    "upiId": "9848263939@ybl",
+    "payeeName": "KODIGANTI DINESH",
+    "phone": "+919848263939",
+    "merchantVpa": "9848263939@ybl",
+    "enableUPI": true,
+    "enableCOD": false,
+    "enableCard": false,
+    "requireManualVerification": true
+  },
+  "boutiqueHero": {
+    "kicker": "EXCLUSIVE COLLECTION",
+    "titleLine1": "Luxury",
+    "titleLine2": "For Every Moment",
+    "subtitleItems": [
+      "Premium Fashion",
+      "Elegant Accessories",
+      "Timeless Style"
+    ],
+    "ctaText": "Shop Now",
+    "image": "/images/flagship_banner_16_9.jpg"
+  }
+}

@@ -157,8 +157,8 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
               </h3>
               <div className="space-y-2">
                 <div className="p-3 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
-                  <strong className="block text-[#111111]">Is Cash on Delivery (COD) supported?</strong>
-                  <p className="mt-1 text-[#6B5F50]">Yes, Cash on Delivery is supported for all orders across Mahabubnagar, Telangana and pan-India with zero extra fees.</p>
+                  <strong className="block text-[#111111]">Which payment options are supported?</strong>
+                  <p className="mt-1 text-[#6B5F50]">We support secure instant online payments via PhonePe, Google Pay, Paytm, and all UPI applications. Scan the verified payment QR on desktop or launch your UPI app directly on mobile.</p>
                 </div>
                 <div className="p-3 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
                   <strong className="block text-[#111111]">Are all items 100% genuine and verified?</strong>

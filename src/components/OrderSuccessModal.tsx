@@ -71,13 +71,19 @@ export const OrderSuccessModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Exact Heading Requested */}
-        <span className="font-sans text-[11px] font-semibold tracking-[0.2em] uppercase text-[#8C6D1F] block mb-1">
-          Payment Verified & Confirmed
+        {/* Accurate Payment Status Badge */}
+        <span className={`font-sans text-[11px] font-semibold tracking-[0.2em] uppercase block mb-1 ${
+          lastPlacedOrder.paymentStatus === 'Paid' || lastPlacedOrder.paymentStatus === 'Verified'
+            ? 'text-emerald-700'
+            : 'text-[#8C6D1F]'
+        }`}>
+          {lastPlacedOrder.paymentStatus === 'Paid' || lastPlacedOrder.paymentStatus === 'Verified'
+            ? 'Payment Verified & Confirmed'
+            : 'Order Placed · Payment Pending Verification'}
         </span>
 
         <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-wide uppercase text-[#111113] mb-1">
-          ORDER PLACED SUCCESSFULLY
+          ORDER RECEIVED
         </h2>
 
         {/* Order Number */}
@@ -102,7 +108,11 @@ export const OrderSuccessModal: React.FC = () => {
         </div>
 
         <p className="text-xs sm:text-sm text-[#5C5040] max-w-md mx-auto leading-relaxed font-normal mb-5">
-          Thank you, <strong>{lastPlacedOrder.customerName}</strong>. Your payment has been verified and your luxury order is being prepared for dispatch.
+          {lastPlacedOrder.paymentStatus === 'Paid' || lastPlacedOrder.paymentStatus === 'Verified' ? (
+            <>Thank you, <strong>{lastPlacedOrder.customerName}</strong>. Your payment is verified and your luxury order is being prepared for dispatch.</>
+          ) : (
+            <>Thank you, <strong>{lastPlacedOrder.customerName}</strong>. Your luxury order has been recorded. Payment status is currently <strong>Payment Pending</strong> and will be marked as Paid once confirmed by PhonePe / bank settlement.</>
+          )}
         </p>
 
         {/* Order Summary Box */}

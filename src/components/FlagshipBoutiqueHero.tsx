@@ -80,10 +80,16 @@ export const FlagshipBoutiqueHero: React.FC = () => {
   return (
     <div className="relative w-full bg-white text-[#111113] overflow-hidden select-none flex flex-col">
       {/* 1. HERO SHOWCASE BANNER:
-          Medium, balanced height per user request for optimal screen presence
+          Full image visibility across mobile, tablet, desktop, laptop, and TV without cropping or cut-off
       */}
-      <div className="order-1 relative w-full overflow-hidden bg-[#FAF8F5]">
-        <div className="relative w-full aspect-[16/8] sm:aspect-[21/8] md:aspect-[24/8] min-h-[290px] max-h-[430px] overflow-hidden flex items-center justify-center">
+      <div className="order-1 relative w-full overflow-hidden bg-[#FBF9F5]">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[24/9] max-h-[520px] overflow-hidden flex items-center justify-center bg-[#FAF7F0]">
+          {/* Ambient blurred backdrop for letterboxing on ultra-wide or narrow screens */}
+          <div
+            className="absolute inset-0 bg-cover bg-center blur-xl opacity-20 scale-110 pointer-events-none"
+            style={{ backgroundImage: `url(${heroImage})` }}
+          />
+
           <img
             src={heroImage}
             alt="LAP OF LUXURY Fashion Collection"
@@ -91,26 +97,26 @@ export const FlagshipBoutiqueHero: React.FC = () => {
               const target = e.target as HTMLImageElement;
               target.src = '/images/banner_shirts_pants.jpg';
             }}
-            className="w-full h-full object-cover object-center"
+            className="relative z-10 w-full h-full object-contain sm:object-cover object-center"
           />
 
-          {/* Luminous White Overlay requested by user to make the banner look pristine & elegant */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/45 to-transparent sm:from-white/75 sm:via-white/30 pointer-events-none" />
+          {/* Luminous White Gradient Overlay to enhance text contrast without obscuring banner collection */}
+          <div className="absolute inset-0 z-10 bg-gradient-to-r from-white/80 via-white/35 to-transparent sm:from-white/75 sm:via-white/20 pointer-events-none" />
 
-          {/* Luxury Banner Content in Luminous Frosted Card */}
-          <div className="absolute inset-0 flex items-center">
-            <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 w-full">
-              <div className="max-w-md sm:max-w-lg text-left bg-white/85 backdrop-blur-sm p-3.5 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border border-[#D4AF37]/50 shadow-[0_6px_25px_rgba(184,134,11,0.12)]">
-                <p className="font-sans text-[9px] sm:text-xs md:text-sm font-bold tracking-[0.22em] uppercase text-[#8A671A] mb-1">
+          {/* Luxury Banner Content */}
+          <div className="absolute inset-0 z-20 flex items-center">
+            <div className="max-w-7xl mx-auto px-3.5 sm:px-8 lg:px-12 w-full">
+              <div className="max-w-[280px] sm:max-w-md md:max-w-lg text-left bg-white/90 sm:bg-white/85 backdrop-blur-md p-3 sm:p-5 md:p-6 rounded-xl sm:rounded-3xl border border-[#D4AF37]/50 shadow-[0_6px_25px_rgba(184,134,11,0.12)]">
+                <p className="font-sans text-[8px] sm:text-xs md:text-sm font-bold tracking-[0.2em] uppercase text-[#8A671A] mb-0.5 sm:mb-1">
                   {heroKicker}
                 </p>
 
-                <h1 className="font-serif font-normal text-lg sm:text-2xl md:text-3xl text-[#111113] leading-[1.18] tracking-tight mb-1.5 sm:mb-2">
+                <h1 className="font-serif font-normal text-sm sm:text-2xl md:text-3xl text-[#111113] leading-[1.18] tracking-tight mb-1 sm:mb-2">
                   {heroTitleLine1} <br />
                   <span className="font-serif font-normal text-[#B8860B]">{heroTitleLine2}</span>
                 </h1>
 
-                <p className="font-sans font-normal text-[10px] sm:text-xs md:text-sm text-[#4A4033] tracking-wide mb-3 sm:mb-5 hidden sm:flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <p className="font-sans font-normal text-[10px] sm:text-xs md:text-sm text-[#4A4033] tracking-wide mb-2 sm:mb-5 hidden sm:flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {heroSubtitleItems.map((item, idx) => (
                     <React.Fragment key={idx}>
                       <span>{item}</span>
@@ -124,10 +130,10 @@ export const FlagshipBoutiqueHero: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleShopNow}
-                  className="inline-flex items-center gap-2 px-5 sm:px-7 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-xs sm:text-sm font-bold tracking-wider uppercase transition-all shadow-[0_4px_18px_rgba(212,175,55,0.35)] cursor-pointer active:scale-95"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-7 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-[10px] sm:text-sm font-bold tracking-wider uppercase transition-all shadow-[0_4px_18px_rgba(212,175,55,0.35)] cursor-pointer active:scale-95"
                 >
                   <span>{heroCtaText}</span>
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#111113]" />
+                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-[#111113]" />
                 </button>
               </div>
             </div>

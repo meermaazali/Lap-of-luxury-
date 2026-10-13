@@ -13,6 +13,7 @@ import {
   QrCode,
   BookOpen,
 } from 'lucide-react';
+
 import { useStore } from '../../context/StoreContext';
 import { UploadedLogoMark } from '../UploadedLogoMark';
 import { AdminAuthGate } from './AdminAuthGate';
@@ -44,12 +45,11 @@ export const AdminPortal: React.FC = () => {
     'orders' | 'inventory' | 'products' | 'banners' | 'categories' | 'media' | 'payments' | 'guide'
   >('orders');
 
-
-
   const handleLogout = () => {
     sessionStorage.removeItem('lol_admin_authed');
     setIsAuthenticated(false);
     setIsAdminMode(false);
+
     try {
       window.history.pushState(null, '', '/');
     } catch {
@@ -57,13 +57,14 @@ export const AdminPortal: React.FC = () => {
     }
   };
 
-  // If not authenticated, show password screen requiring 7878
+  // Show authentication screen when not logged in
   if (!isAuthenticated) {
     return (
       <AdminAuthGate
         onSuccess={() => setIsAuthenticated(true)}
         onCancel={() => {
           setIsAdminMode(false);
+
           try {
             window.history.pushState(null, '', '/');
           } catch {
@@ -88,6 +89,7 @@ export const AdminPortal: React.FC = () => {
               type="button"
               onClick={() => {
                 setIsAdminMode(false);
+
                 try {
                   window.history.pushState(null, '', '/');
                 } catch {
@@ -102,10 +104,15 @@ export const AdminPortal: React.FC = () => {
               <span className="xs:hidden">← Store</span>
             </button>
 
-            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1A1A1E] border border-[#D4AF37] p-1 flex items-center justify-center shrink-0">
-                <UploadedLogoMark className="w-full h-full" color="#D4AF37" />
+            {/* Brand with Enlarged Logo */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#1A1A1E] border-2 border-[#D4AF37] p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-md shadow-[#D4AF37]/10">
+                <UploadedLogoMark
+                  className="w-full h-full object-contain"
+                  color="#D4AF37"
+                />
               </div>
+
               <div className="min-w-0">
                 <span className="font-bodoni font-black tracking-widest uppercase text-xs sm:text-base text-white block truncate">
                   LAP OF LUXURY
@@ -117,10 +124,8 @@ export const AdminPortal: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Quick actions & Logout */}
+          {/* Right: Quick Actions & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
-
-
             <button
               onClick={() => setActiveTab('orders')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
@@ -272,7 +277,9 @@ export const AdminPortal: React.FC = () => {
             <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
               ₹{totalRevenue.toLocaleString('en-IN')}
             </p>
-            <span className="text-[10px] text-emerald-700 font-bold">Mahbubnagar Store</span>
+            <span className="text-[10px] text-emerald-700 font-bold">
+              Mahbubnagar Store
+            </span>
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs">
@@ -282,7 +289,9 @@ export const AdminPortal: React.FC = () => {
             <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
               {orders.length}
             </p>
-            <span className="text-[10px] text-[#B8860B] font-bold">{unreadOrdersCount} unread</span>
+            <span className="text-[10px] text-[#B8860B] font-bold">
+              {unreadOrdersCount} unread
+            </span>
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs">
@@ -292,17 +301,25 @@ export const AdminPortal: React.FC = () => {
             <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
               {products.length}
             </p>
-            <span className="text-[10px] text-[#5C5040] font-medium">In catalog</span>
+            <span className="text-[10px] text-[#5C5040] font-medium">
+              In catalog
+            </span>
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-xs">
             <p className="text-[11px] font-bold text-[#7A6C58] uppercase tracking-wider">
               Low Stock Warning
             </p>
-            <p className={`text-xl sm:text-2xl font-black font-bodoni mt-1 tabular-nums ${lowStockCount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+            <p
+              className={`text-xl sm:text-2xl font-black font-bodoni mt-1 tabular-nums ${
+                lowStockCount > 0 ? 'text-amber-600' : 'text-emerald-600'
+              }`}
+            >
               {lowStockCount}
             </p>
-            <span className="text-[10px] text-[#5C5040] font-medium">&le; 5 units remaining</span>
+            <span className="text-[10px] text-[#5C5040] font-medium">
+              ≤ 5 units remaining
+            </span>
           </div>
         </div>
 
