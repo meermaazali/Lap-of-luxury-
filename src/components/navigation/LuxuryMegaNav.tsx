@@ -33,6 +33,13 @@ const NAV_TABS: NavTabConfig[] = [
     view: 'home',
   },
   {
+    id: 'new-arrivals',
+    label: 'New Arrivals',
+    view: 'new-arrivals',
+    badge: 'NEW',
+    badgeColor: 'bg-[#B8860B] text-white',
+  },
+  {
     id: 'men',
     label: 'Men',
     view: 'men',
@@ -296,6 +303,20 @@ const NAV_TABS: NavTabConfig[] = [
       subCategory: 'Festive',
     },
   },
+  {
+    id: 'bestsellers',
+    label: 'Bestsellers',
+    view: 'bestsellers',
+    badge: 'POPULAR',
+    badgeColor: 'bg-[#111113] text-[#D4AF37] border border-[#D4AF37]/50',
+  },
+  {
+    id: 'sale',
+    label: 'Sale',
+    view: 'sale',
+    badge: 'OFFERS',
+    badgeColor: 'bg-red-700 text-white font-bold',
+  },
 ];
 
 export const LuxuryMegaNav: React.FC = () => {
@@ -359,7 +380,7 @@ export const LuxuryMegaNav: React.FC = () => {
                     isActive
                       ? 'text-[#B8860B] font-bold'
                       : 'text-[#1F1E22] hover:text-[#B8860B]'
-                  }`}
+                  } ${tab.id === 'sale' ? 'text-red-700 font-bold' : ''}`}
                 >
                   <span>{tab.label}</span>
                   {tab.hasMegaMenu && (

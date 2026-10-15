@@ -8,7 +8,6 @@ import {
   MediaAsset,
   PaymentConfig,
   BoutiqueHeroConfig,
-  BrandingConfig,
 } from '../types';
 import {
   INITIAL_BANNERS,
@@ -20,16 +19,6 @@ import {
 import { normalizeImageUrl, compressImage, FALLBACK_CATEGORY_IMAGES } from '../utils/imageUtils';
 import { sendOrderEmailNotification } from '../utils/orderNotification';
 import { idbSetItem, idbGetItem } from '../utils/idbStorage';
-import { db, storage } from '../lib/firebase';
-import {
-  collection,
-  doc,
-  onSnapshot,
-  setDoc,
-  deleteDoc,
-  updateDoc,
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface StoreContextType {
   // Products
@@ -100,13 +89,9 @@ interface StoreContextType {
   paymentConfig: PaymentConfig;
   updatePaymentConfig: (updates: Partial<PaymentConfig>) => void;
 
-  // Atelier Boutique Hero Configuration
+  // Flagship Boutique Hero Configuration
   boutiqueHeroConfig: BoutiqueHeroConfig;
-  updateBoutiqueHeroConfig: (updates: Partial<BoutiqueHeroConfig>) => Promise<void>;
-
-  // Branding & Logo Configuration
-  brandingConfig: BrandingConfig;
-  updateBrandingConfig: (updates: Partial<BrandingConfig>) => Promise<void>;
+  updateBoutiqueHeroConfig: (updates: Partial<BoutiqueHeroConfig>) => void;
 
   // Media Library / Cloud Storage
   mediaAssets: MediaAsset[];
@@ -493,7 +478,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     titleLine2: 'For Every Moment',
     subtitleItems: ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
     ctaText: 'Shop Now',
-    image: '/images/banner_shirts_pants.jpg',
+    image: '/images/flagship_banner_16_9.jpg',
   };
 
   const [boutiqueHeroConfig, setBoutiqueHeroConfig] = useState<BoutiqueHeroConfig>(() => {
@@ -506,42 +491,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return DEFAULT_BOUTIQUE_HERO;
   });
 
-  const DEFAULT_BRANDING: BrandingConfig = {
-    logoUrl: '/images/lap_of_luxury_logo.png',
-    storeName: 'LAP OF LUXURY',
-    tagline: 'Mahbubnagar Luxury Atelier',
-  };
-
-  const [brandingConfig, setBrandingConfig] = useState<BrandingConfig>(() => {
-    try {
-      const saved = localStorage.getItem('lol_branding_config');
-      if (saved) {
-        return { ...DEFAULT_BRANDING, ...JSON.parse(saved) };
+  const updateBoutiqueHeroConfig = (updates: Partial<BoutiqueHeroConfig>) => {
+    setBoutiqueHeroConfig((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('lol_boutique_hero', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Could not save boutique hero to localStorage:', e);
       }
-    } catch {}
-    return DEFAULT_BRANDING;
-  });
-
-  const updateBoutiqueHeroConfig = async (updates: Partial<BoutiqueHeroConfig>) => {
-    const next = { ...boutiqueHeroConfig, ...updates };
-    setBoutiqueHeroConfig(next);
-    try {
-      localStorage.setItem('lol_boutique_hero', JSON.stringify(next));
-      await setDoc(doc(db, 'storeSettings', 'hero'), next, { merge: true });
-    } catch (e) {
-      console.warn('Could not save boutique hero to Firestore:', e);
-    }
-  };
-
-  const updateBrandingConfig = async (updates: Partial<BrandingConfig>) => {
-    const next = { ...brandingConfig, ...updates };
-    setBrandingConfig(next);
-    try {
-      localStorage.setItem('lol_branding_config', JSON.stringify(next));
-      await setDoc(doc(db, 'storeSettings', 'branding'), next, { merge: true });
-    } catch (e) {
-      console.warn('Could not save branding to Firestore:', e);
-    }
+      fetch('/api/banners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boutiqueHero: next }),
+      }).catch(() => null);
+      return next;
+    });
   };
 
   const triggerTransition = (categorySlug: string, _label?: string) => {
@@ -568,97 +532,54 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     idbSetItem('lol_products', products);
   }, [products]);
 
-  // On mount: Real-time synchronization with authoritative Firebase Cloud Firestore
+  // On mount: rehydrate products, banners, and payments from backend authoritative database
   useEffect(() => {
-    // 1. Rehydrate products from Firestore in real-time
-    const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
-      if (!snapshot.empty) {
-        const list: Product[] = [];
-        snapshot.forEach((docSnap) => {
-          list.push({ id: docSnap.id, ...docSnap.data() } as Product);
-        });
-        setProducts(list);
-      } else {
-        // If collection is empty, seed initial products so database is populated permanently
-        INITIAL_PRODUCTS.forEach(async (p) => {
-          try {
-            await setDoc(doc(db, 'products', p.id), p);
-          } catch (e) {}
-        });
-      }
-    }, (err) => {
-      console.warn('Firestore products listener error:', err);
-    });
-
-    // 2. Rehydrate banners from Firestore in real-time
-    const unsubBanners = onSnapshot(collection(db, 'banners'), (snapshot) => {
-      if (!snapshot.empty) {
-        const list: BannerSlide[] = [];
-        snapshot.forEach((docSnap) => {
-          list.push({ id: docSnap.id, ...docSnap.data() } as BannerSlide);
-        });
-        setBanners(list);
-      } else {
-        INITIAL_BANNERS.forEach(async (b) => {
-          try {
-            await setDoc(doc(db, 'banners', b.id), b);
-          } catch (e) {}
-        });
-      }
-    }, (err) => {
-      console.warn('Firestore banners listener error:', err);
-    });
-
-    // 3. Rehydrate Boutique Hero configuration from Firestore
-    const unsubHero = onSnapshot(doc(db, 'storeSettings', 'hero'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as BoutiqueHeroConfig;
-        setBoutiqueHeroConfig((prev) => ({ ...prev, ...data }));
-      }
-    }, (err) => {
-      console.warn('Firestore hero listener error:', err);
-    });
-
-    // 4. Rehydrate Branding & Logo configuration from Firestore
-    const unsubBranding = onSnapshot(doc(db, 'storeSettings', 'branding'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as BrandingConfig;
-        setBrandingConfig((prev) => ({ ...prev, ...data }));
-      }
-    }, (err) => {
-      console.warn('Firestore branding listener error:', err);
-    });
-
-    // 5. Rehydrate Orders from Firestore in real-time
-    const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
-      if (!snapshot.empty) {
-        const list: Order[] = [];
-        snapshot.forEach((docSnap) => {
-          list.push({ id: docSnap.id, ...docSnap.data() } as Order);
-        });
-        setOrders(list);
-      }
-    }, (err) => {
-      console.warn('Firestore orders listener error:', err);
-    });
-
-    // Fallback rehydrate from IndexedDB for instantaneous local render
+    // 1. Rehydrate from IndexedDB
     idbGetItem<Product[]>('lol_products').then((savedProducts) => {
       if (Array.isArray(savedProducts) && savedProducts.length > 0) {
         setProducts((current) => {
-          if (current.length === 0) return savedProducts;
+          const currentIds = new Set(current.map((p) => p.id));
+          const missing = savedProducts.filter((p) => !currentIds.has(p.id));
+          if (missing.length > 0) {
+            return [...current, ...missing];
+          }
           return current;
         });
       }
     });
 
-    return () => {
-      unsubProducts();
-      unsubBanners();
-      unsubHero();
-      unsubBranding();
-      unsubOrders();
-    };
+    // 2. Authoritative sync from backend /api/products
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((backendProds) => {
+        if (Array.isArray(backendProds) && backendProds.length > 0) {
+          setProducts(backendProds);
+        }
+      })
+      .catch(() => null);
+
+    // 3. Authoritative sync from backend /api/banners
+    fetch('/api/banners')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.boutiqueHero) {
+          setBoutiqueHeroConfig((prev) => ({ ...prev, ...data.boutiqueHero }));
+        }
+        if (Array.isArray(data?.banners) && data.banners.length > 0) {
+          setBanners(data.banners);
+        }
+      })
+      .catch(() => null);
+
+    // 4. Authoritative sync from backend /api/payments/config
+    fetch('/api/payments/config')
+      .then((res) => res.json())
+      .then((config) => {
+        if (config) {
+          setPaymentConfig((prev) => ({ ...prev, ...config, enableCOD: false }));
+        }
+      })
+      .catch(() => null);
   }, []);
 
   useEffect(() => {
@@ -749,100 +670,75 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // Products actions (persisted to Firestore, state, and IndexedDB)
-  const addProduct = async (productData: Omit<Product, 'id'>) => {
+  // Products actions (persisted to state, IndexedDB, and backend cloud API)
+  const addProduct = (productData: Omit<Product, 'id'>) => {
     const newProduct: Product = {
       ...productData,
       id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     };
     setProducts((prev) => [newProduct, ...prev]);
 
-    try {
-      await setDoc(doc(db, 'products', newProduct.id), newProduct);
-    } catch (e) {
-      console.warn('Firestore addProduct error:', e);
-    }
+    // Persist to backend server
+    fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newProduct),
+    }).catch(() => null);
   };
 
-  const updateProduct = async (id: string, updates: Partial<Product>) => {
+  const updateProduct = (id: string, updates: Partial<Product>) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
     );
 
-    try {
-      await setDoc(doc(db, 'products', id), updates, { merge: true });
-    } catch (e) {
-      console.warn('Firestore updateProduct error:', e);
-    }
+    // Persist to backend server
+    fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch(() => null);
   };
 
-  const deleteProduct = async (id: string) => {
+  const deleteProduct = (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
-    try {
-      await deleteDoc(doc(db, 'products', id));
-    } catch (e) {
-      console.warn('Firestore deleteProduct error:', e);
-    }
+    // Persist deletion to backend server
+    fetch(`/api/products/${id}`, {
+      method: 'DELETE',
+    }).catch(() => null);
   };
 
-  const updateStock = async (id: string, newStock: number) => {
-    const safeStock = Math.max(0, newStock);
-    const inStock = safeStock > 0;
+  const updateStock = (id: string, newStock: number) => {
     setProducts((prev) =>
       prev.map((p) =>
         p.id === id
           ? {
               ...p,
-              stockCount: safeStock,
-              inStock,
+              stockCount: Math.max(0, newStock),
+              inStock: newStock > 0,
             }
           : p
       )
     );
-
-    try {
-      await updateDoc(doc(db, 'products', id), { stockCount: safeStock, inStock });
-    } catch (e) {
-      console.warn('Firestore updateStock error:', e);
-    }
   };
 
-  // Banner actions (persisted to Firestore & state)
-  const addBanner = async (bannerData: Omit<BannerSlide, 'id'>) => {
+  // Banner actions
+  const addBanner = (bannerData: Omit<BannerSlide, 'id'>) => {
     const newBanner: BannerSlide = {
       ...bannerData,
       id: `banner-${Date.now()}`,
     };
     setBanners((prev) => [...prev, newBanner]);
-
-    try {
-      await setDoc(doc(db, 'banners', newBanner.id), newBanner);
-    } catch (e) {
-      console.warn('Firestore addBanner error:', e);
-    }
   };
 
-  const updateBanner = async (id: string, updates: Partial<BannerSlide>) => {
+  const updateBanner = (id: string, updates: Partial<BannerSlide>) => {
     setBanners((prev) =>
       prev.map((b) => (b.id === id ? { ...b, ...updates } : b))
     );
-
-    try {
-      await setDoc(doc(db, 'banners', id), updates, { merge: true });
-    } catch (e) {
-      console.warn('Firestore updateBanner error:', e);
-    }
   };
 
-  const deleteBanner = async (id: string) => {
+  const deleteBanner = (id: string) => {
     setBanners((prev) => prev.filter((b) => b.id !== id));
-
-    try {
-      await deleteDoc(doc(db, 'banners', id));
-    } catch (e) {
-      console.warn('Firestore deleteBanner error:', e);
-    }
   };
 
   // Category actions
@@ -1015,12 +911,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return { productId: cartItem.product.id, quantity: cartItem.quantity };
     });
 
-    // Persist order directly to Firestore
-    try {
-      setDoc(doc(db, 'orders', newOrder.id), newOrder);
-    } catch (e) {
-      console.warn('Firestore placeOrder error:', e);
-    }
+    // Persist order & inventory deduction to backend database
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newOrder),
+    }).catch(() => null);
+
+    fetch('/api/products/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deductions }),
+    }).catch(() => null);
 
     setOrders((prev) => [newOrder, ...prev]);
     setLastPlacedOrder(newOrder);
@@ -1029,16 +931,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newOrder;
   };
 
-  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+  const updateOrderStatus = (orderId: string, status: Order['status']) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status } : o))
     );
-
-    try {
-      await updateDoc(doc(db, 'orders', orderId), { status });
-    } catch (e) {
-      console.warn('Firestore updateOrderStatus error:', e);
-    }
   };
 
   const markOrderRead = (orderId: string) => {
@@ -1068,16 +964,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     let storageUrl = dataUrl;
-    try {
-      const storageRef = ref(storage, `uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`);
-      await uploadBytes(storageRef, file);
-      const downloadUrl = await getDownloadURL(storageRef);
-      if (downloadUrl) {
-        storageUrl = downloadUrl;
-      }
-    } catch (e) {
-      console.warn('Firebase Storage upload error, falling back to dataUrl:', e);
-    }
     try {
       const res = await fetch('/api/media/upload', {
         method: 'POST',
@@ -1176,8 +1062,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updatePaymentConfig,
         boutiqueHeroConfig,
         updateBoutiqueHeroConfig,
-        brandingConfig,
-        updateBrandingConfig,
         isTransitioning,
         transitionLabel,
         triggerTransition,

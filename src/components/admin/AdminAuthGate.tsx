@@ -27,37 +27,37 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onSuccess, onCance
   };
 
   return (
-    <div className="min-h-screen bg-[#111113] text-white flex flex-col items-center justify-center p-4">
-      {/* Decorative Golden Ambient Glow */}
+    <div className="min-h-screen bg-white text-[#222222] flex flex-col items-center justify-center p-4">
+      {/* Soft golden ambient glow */}
       <div className="absolute w-96 h-96 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md bg-[#1A1A1E] rounded-2xl border-2 border-[#D4AF37]/60 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-300">
-        {/* Larger Golden Logo and Title */}
+      <div className="relative z-10 w-full max-w-md bg-white rounded-2xl border-2 border-[#D4AF37]/70 shadow-xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-300">
+        {/* Logo and title */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#111113] border-2 border-[#D4AF37] flex items-center justify-center mb-4 p-2 overflow-hidden shrink-0 shadow-lg shadow-[#D4AF37]/10">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white border-2 border-[#D4AF37] flex items-center justify-center mb-4 p-2 overflow-hidden shrink-0 shadow-lg shadow-[#D4AF37]/10">
             <UploadedLogoMark
               className="w-full h-full object-contain"
               color="#D4AF37"
             />
           </div>
 
-          <span className="text-[10px] tracking-[0.25em] font-extrabold uppercase text-[#D4AF37] mb-1">
+          <span className="text-[10px] tracking-[0.25em] font-extrabold uppercase text-[#A47B12] mb-1">
             ADMIN CONSOLE GATE
           </span>
 
-          <h2 className="font-bodoni text-2xl font-black tracking-[0.16em] uppercase text-white">
+          <h2 className="font-bodoni text-2xl font-black tracking-[0.16em] uppercase text-[#222222]">
             LAP OF LUXURY
           </h2>
 
-          <p className="text-xs text-gray-400 mt-1 max-w-xs">
-            Store management, inventory control, banner editor & real-time orders.
+          <p className="text-xs text-gray-600 mt-1 max-w-xs">
+            Store management, inventory control, banner editor &amp; real-time orders.
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-950/80 border border-red-500/80 rounded-xl flex items-center gap-2 text-xs text-red-200">
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+          <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-xl flex items-center gap-2 text-xs text-red-800">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
@@ -65,8 +65,8 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onSuccess, onCance
         {/* Passcode Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-[11px] font-bold tracking-wider uppercase text-gray-300 mb-1.5 flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <label className="block text-[11px] font-bold tracking-wider uppercase text-gray-700 mb-1.5 flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-[#A47B12]" />
               ENTER ADMIN PASSCODE (PIN):
             </label>
 
@@ -81,31 +81,31 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onSuccess, onCance
                 setError(false);
               }}
               placeholder="Enter PIN (e.g. 7878)"
-              className="w-full px-4 py-3 bg-[#111113] border-2 border-[#D4AF37]/50 rounded-xl text-center text-lg sm:text-xl tracking-[0.3em] font-mono text-white placeholder:text-gray-600 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
+              className="w-full px-4 py-3 bg-white border-2 border-[#D4AF37]/60 rounded-xl text-center text-lg sm:text-xl tracking-[0.3em] font-mono text-[#222222] placeholder:text-gray-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] hover:brightness-110 text-[#111111] text-xs font-black tracking-[0.18em] uppercase rounded-xl shadow-lg transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-gradient-to-r from-[#C59B27] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs font-black tracking-[0.18em] uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2"
           >
             <Lock className="w-4 h-4" />
-            <span>AUTHENTICATE & ENTER</span>
+            <span>AUTHENTICATE &amp; ENTER</span>
           </button>
 
           <button
             type="button"
             onClick={onCancel}
-            className="w-full py-2.5 text-xs text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full py-2.5 text-xs text-gray-600 hover:text-[#222222] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Customer Storefront</span>
           </button>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-gray-800 text-center">
+        <div className="mt-6 pt-4 border-t border-gray-200 text-center">
           <div className="inline-flex items-center gap-1.5 text-[10px] text-gray-500 uppercase tracking-widest">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[#A47B12]" />
             <span>Secured Store Administration · Mahabubnagar</span>
           </div>
         </div>

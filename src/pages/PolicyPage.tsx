@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { ChevronRight, ShieldCheck, Truck, RotateCcw, FileText } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Header } from '../components/Header';
 import { LuxuryMegaNav } from '../components/navigation/LuxuryMegaNav';
 import { Footer } from '../components/Footer';
@@ -36,50 +36,6 @@ export const PolicyPage: React.FC<PolicyPageProps> = ({ policyType: propType }) 
           <ChevronRight className="w-3 h-3 text-gray-400" />
           <span className="text-[#111113] capitalize">{activeType} Policy</span>
         </nav>
-
-        {/* Policy Tab Switcher */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-[#E8DEC8] pb-4">
-          <Link
-            to="/shipping-policy"
-            className={`px-4 py-2 text-xs uppercase tracking-wider rounded-xl transition-all whitespace-nowrap ${
-              activeType === 'shipping'
-                ? 'bg-[#111113] text-[#D4AF37]'
-                : 'bg-white border border-[#D5C7B0] text-[#554D42] hover:border-[#111113]'
-            }`}
-          >
-            Shipping & Delivery
-          </Link>
-          <Link
-            to="/returns-policy"
-            className={`px-4 py-2 text-xs uppercase tracking-wider rounded-xl transition-all whitespace-nowrap ${
-              activeType === 'returns'
-                ? 'bg-[#111113] text-[#D4AF37]'
-                : 'bg-white border border-[#D5C7B0] text-[#554D42] hover:border-[#111113]'
-            }`}
-          >
-            Returns & Refunds
-          </Link>
-          <Link
-            to="/privacy-policy"
-            className={`px-4 py-2 text-xs uppercase tracking-wider rounded-xl transition-all whitespace-nowrap ${
-              activeType === 'privacy'
-                ? 'bg-[#111113] text-[#D4AF37]'
-                : 'bg-white border border-[#D5C7B0] text-[#554D42] hover:border-[#111113]'
-            }`}
-          >
-            Privacy Policy
-          </Link>
-          <Link
-            to="/terms"
-            className={`px-4 py-2 text-xs uppercase tracking-wider rounded-xl transition-all whitespace-nowrap ${
-              activeType === 'terms'
-                ? 'bg-[#111113] text-[#D4AF37]'
-                : 'bg-white border border-[#D5C7B0] text-[#554D42] hover:border-[#111113]'
-            }`}
-          >
-            Terms & Conditions
-          </Link>
-        </div>
 
         {/* Content Box */}
         <div className="bg-white rounded-3xl border border-[#E8DEC8] p-8 sm:p-10 shadow-sm space-y-6 text-xs sm:text-sm text-[#4E4437] leading-relaxed">

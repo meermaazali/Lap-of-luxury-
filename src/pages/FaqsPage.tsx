@@ -32,8 +32,8 @@ const FAQS: FaqItem[] = [
     a: 'Yes, 100% of the products featured on LAP OF LUXURY are guaranteed genuine and crafted from authentic high-grade materials, including double-ply Egyptian cotton, raw selvedge denim, genuine calfskin leathers, and precision movements.',
   },
   {
-    q: 'Where is your physical boutique store located?',
-    a: 'Our boutique store is located at D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001. We are open daily from 9:30 AM to 10:00 PM.',
+    q: 'Where is your physical flagship store located?',
+    a: 'Our flagship store is located at D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001. We are open daily from 9:30 AM to 10:00 PM.',
   },
 ];
 

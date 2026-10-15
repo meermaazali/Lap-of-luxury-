@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ArrowRight,
+  Sparkles,
   ChevronLeft,
   ChevronRight,
   Heart,
-  Grid,
-  ChevronDown,
-  Layers,
+  Eye,
+  Clock,
+  Compass,
+  Flame,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { Product } from '../../types';
+import { Product, BannerSlide } from '../../types';
 import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../../utils/imageUtils';
 
 export const LuxuryEditorialHome: React.FC = () => {
@@ -17,14 +19,17 @@ export const LuxuryEditorialHome: React.FC = () => {
     products,
     banners,
     boutiqueHeroConfig,
+    setCurrentView,
+    openProductDetail,
+    setQuickViewProduct,
     isInWishlist,
     toggleWishlist,
   } = useStore();
 
+  // Active Hero Slide Index
   const [activeSlide, setActiveSlide] = useState(0);
-  const [isSubcategoriesExpanded, setIsSubcategoriesExpanded] = useState(false);
 
-  // Assemble campaign slides from Firestore banners & hero configuration
+  // Assemble campaign slides
   const campaignSlides = useMemo(() => {
     const list: Array<{
       image: string;
@@ -35,43 +40,41 @@ export const LuxuryEditorialHome: React.FC = () => {
       ctaLink: string;
     }> = [];
 
-    // Boutique hero configuration from Firestore
+    // Boutique hero banner
     if (boutiqueHeroConfig?.image) {
       list.push({
         image: boutiqueHeroConfig.image,
-        title: `${boutiqueHeroConfig.titleLine1 || 'Luxury'} ${boutiqueHeroConfig.titleLine2 || 'Collection'}`,
-        kicker: boutiqueHeroConfig.kicker || 'EXCLUSIVE ATELIER CURATION',
-        subtitle: (boutiqueHeroConfig.subtitleItems || []).join(' · ') || 'Premium Sartorial Wear, Bags & Accessories',
-        ctaText: boutiqueHeroConfig.ctaText || 'Explore Catalog',
-        ctaLink: '/shop',
+        title: `${boutiqueHeroConfig.titleLine1 || 'Luxury'} ${boutiqueHeroConfig.titleLine2 || 'For Every Moment'}`,
+        kicker: boutiqueHeroConfig.kicker || 'EXCLUSIVE ATELIER COLLECTION',
+        subtitle: (boutiqueHeroConfig.subtitleItems || []).join(' · ') || 'Premium Fashion, Handbags & Timepieces',
+        ctaText: boutiqueHeroConfig.ctaText || 'Explore Collections',
+        ctaLink: 'collections',
       });
     }
 
-    // Active banners from Firestore
+    // Existing banners
     if (banners && banners.length > 0) {
-      banners
-        .filter((b) => b.active !== false)
-        .forEach((b) => {
-          list.push({
-            image: b.image,
-            title: b.title,
-            kicker: b.kicker || 'HAUTE COUTURE EDIT',
-            subtitle: b.subtitle,
-            ctaText: b.ctaText || 'Shop Collection',
-            ctaLink: b.ctaLink ? (b.ctaLink.startsWith('/') ? b.ctaLink : `/${b.ctaLink.toLowerCase()}`) : '/shop',
-          });
+      banners.forEach((b) => {
+        list.push({
+          image: b.image,
+          title: b.title,
+          kicker: b.kicker || 'HAUTE COUTURE EDIT',
+          subtitle: b.subtitle,
+          ctaText: b.ctaText || 'Shop Collection',
+          ctaLink: b.ctaLink?.toLowerCase() || 'men',
         });
+      });
     }
 
-    // Fallback if none configured
+    // Default luxury editorial fallbacks if empty
     if (list.length === 0) {
       list.push({
-        image: '/images/banner_shirts_pants.jpg',
+        image: '/images/category_mens_fashion_1791290148102.jpg',
         title: 'LAP OF LUXURY',
-        kicker: 'THE ATELIER CURATION',
-        subtitle: 'Hand-tailored Double-ply Shirts, Raw Denim, Fine Leathers & Timepieces',
-        ctaText: 'Discover The Collection',
-        ctaLink: '/shop',
+        kicker: 'THE FESTIVE & OCCASION ATELIER',
+        subtitle: 'Premium Shirts, Denim, Fine Leathers & Timepieces',
+        ctaText: 'Discover The Curation',
+        ctaLink: 'men',
       });
     }
 
@@ -87,77 +90,20 @@ export const LuxuryEditorialHome: React.FC = () => {
     return () => clearInterval(interval);
   }, [campaignSlides.length]);
 
-  // Shop by Category tiles (each opens in a new tab)
-  const categoryTiles = [
-    { title: "Men's Fashion", dept: 'men', path: '/men', image: '/images/category_mens_fashion_1791290148102.jpg', desc: 'Shirts, Denim & Blazers' },
-    { title: "Women's Couture", dept: 'women', path: '/women', image: '/images/cat_womens_dress.jpg', desc: 'Sarees, Gowns & Kurtas' },
-    { title: 'Designer Bags', dept: 'bags', path: '/bags', image: '/images/cat_bag_cream.jpg', desc: 'Totes, Clutches & Slings' },
-    { title: 'Luxury Footwear', dept: 'footwear', path: '/footwear', image: '/images/cat_shoes_white.jpg', desc: 'Sneakers, Loafers & Heels' },
-    { title: 'Fine Timepieces', dept: 'accessories', path: '/category/accessories/Watches%20and%20Accessories', image: '/images/cat_watch_gold.jpg', desc: 'Automatic Chronographs' },
-    { title: 'Royal Parfums', dept: 'accessories', path: '/category/accessories/Watches%20and%20Accessories', image: '/images/cat_perfume_amber.jpg', desc: 'Amber Oud & Extrait' },
-  ];
-
-  // Comprehensive subcategory directory with all categories and subcategories
-  const departmentSubcategories = [
-    {
-      department: "Men's Sartorial",
-      link: '/men',
-      subcategories: [
-        { name: 'Shirts', path: '/category/men/Shirts' },
-        { name: 'Trousers & Chinos', path: '/category/men/Trousers' },
-        { name: 'Jeans & Denim', path: '/category/men/Jeans' },
-        { name: 'Blazers & Tuxedos', path: '/category/men/Blazers' },
-        { name: 'Kurta Sets & Ethnic', path: '/category/men/Kurta%20Sets' },
-        { name: 'Loafers & Formals', path: '/category/men/Loafers' },
-      ],
-    },
-    {
-      department: "Women's Couture",
-      link: '/women',
-      subcategories: [
-        { name: 'Banarasi Sarees', path: '/category/women/Sarees' },
-        { name: 'Designer Lehengas', path: '/category/women/Lehengas' },
-        { name: 'Evening Dresses', path: '/category/women/Dresses' },
-        { name: 'Silk Tops & Blouses', path: '/category/women/Tops%20and%20Shirts' },
-        { name: 'Co-ord Sets', path: '/category/women/Co-ord%20Sets' },
-        { name: 'Stiletto Heels', path: '/category/women/Heels' },
-      ],
-    },
-    {
-      department: 'Bags & Leathercraft',
-      link: '/bags',
-      subcategories: [
-        { name: 'Handbags', path: '/category/bags/Handbags' },
-        { name: 'Shoulder Bags', path: '/category/bags/Shoulder%20Bags' },
-        { name: 'Sling Bags', path: '/category/bags/Sling%20Bags' },
-        { name: 'Evening Clutches', path: '/category/bags/Clutches' },
-        { name: 'Leather Totes', path: '/category/bags/Totes' },
-        { name: 'Wallets', path: '/category/bags/Wallets' },
-      ],
-    },
-    {
-      department: 'Footwear & Horology',
-      link: '/footwear',
-      subcategories: [
-        { name: 'Luxury Sneakers', path: '/category/footwear/Sneakers' },
-        { name: 'Oxford Formal Shoes', path: '/category/footwear/Formal%20Shoes' },
-        { name: 'Handcrafted Loafers', path: '/category/footwear/Loafers' },
-        { name: 'Occasion Heels', path: '/category/footwear/Heels' },
-        { name: 'Gold Watches', path: '/category/accessories/Watches%20and%20Accessories' },
-        { name: 'Leather Belts', path: '/category/accessories/Belts' },
-      ],
-    },
-  ];
-
-  // Active published products for the homepage curation
-  const curatedProducts = products.slice(0, 12);
+  // Curated collections
+  const newArrivals = products.slice(0, 4);
+  const trendingProducts = products.filter((p) => p.isBestSeller).slice(0, 4);
+  const bagCreations = products.filter((p) => (p.category || '').toLowerCase() === 'bags' || (p.department || '').toLowerCase() === 'bags').slice(0, 4);
+  const footwearCreations = products.filter((p) => (p.category || '').toLowerCase() === 'shoes' || (p.department || '').toLowerCase() === 'footwear').slice(0, 4);
+  const menPicks = products.filter((p) => (p.department || '').toLowerCase() === 'men' || (p.category || '').toLowerCase() === 'men' || (p.category || '').toLowerCase() === 'jeans').slice(0, 3);
+  const womenPicks = products.filter((p) => (p.department || '').toLowerCase() === 'women' || (p.category || '').toLowerCase() === 'women').slice(0, 3);
 
   return (
     <div className="w-full bg-[#FAF8F5] text-[#111113] space-y-12 sm:space-y-16 pb-16">
-      {/* 1. HERO CAMPAIGN SLIDER (Displaying uploaded & Firestore banners) */}
+      {/* 1. LARGE PREMIUM CAMPAIGN SLIDER */}
       <section className="relative w-full bg-[#111113] overflow-hidden border-b border-[#D4AF37]/30">
         <div className="relative aspect-[16/9] sm:aspect-[21/9] md:aspect-[24/8] max-h-[560px] w-full">
-          {campaignSlides.map((slide, idx) => {
+          {campaignSlides.map((slide: any, idx: number) => {
             const isCurrent = idx === activeSlide;
 
             return (
@@ -170,32 +116,38 @@ export const LuxuryEditorialHome: React.FC = () => {
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="w-full h-full object-cover object-center brightness-[0.76] contrast-[1.06]"
+                  className="w-full h-full object-cover object-center brightness-[0.72] contrast-[1.08]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
 
                 {/* Editorial Slide Content */}
                 <div className="absolute inset-0 max-w-[1540px] mx-auto px-6 sm:px-12 lg:px-16 flex flex-col justify-center items-start text-left">
-                  <span className="text-[10px] sm:text-xs font-bold tracking-[0.28em] uppercase text-[#D4AF37] mb-2 drop-shadow-sm">
+                  <span className="text-[10px] sm:text-xs font-extrabold tracking-[0.28em] uppercase text-[#D4AF37] mb-2 drop-shadow-sm">
                     {slide.kicker}
                   </span>
                   <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-[0.08em] text-white leading-tight max-w-3xl drop-shadow-md">
                     {slide.title}
                   </h2>
-                  <p className="text-xs sm:text-sm md:text-base text-[#E0D5C3] mt-3 max-w-xl font-light leading-relaxed drop-shadow-sm hidden sm:block">
+                  <p className="font-sans text-xs sm:text-sm md:text-base text-[#E0D5C3] mt-3 max-w-xl font-light leading-relaxed drop-shadow-sm hidden sm:block">
                     {slide.subtitle}
                   </p>
 
                   <div className="mt-5 sm:mt-7 flex items-center gap-3">
-                    <a
-                      href={slide.ctaLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => setCurrentView(slide.ctaLink || 'men')}
                       className="px-6 py-3 sm:px-8 sm:py-3.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm uppercase tracking-[0.16em] rounded-full shadow-xl transition-all cursor-pointer flex items-center gap-2 active:scale-95"
                     >
                       <span>{slide.ctaText}</span>
-                      <ArrowRight className="w-4 h-4 text-[#111113]" strokeWidth={1.75} />
-                    </a>
+                      <ArrowRight className="w-4 h-4 text-[#111113]" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentView('collections')}
+                      className="px-5 py-3 sm:px-7 sm:py-3.5 border border-white/60 hover:border-[#D4AF37] bg-white/10 hover:bg-white/20 text-white font-semibold text-xs sm:text-sm uppercase tracking-[0.14em] rounded-full backdrop-blur-xs transition-all cursor-pointer hidden md:flex items-center gap-1.5"
+                    >
+                      <span>View Lookbook</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -215,7 +167,7 @@ export const LuxuryEditorialHome: React.FC = () => {
                 className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white border border-white/30 flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs"
                 aria-label="Previous Campaign Slide"
               >
-                <ChevronLeft className="w-5 h-5" strokeWidth={1.75} />
+                <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 type="button"
@@ -225,12 +177,12 @@ export const LuxuryEditorialHome: React.FC = () => {
                 className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white border border-white/30 flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs"
                 aria-label="Next Campaign Slide"
               >
-                <ChevronRight className="w-5 h-5" strokeWidth={1.75} />
+                <ChevronRight className="w-5 h-5" />
               </button>
 
               {/* Slider Dots */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-                {campaignSlides.map((_, i) => (
+                {campaignSlides.map((_: any, i: number) => (
                   <button
                     key={i}
                     type="button"
@@ -247,150 +199,109 @@ export const LuxuryEditorialHome: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. SHOP BY CATEGORY SECTION:
-          Clicking any category tile or subcategory opens in a new tab.
-          Never scrolls up or jumps.
-      */}
-      <section id="shop-by-category" className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
-        <div className="text-center space-y-1.5">
-          <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase">
-            CURATED DEPARTMENTS
-          </span>
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
-            SHOP BY CATEGORY
-          </h2>
-          <div className="w-12 h-[2px] bg-[#B8860B] mx-auto mt-2" />
-        </div>
-
-        {/* Category Primary Tiles (opens in new tab) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
-          {categoryTiles.map((cat, idx) => (
-            <a
-              key={idx}
-              href={cat.path}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group cursor-pointer bg-white rounded-2xl p-3 border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-lg transition-all text-center flex flex-col items-center justify-between block"
-            >
-              <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#F3EFE9] mb-3">
-                <img
-                  src={cat.image}
-                  alt={cat.title}
-                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                />
-              </div>
-              <h4 className="font-serif text-xs sm:text-sm font-bold text-[#111113] group-hover:text-[#B8860B] transition-colors line-clamp-1">
-                {cat.title}
-              </h4>
-              <p className="text-[10px] text-[#7A6C58] line-clamp-1 mt-0.5">
-                {cat.desc}
-              </p>
-            </a>
-          ))}
-        </div>
-
-        {/* Expandable Subcategories Browser */}
-        <div className="bg-white rounded-2xl border border-[#E8DEC8] p-4 sm:p-6 shadow-xs">
-          <button
-            type="button"
-            onClick={() => setIsSubcategoriesExpanded(!isSubcategoriesExpanded)}
-            className="w-full flex items-center justify-between text-xs sm:text-sm font-bold tracking-wider uppercase text-[#111113] hover:text-[#B8860B] transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#B8860B]" strokeWidth={1.75} />
-              <span>Browse All Categories & Subcategories (Opens in New Tab)</span>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] text-[#8A671A]">
-              <span>{isSubcategoriesExpanded ? 'Collapse' : 'Explore All'}</span>
-              <ChevronDown
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  isSubcategoriesExpanded ? 'rotate-180' : ''
-                }`}
-                strokeWidth={1.75}
-              />
-            </div>
-          </button>
-
-          {isSubcategoriesExpanded && (
-            <div className="mt-5 pt-5 border-t border-[#F0EAE1] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in">
-              {departmentSubcategories.map((dept, dIdx) => (
-                <div key={dIdx} className="space-y-2.5">
-                  <a
-                    href={dept.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-serif text-xs font-bold uppercase tracking-wider text-[#111113] hover:text-[#B8860B] border-b border-[#F0EAE1] pb-1 block transition-colors"
-                  >
-                    {dept.department} →
-                  </a>
-                  <ul className="space-y-1.5">
-                    {dept.subcategories.map((sub, sIdx) => (
-                      <li key={sIdx}>
-                        <a
-                          href={sub.path}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-[#5C5040] hover:text-[#B8860B] flex items-center justify-between group transition-colors py-0.5"
-                        >
-                          <span>{sub.name}</span>
-                          <ArrowRight
-                            className="w-3 h-3 text-[#B8860B] opacity-0 group-hover:opacity-100 transition-opacity"
-                            strokeWidth={1.75}
-                          />
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 3. CURATED CREATIONS (All products opening in new tab) */}
+      {/* 4. NEW ARRIVALS SPOTLIGHT (Aza Fashions horizontal luxury cards) */}
       <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
           <div>
             <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase block">
-              HOUSE CURATION
+              SEASON PREVIEW
             </span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
-              ATELIER COLLECTION
+              NEW ARRIVALS
             </h2>
           </div>
-          <a
-            href="/shop"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => setCurrentView('new-arrivals')}
             className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
           >
-            <span>View Complete Catalog</span>
-            <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.75} />
-          </a>
+            <span>View All New In</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {curatedProducts.map((product) => (
-            <ProductCardItem
-              key={product.id}
-              product={product}
-              isInWish={isInWishlist(product.id)}
-              onToggleWish={() => toggleWishlist(product)}
-            />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+          {newArrivals.map((product) => (
+            <ProductCardItem key={product.id} product={product} />
           ))}
         </div>
       </section>
+
+
+
+      {/* 6. BESTSELLING BAGS & LEATHERCRAFT */}
+      <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
+          <div>
+            <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase block">
+              ATELIER LEATHERS
+            </span>
+            <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
+              BESTSELLING BAGS & ACCESSORIES
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCurrentView('bags')}
+            className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            <span>Explore All Bags</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+          {bagCreations.map((product) => (
+            <ProductCardItem key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+
+
+      {/* 8. PREMIUM FOOTWEAR COLLECTION SPOTLIGHT */}
+      <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
+          <div>
+            <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase block">
+              THE LUXURY STRIDE
+            </span>
+            <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
+              PREMIUM FOOTWEAR COLLECTION
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCurrentView('footwear')}
+            className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            <span>Explore All Footwear</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+          {footwearCreations.map((product) => (
+            <ProductCardItem key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+
     </div>
   );
 };
 
-// Reusable 3:4 Luxury Product Card (Zero offer badges, uniform luxury icons)
-const ProductCardItem: React.FC<{
-  product: Product;
-  isInWish: boolean;
-  onToggleWish: () => void;
-}> = ({ product, isInWish, onToggleWish }) => {
+// Reusable 3:4 Luxury Product Card for Homepage Grids
+const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
+  const { openProductDetail, setQuickViewProduct, isInWishlist, toggleWishlist } = useStore();
+  const inWish = isInWishlist(product.id);
+
+  const discountPercent =
+    product.originalPrice && product.originalPrice > product.price
+      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+      : null;
+
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
       <a
@@ -418,21 +329,29 @@ const ProductCardItem: React.FC<{
           />
         )}
 
+        {/* Badges */}
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
+          {discountPercent && (
+            <span className="bg-[#111113] text-[#D4AF37] text-[9.5px] px-2 py-0.5 rounded-md uppercase tracking-wider border border-[#D4AF37]/40 shadow-xs">
+              {discountPercent}% OFF
+            </span>
+          )}
+        </div>
+
         {/* Wishlist Button */}
         <button
           type="button"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onToggleWish();
+            toggleWishlist(product);
           }}
           className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-[#111113] shadow-md flex items-center justify-center transition-all cursor-pointer z-10 active:scale-90"
         >
           <Heart
             className={`w-4 h-4 transition-colors ${
-              isInWish ? 'fill-red-600 text-red-600' : 'text-[#2A241E]'
+              inWish ? 'fill-red-600 text-red-600' : 'text-[#2A241E]'
             }`}
-            strokeWidth={1.75}
           />
         </button>
       </a>
@@ -454,18 +373,23 @@ const ProductCardItem: React.FC<{
 
         <div className="pt-2 border-t border-[#F0EAE1] flex items-center justify-between">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm sm:text-base font-semibold text-[#111113]">
+            <span className="text-sm sm:text-base text-[#111113]">
               ₹{product.price.toLocaleString('en-IN')}
             </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="text-[11px] text-gray-400 line-through">
+                ₹{product.originalPrice.toLocaleString('en-IN')}
+              </span>
+            )}
           </div>
           <a
             href={`/product/${product.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 text-xs text-[#8A671A] hover:text-[#111113] flex items-center gap-0.5 cursor-pointer font-medium"
+            className="p-1.5 text-xs text-[#8A671A] hover:text-[#111113] flex items-center gap-0.5 cursor-pointer"
           >
             <span>View</span>
-            <ChevronRight className="w-3 h-3" strokeWidth={1.75} />
+            <ChevronRight className="w-3 h-3" />
           </a>
         </div>
       </div>

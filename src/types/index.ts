@@ -127,10 +127,3 @@ export interface BoutiqueHeroConfig {
   ctaText: string;
   image: string;
 }
-
-export interface BrandingConfig {
-  logoUrl: string;
-  storeName: string;
-  tagline: string;
-}
-

@@ -28,8 +28,6 @@ export const BannerManager: React.FC = () => {
     uploadMediaAsset,
     boutiqueHeroConfig,
     updateBoutiqueHeroConfig,
-    brandingConfig,
-    updateBrandingConfig,
   } = useStore();
 
   const [editingBanner, setEditingBanner] = useState<BannerSlide | null>(null);
@@ -39,22 +37,14 @@ export const BannerManager: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  // Logo & Branding state
-  const [logoData, setLogoData] = useState({
-    logoUrl: brandingConfig?.logoUrl || '/images/lap_of_luxury_logo.png',
-    storeName: brandingConfig?.storeName || 'LAP OF LUXURY',
-    tagline: brandingConfig?.tagline || 'Mahbubnagar Luxury Atelier',
-  });
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-
-  // Atelier Boutique Hero state
+  // Flagship Boutique Hero state
   const [boutiqueHeroData, setBoutiqueHeroData] = useState({
     kicker: boutiqueHeroConfig?.kicker || 'EXCLUSIVE COLLECTION',
     titleLine1: boutiqueHeroConfig?.titleLine1 || 'Luxury',
     titleLine2: boutiqueHeroConfig?.titleLine2 || 'For Every Moment',
     subtitle: boutiqueHeroConfig?.subtitleItems?.join(' | ') || 'Premium Fashion | Elegant Accessories | Timeless Style',
     ctaText: boutiqueHeroConfig?.ctaText || 'Shop Now',
-    image: boutiqueHeroConfig?.image || '/images/banner_shirts_pants.jpg',
+    image: boutiqueHeroConfig?.image || '/images/flagship_banner_16_9.jpg',
   });
 
   const [formData, setFormData] = useState({
@@ -78,28 +68,6 @@ export const BannerManager: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploadingLogo(true);
-    try {
-      const asset = await uploadMediaAsset(file, 'Logo');
-      setLogoData((prev) => ({ ...prev, logoUrl: asset.dataUrl }));
-      showToast('✓ Logo uploaded from device! Click "Save Store Logo & Identity" below.');
-    } catch (err: unknown) {
-      showToast('Upload failed: ' + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setIsUploadingLogo(false);
-      e.target.value = '';
-    }
-  };
-
-  const handleSaveLogo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await updateBrandingConfig(logoData);
-    showToast('✓ Store logo and brand identity saved to cloud! Changes are live on the header and storefront.');
-  };
-
   const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -116,7 +84,7 @@ export const BannerManager: React.FC = () => {
     }
   };
 
-  const handleSaveBoutiqueHero = async (e: React.FormEvent) => {
+  const handleSaveBoutiqueHero = (e: React.FormEvent) => {
     e.preventDefault();
     let img = boutiqueHeroData.image.trim();
     if (!img.startsWith('/') && !img.startsWith('http') && !img.startsWith('data:')) {
@@ -128,7 +96,7 @@ export const BannerManager: React.FC = () => {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    await updateBoutiqueHeroConfig({
+    updateBoutiqueHeroConfig({
       kicker: boutiqueHeroData.kicker,
       titleLine1: boutiqueHeroData.titleLine1,
       titleLine2: boutiqueHeroData.titleLine2,
@@ -137,7 +105,7 @@ export const BannerManager: React.FC = () => {
       image: img,
     });
     setBoutiqueHeroData((prev) => ({ ...prev, image: img }));
-    showToast('✓ Main Atelier Luxury Showcase banner & texts updated! Changes are live on the storefront.');
+    showToast('✓ Flagship Luxury Showcase banner & texts updated! Changes are live on the storefront.');
   };
 
   const handleOpenAdd = () => {
@@ -260,134 +228,7 @@ export const BannerManager: React.FC = () => {
         </div>
       )}
 
-      {/* 1. STORE LOGO & BRAND IDENTITY MANAGER */}
-      <div className="bg-white rounded-2xl border-2 border-[#D4AF37]/60 shadow-md overflow-hidden">
-        <div className="p-5 sm:p-6 bg-gradient-to-r from-[#1E1E22] via-[#2A261F] to-[#1E1E22] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-wider">
-                STORE IDENTITY
-              </span>
-              <h2 className="font-bodoni text-lg sm:text-xl font-bold tracking-wider uppercase text-white">
-                STORE LOGO & BRANDING
-              </h2>
-            </div>
-            <p className="text-xs text-gray-300 mt-1">
-              Upload your official boutique logo or enter a custom image URL. Reflects live across the header, navigation, and all pages.
-            </p>
-          </div>
-
-          <div className="text-[11px] bg-white/10 border border-[#D4AF37]/50 px-3.5 py-2 rounded-xl text-[#E5C07B] shrink-0 flex items-center gap-2">
-            <Upload className="w-4 h-4 text-[#D4AF37]" />
-            <span>Direct Device Upload · Transparent PNG / SVG / JPG</span>
-          </div>
-        </div>
-
-        <form onSubmit={handleSaveLogo} className="p-5 sm:p-6 space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            {/* Logo Preview */}
-            <div className="md:col-span-4 flex flex-col items-center justify-center p-4 bg-[#FAF8F5] rounded-2xl border border-[#D5C7B0] space-y-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A6C58]">
-                Current Live Logo Preview
-              </span>
-              <div className="w-24 h-24 p-2 rounded-xl bg-white border border-[#E8DEC8] flex items-center justify-center shadow-xs">
-                <img
-                  src={logoData.logoUrl}
-                  alt="Logo preview"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/lap_of_luxury_logo.png';
-                  }}
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div>
-              <div className="w-24 h-10 p-2 rounded-xl bg-[#111113] flex items-center justify-center">
-                <img
-                  src={logoData.logoUrl}
-                  alt="Dark preview"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/lap_of_luxury_logo.png';
-                  }}
-                  className="max-w-full max-h-full object-contain brightness-110"
-                />
-              </div>
-              <span className="text-[9px] text-[#8C8274]">Light & Dark Header Previews</span>
-            </div>
-
-            {/* Inputs & Upload Button */}
-            <div className="md:col-span-8 space-y-4">
-              <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#D5C7B0] space-y-3">
-                <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
-                  <ImageIcon className="w-4 h-4 text-[#B89758]" />
-                  <span>UPLOAD OFFICIAL STORE LOGO</span>
-                </label>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <label className="text-xs bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] px-4 py-2.5 rounded-lg cursor-pointer flex items-center gap-2 font-bold shadow-xs transition-all active:scale-95">
-                    <Upload className="w-4 h-4 text-[#111113]" />
-                    <span>{isUploadingLogo ? 'Uploading Logo...' : 'Upload Logo from Device'}</span>
-                    <input
-                      type="file"
-                      accept="image/png, image/jpeg, image/svg+xml, image/webp"
-                      onChange={handleLogoFileUpload}
-                      className="sr-only"
-                    />
-                  </label>
-                  <span className="text-[11px] text-[#7A6C58]">or paste link below</span>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-[#5C5040] block mb-1">
-                    Logo Image URL
-                  </label>
-                  <input
-                    type="text"
-                    value={logoData.logoUrl}
-                    onChange={(e) => setLogoData({ ...logoData, logoUrl: e.target.value })}
-                    placeholder="/images/lap_of_luxury_logo.png"
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5C7B0] rounded-lg text-[#1E1E22] font-mono focus:outline-none focus:border-[#D4AF37]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] font-bold text-[#1E1E22] uppercase tracking-wider block mb-1">
-                    Store Brand Name
-                  </label>
-                  <input
-                    type="text"
-                    value={logoData.storeName}
-                    onChange={(e) => setLogoData({ ...logoData, storeName: e.target.value })}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5C7B0] rounded-lg text-[#1E1E22] font-serif font-bold uppercase tracking-wider focus:outline-none focus:border-[#D4AF37]"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-bold text-[#1E1E22] uppercase tracking-wider block mb-1">
-                    Tagline
-                  </label>
-                  <input
-                    type="text"
-                    value={logoData.tagline}
-                    onChange={(e) => setLogoData({ ...logoData, tagline: e.target.value })}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5C7B0] rounded-lg text-[#1E1E22] focus:outline-none focus:border-[#D4AF37]"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center gap-2 active:scale-95"
-                >
-                  <Check className="w-4 h-4 text-[#111113]" />
-                  <span>Save Store Logo & Identity</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      {/* 2. MAIN ATELIER LUXURY SHOWCASE BANNER & TEXT EDITOR */}
+      {/* 1. FLAGSHIP LUXURY SHOWCASE BANNER & TEXT EDITOR */}
       <div className="bg-white rounded-2xl border-2 border-[#D4AF37]/60 shadow-md overflow-hidden">
         <div className="p-5 sm:p-6 bg-gradient-to-r from-[#1E1E22] via-[#2A261F] to-[#1E1E22] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -396,7 +237,7 @@ export const BannerManager: React.FC = () => {
                 MAIN HOMEPAGE
               </span>
               <h2 className="font-bodoni text-lg sm:text-xl font-bold tracking-wider uppercase text-white">
-                MAIN ATELIER HERO BANNER & TEXTS
+                FLAGSHIP FASHION HERO BANNER & TEXTS
               </h2>
             </div>
             <p className="text-xs text-gray-300 mt-1">

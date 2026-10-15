@@ -34,7 +34,7 @@ export const ContactUsPage: React.FC = () => {
 
         <div className="border-b border-[#E8DEC8] pb-4">
           <span className="text-[10px] uppercase tracking-[0.24em] text-[#8A671A] block">
-            Client Concierge & Boutique Store
+            Client Concierge & Flagship Store
           </span>
           <h1 className="text-2xl sm:text-3xl text-[#111113] uppercase tracking-wider">
             Contact LAP OF LUXURY
@@ -55,7 +55,7 @@ export const ContactUsPage: React.FC = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-[#B8860B] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[#111113]">Boutique Fashion Store Address:</p>
+                  <p className="text-[#111113]">Flagship Fashion Store Address:</p>
                   <p className="text-[#6C604F] leading-relaxed mt-0.5">
                     D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001.
                   </p>
