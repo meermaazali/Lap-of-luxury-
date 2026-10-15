@@ -131,10 +131,12 @@ export const BestSellersGrid: React.FC = () => {
               const isAvailable = product.inStock && product.stockCount > 0;
 
               return (
-                <div
+                <a
                   key={product.id}
-                  onClick={() => openProductDetail(product)}
-                  className="h-full group bg-white rounded-2xl border border-[#D4AF37]/30 overflow-hidden flex flex-col justify-between hover:border-[#D4AF37] hover:shadow-[0_12px_32px_rgba(212,175,55,0.18)] transition-all duration-300 cursor-pointer"
+                  href={`/product/${product.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-full group bg-white rounded-2xl border border-[#D4AF37]/30 overflow-hidden flex flex-col justify-between hover:border-[#D4AF37] hover:shadow-[0_12px_32px_rgba(212,175,55,0.18)] transition-all duration-300 cursor-pointer block"
                 >
                   {/* Image container */}
                   <div className="relative aspect-square w-full overflow-hidden bg-[#FAF8F5] p-2 flex items-center justify-center">
@@ -230,7 +232,7 @@ export const BestSellersGrid: React.FC = () => {
                       )}
                     </button>
                   </div>
-                </div>
+                </a>
               );
             })}
           </div>

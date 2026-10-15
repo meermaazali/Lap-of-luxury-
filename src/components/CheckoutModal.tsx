@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   AlertCircle,
   FileText,
+  Copy,
+  QrCode,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useStore } from '../context/StoreContext';
@@ -85,9 +87,13 @@ export const CheckoutModal: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Generate dynamic QR code for desktop when entering payment step
+  // Mobile fallback controls
+  const [showMobileQR, setShowMobileQR] = useState<boolean>(false);
+  const [copiedUpi, setCopiedUpi] = useState<boolean>(false);
+
+  // Generate QR code for order (available for Desktop and Mobile fallback)
   useEffect(() => {
-    if (isCheckoutOpen && currentStep === 'payment' && orderTotal > 0 && !isMobileDevice) {
+    if (isCheckoutOpen && currentStep === 'payment' && orderTotal > 0) {
       const upiUri = `upi://pay?pa=${MERCHANT_VPA}&pn=${encodeURIComponent(
         MERCHANT_NAME
       )}&am=${orderTotal}&cu=INR&tn=${encodeURIComponent(
@@ -109,7 +115,7 @@ export const CheckoutModal: React.FC = () => {
       setTimeLeft(300);
       setIsTimerExpired(false);
     }
-  }, [isCheckoutOpen, currentStep, orderTotal, isMobileDevice]);
+  }, [isCheckoutOpen, currentStep, orderTotal, MERCHANT_VPA, MERCHANT_NAME]);
 
   // 5-minute countdown timer on Desktop/Laptop QR
   useEffect(() => {
@@ -663,16 +669,78 @@ export const CheckoutModal: React.FC = () => {
                     className="w-full py-3.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-98"
                   >
                     <ShieldCheck className="w-4 h-4 text-[#111113]" />
-                    <span>{isSubmitting ? 'Opening PhonePe...' : `Pay ₹${orderTotal.toLocaleString('en-IN')} with PhonePe (9848263939)`}</span>
+                    <span>
+                      {isSubmitting
+                        ? 'Opening PhonePe...'
+                        : paymentConfig?.phonepeEnabled && paymentConfig?.phonepeMerchantId
+                        ? `Pay ₹${orderTotal.toLocaleString('en-IN')} via PhonePe Gateway`
+                        : `Pay ₹${orderTotal.toLocaleString('en-IN')} with PhonePe (${MERCHANT_PHONE})`}
+                    </span>
                   </button>
 
-                  <div className="p-3 bg-[#F3EFE6] rounded-xl text-xs text-[#5A4F41] space-y-1">
-                    <p>
-                      <strong>Merchant UPI ID:</strong> <span className="font-mono text-[#111113]">{MERCHANT_VPA}</span>
-                    </p>
+                  {/* Merchant UPI Details with 1-Tap Copy */}
+                  <div className="p-3 bg-[#F3EFE6] rounded-xl text-xs text-[#5A4F41] space-y-2 border border-[#E0D5C3]">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] text-[#7A6C58] uppercase font-bold block">Merchant UPI ID</span>
+                        <span className="font-mono text-xs font-bold text-[#111113]">{MERCHANT_VPA}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(MERCHANT_VPA);
+                            setCopiedUpi(true);
+                            setTimeout(() => setCopiedUpi(false), 2000);
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-white hover:bg-[#FAF8F5] border border-[#D5C7B0] text-[#111113] rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                      >
+                        {copiedUpi ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span className="text-emerald-700">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 text-[#7A6C58]" />
+                            <span>Copy UPI</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <p className="text-[11px] text-[#7A6C58]">
-                      Authorized Payee: <strong>{MERCHANT_NAME}</strong> ({MERCHANT_PHONE}). Order amount of ₹{orderTotal.toLocaleString('en-IN')} is auto-filled.
+                      Authorized Payee: <strong>{MERCHANT_NAME}</strong> ({MERCHANT_PHONE}). Amount ₹{orderTotal.toLocaleString('en-IN')} is prefilled.
                     </p>
+                  </div>
+
+                  {/* Mobile QR Fallback Toggle */}
+                  <div className="pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowMobileQR(!showMobileQR)}
+                      className="w-full py-2 px-3 border border-dashed border-[#B8860B]/60 bg-[#FAF6EE] hover:bg-[#F5EEDC] text-[#8A671A] font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                      <span>{showMobileQR ? 'Hide Payment QR' : 'PhonePe app didn’t open? Tap to Show QR / Scan'}</span>
+                    </button>
+
+                    {showMobileQR && (
+                      <div className="mt-3 p-4 bg-white rounded-2xl border border-[#D5C7B0] shadow-sm flex flex-col items-center text-center space-y-2 animate-fade-in">
+                        <p className="text-xs font-bold text-[#111113]">Scan with PhonePe / Any UPI App</p>
+                        <p className="text-[10px] text-[#7A6C58]">Take a screenshot or scan with your family member's phone</p>
+                        {qrCodeDataUrl ? (
+                          <div className="p-2.5 bg-white border border-[#E0D5C3] rounded-xl shadow-xs">
+                            <img src={qrCodeDataUrl} alt="UPI Payment QR" className="w-48 h-48 mx-auto" />
+                          </div>
+                        ) : (
+                          <div className="w-48 h-48 bg-gray-100 flex items-center justify-center text-xs text-gray-500 rounded-xl">
+                            Loading QR Code...
+                          </div>
+                        )}
+                        <p className="text-[11px] font-mono text-[#8A671A] font-bold">UPI ID: {MERCHANT_VPA}</p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-1 flex items-center gap-3">

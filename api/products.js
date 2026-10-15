@@ -1,5 +1,31 @@
+import fs from 'fs';
+import path from 'path';
+
 // Vercel Serverless Function: /api/products
-let memoryProducts = [];
+// Persistent file storage with fallback memory cache
+function getDatabase() {
+  try {
+    const dbPath = path.resolve(process.cwd(), 'backend', 'database.json');
+    if (fs.existsSync(dbPath)) {
+      const data = fs.readFileSync(dbPath, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.warn('Could not read backend/database.json, falling back to memory:', err);
+  }
+  return { products: [] };
+}
+
+function saveDatabase(db) {
+  try {
+    const dbPath = path.resolve(process.cwd(), 'backend', 'database.json');
+    fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('Could not write backend/database.json:', err);
+  }
+}
+
+let memoryProducts = null;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,13 +36,18 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  const db = getDatabase();
+  if (!memoryProducts || memoryProducts.length === 0) {
+    memoryProducts = Array.isArray(db.products) && db.products.length > 0 ? db.products : [];
+  }
+
   if (req.method === 'GET') {
     return res.status(200).json(memoryProducts);
   }
 
   if (req.method === 'POST') {
     const body = req.body || {};
-    
+
     // Check if this is an inventory deduction
     if (body.deductions && Array.isArray(body.deductions)) {
       body.deductions.forEach(({ productId, quantity }) => {
@@ -26,6 +57,8 @@ export default async function handler(req, res) {
           p.inStock = p.stockCount > 0;
         }
       });
+      db.products = memoryProducts;
+      saveDatabase(db);
       return res.status(200).json({ success: true, products: memoryProducts });
     }
 
@@ -40,11 +73,15 @@ export default async function handler(req, res) {
           ...body,
         });
       }
+      db.products = memoryProducts;
+      saveDatabase(db);
       return res.status(200).json({ success: true, products: memoryProducts });
     }
 
     if (Array.isArray(body)) {
       memoryProducts = body;
+      db.products = memoryProducts;
+      saveDatabase(db);
       return res.status(200).json({ success: true, products: memoryProducts });
     }
 
@@ -55,6 +92,8 @@ export default async function handler(req, res) {
     const { id } = req.query || {};
     if (id) {
       memoryProducts = memoryProducts.filter((p) => p.id !== id);
+      db.products = memoryProducts;
+      saveDatabase(db);
     }
     return res.status(200).json({ success: true, products: memoryProducts });
   }

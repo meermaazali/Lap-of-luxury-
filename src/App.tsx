@@ -3,87 +3,130 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { StoreProvider, useStore } from './context/StoreContext';
-import { Header } from './components/Header';
-import { SubNav } from './components/SubNav';
-import { BestSellersGrid } from './components/BestSellersGrid';
-import { Footer } from './components/Footer';
-import { CartDrawer } from './components/CartDrawer';
-import { CheckoutModal } from './components/CheckoutModal';
-import { OrderSuccessModal } from './components/OrderSuccessModal';
-import { ProductDetailModal } from './components/ProductDetailModal';
-import { WishlistDrawer } from './components/WishlistDrawer';
-import { AboutUsModal } from './components/modals/AboutUsModal';
-import { PolicyModal } from './components/modals/PolicyModal';
+import { HomePage } from './pages/HomePage';
+import { ShopAllPage } from './pages/ShopAllPage';
+import { DepartmentPage } from './pages/DepartmentPage';
+import { CategoryPage } from './pages/CategoryPage';
+import { ProductDetailPage } from './pages/ProductDetailPage';
+import { SearchPage } from './pages/SearchPage';
+import { CartPage } from './pages/CartPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { AuthPage } from './pages/AuthPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { AccountPage } from './pages/AccountPage';
+import { WishlistPage } from './pages/WishlistPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { OrderTrackingPage } from './pages/OrderTrackingPage';
+import { AboutUsPage } from './pages/AboutUsPage';
+import { ContactUsPage } from './pages/ContactUsPage';
+import { FaqsPage } from './pages/FaqsPage';
+import { PolicyPage } from './pages/PolicyPage';
 import { AdminPortal } from './components/admin/AdminPortal';
-import { FlagshipBoutiqueHero } from './components/FlagshipBoutiqueHero';
 
-const MainLayout: React.FC = () => {
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
+const RootRoutes: React.FC = () => {
   const { isAdminMode } = useStore();
-  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
-  const [isContactUsOpen, setIsContactUsOpen] = useState(false);
 
-  // If Admin Mode is active via #admin or separate link
   if (isAdminMode) {
     return <AdminPortal />;
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#111113] flex flex-col font-sans selection:bg-[#D4AF37] selection:text-[#111113] relative overflow-x-hidden px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6">
-      {/* MAIN WEBSITE CARD CONTAINER (Clean, ultra-fast luxury container, zero GPU lag) */}
-      <div className="relative z-10 w-full max-w-[1540px] mx-auto rounded-2xl sm:rounded-[30px] md:rounded-[36px] overflow-hidden shadow-[0_15px_60px_rgba(184,134,11,0.12)] border border-[#D4AF37]/40 sm:border-2 sm:border-[#D4AF37]/50 bg-white flex flex-col">
-        {/* Main Header (Clean desktop navigation + mobile hamburger menu) */}
-        <Header
-          onOpenWishlist={() => setIsWishlistOpen(true)}
-          onOpenAboutUs={() => setIsAboutUsOpen(true)}
-          onOpenContactUs={() => setIsContactUsOpen(true)}
-        />
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Core Main Pages */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/shop" element={<ShopAllPage />} />
 
-        {/* Categories Bar: Visible on Desktop & Laptop */}
-        <div className="hidden md:block">
-          <SubNav />
-        </div>
+        {/* Dedicated Department Pages */}
+        <Route path="/men" element={<DepartmentPage department="men" />} />
+        <Route path="/women" element={<DepartmentPage department="women" />} />
+        <Route path="/bags" element={<DepartmentPage department="bags" />} />
+        <Route path="/footwear" element={<DepartmentPage department="footwear" />} />
+        <Route path="/shoes" element={<Navigate to="/footwear" replace />} />
+        <Route path="/accessories" element={<DepartmentPage department="accessories" />} />
+        <Route path="/collections" element={<DepartmentPage department="collections" />} />
+        <Route path="/bestsellers" element={<DepartmentPage department="bestsellers" />} />
+        <Route path="/sale" element={<DepartmentPage department="sale" />} />
+        <Route path="/new-arrivals" element={<DepartmentPage department="new-arrivals" />} />
 
-        {/* Flagship Showcase Hero with Original Uploaded Banner + Shop By Category + Golden Trust Bar */}
-        <FlagshipBoutiqueHero />
+        {/* Dynamic Department, Category & Subcategory Pages */}
+        <Route path="/department/:dept" element={<DepartmentPage />} />
+        <Route path="/category/:category" element={<CategoryPage />} />
+        <Route path="/category/:category/:subcategory" element={<CategoryPage />} />
 
-        {/* Products Collection (Instant loading without delays or pop-in) */}
-        <main className="flex-1">
-          <BestSellersGrid />
-        </main>
+        {/* Individual Product Detail Pages */}
+        <Route path="/product/:id" element={<ProductDetailPage />} />
+        <Route path="/p/:id" element={<ProductDetailPage />} />
 
-        {/* Comprehensive Store Footer with Mahbubnagar Address */}
-        <Footer />
-      </div>
+        {/* Search */}
+        <Route path="/search" element={<SearchPage />} />
 
-      {/* Customer Modals & Drawers */}
-      <CartDrawer />
-      <CheckoutModal />
-      <OrderSuccessModal />
-      <ProductDetailModal />
-      <WishlistDrawer
-        isOpen={isWishlistOpen}
-        onClose={() => setIsWishlistOpen(false)}
-      />
-      <AboutUsModal
-        isOpen={isAboutUsOpen}
-        onClose={() => setIsAboutUsOpen(false)}
-      />
-      <PolicyModal
-        isOpen={isContactUsOpen}
-        initialTab="contact"
-        onClose={() => setIsContactUsOpen(false)}
-      />
-    </div>
+        {/* Shopping Cart & Checkout */}
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+
+        {/* Auth & Account */}
+        <Route path="/login" element={<AuthPage initialMode="login" />} />
+        <Route path="/register" element={<AuthPage initialMode="signup" />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/my-account" element={<Navigate to="/account" replace />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+
+        {/* Orders & Tracking */}
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/orders/:id" element={<OrdersPage />} />
+        <Route path="/order-history" element={<Navigate to="/orders" replace />} />
+        <Route path="/track-order" element={<OrderTrackingPage />} />
+        <Route path="/order-tracking" element={<OrderTrackingPage />} />
+
+        {/* Informational Pages */}
+        <Route path="/about-us" element={<AboutUsPage />} />
+        <Route path="/about" element={<Navigate to="/about-us" replace />} />
+        <Route path="/contact-us" element={<ContactUsPage />} />
+        <Route path="/contact" element={<Navigate to="/contact-us" replace />} />
+        <Route path="/faqs" element={<FaqsPage />} />
+        <Route path="/faq" element={<Navigate to="/faqs" replace />} />
+
+        {/* Policies */}
+        <Route path="/shipping-policy" element={<PolicyPage policyType="shipping" />} />
+        <Route path="/shipping-delivery-policy" element={<PolicyPage policyType="shipping" />} />
+        <Route path="/returns-policy" element={<PolicyPage policyType="returns" />} />
+        <Route path="/returns-refund-policy" element={<PolicyPage policyType="returns" />} />
+        <Route path="/privacy-policy" element={<PolicyPage policyType="privacy" />} />
+        <Route path="/terms-conditions" element={<PolicyPage policyType="terms" />} />
+        <Route path="/terms" element={<PolicyPage policyType="terms" />} />
+
+        {/* Admin Portal */}
+        <Route path="/admin" element={<AdminPortal />} />
+        <Route path="/admin/*" element={<AdminPortal />} />
+
+        {/* Catch-all fallback */}
+        <Route path="*" element={<HomePage />} />
+      </Routes>
+    </>
   );
 };
 
 export default function App() {
   return (
-    <StoreProvider>
-      <MainLayout />
-    </StoreProvider>
+    <BrowserRouter>
+      <StoreProvider>
+        <RootRoutes />
+      </StoreProvider>
+    </BrowserRouter>
   );
 }

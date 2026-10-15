@@ -159,16 +159,13 @@ export const FlagshipBoutiqueHero: React.FC = () => {
           className="max-w-7xl mx-auto grid grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4 md:gap-5"
         >
           {CATEGORY_TILES.map((tile) => {
-            const isSelected = selectedCategory === tile.slug;
             return (
-              <div
+              <a
                 key={tile.name}
-                onClick={() => handleCategorySelect(tile)}
-                className={`flex flex-col items-center justify-between p-1.5 sm:p-3 rounded-xl sm:rounded-2xl cursor-pointer group transition-all duration-300 ${
-                  isSelected
-                    ? 'bg-[#FAF5E8] border-2 border-[#D4AF37] shadow-md ring-1 ring-[#D4AF37]'
-                    : 'bg-white hover:bg-[#FAF6EE] border border-[#EBE3D3] hover:border-[#D4AF37] shadow-2xs hover:shadow-sm'
-                }`}
+                href={`/category/${encodeURIComponent(tile.slug)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-between p-1.5 sm:p-3 rounded-xl sm:rounded-2xl cursor-pointer group transition-all duration-300 bg-white hover:bg-[#FAF6EE] border border-[#EBE3D3] hover:border-[#D4AF37] shadow-2xs hover:shadow-sm block"
               >
                 <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-[#F8F6F0] mb-1.5 sm:mb-2 p-1 sm:p-1.5 flex items-center justify-center">
                   <img
@@ -185,7 +182,7 @@ export const FlagshipBoutiqueHero: React.FC = () => {
                 <p className="font-sans text-[9px] xs:text-[10px] sm:text-xs font-semibold text-[#111113] group-hover:text-[#B8860B] transition-colors text-center leading-[1.15] break-words line-clamp-2 px-0.5">
                   {tile.name}
                 </p>
-              </div>
+              </a>
             );
           })}
         </div>

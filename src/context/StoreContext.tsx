@@ -8,6 +8,7 @@ import {
   MediaAsset,
   PaymentConfig,
   BoutiqueHeroConfig,
+  BrandingConfig,
 } from '../types';
 import {
   INITIAL_BANNERS,
@@ -19,6 +20,16 @@ import {
 import { normalizeImageUrl, compressImage, FALLBACK_CATEGORY_IMAGES } from '../utils/imageUtils';
 import { sendOrderEmailNotification } from '../utils/orderNotification';
 import { idbSetItem, idbGetItem } from '../utils/idbStorage';
+import { db, storage } from '../lib/firebase';
+import {
+  collection,
+  doc,
+  onSnapshot,
+  setDoc,
+  deleteDoc,
+  updateDoc,
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface StoreContextType {
   // Products
@@ -47,8 +58,9 @@ interface StoreContextType {
   // Cart
   cart: CartItem[];
   addToCart: (product: Product, size?: string, quantity?: number) => void;
-  removeFromCart: (productId: string, size: string) => void;
+  removeFromCart: (productId: string, size?: string, color?: string) => void;
   updateCartQuantity: (productId: string, size: string, quantity: number) => void;
+  updateQuantity: (productId: string, sizeOrQty?: any, qtyOrColor?: any, color?: any) => void;
   clearCart: () => void;
   cartTotal: number;
   cartCount: number;
@@ -58,6 +70,7 @@ interface StoreContextType {
   // Wishlist
   wishlist: Product[];
   toggleWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
 
   // Orders & Notifications
@@ -87,9 +100,13 @@ interface StoreContextType {
   paymentConfig: PaymentConfig;
   updatePaymentConfig: (updates: Partial<PaymentConfig>) => void;
 
-  // Flagship Boutique Hero Configuration
+  // Atelier Boutique Hero Configuration
   boutiqueHeroConfig: BoutiqueHeroConfig;
-  updateBoutiqueHeroConfig: (updates: Partial<BoutiqueHeroConfig>) => void;
+  updateBoutiqueHeroConfig: (updates: Partial<BoutiqueHeroConfig>) => Promise<void>;
+
+  // Branding & Logo Configuration
+  brandingConfig: BrandingConfig;
+  updateBrandingConfig: (updates: Partial<BrandingConfig>) => Promise<void>;
 
   // Media Library / Cloud Storage
   mediaAssets: MediaAsset[];
@@ -97,6 +114,10 @@ interface StoreContextType {
   deleteMediaAsset: (id: string) => void;
 
   // Navigation & Filtering
+  currentView: string;
+  setCurrentView: (view: string, subCategory?: string | null) => void;
+  selectedSubcategory: string | null;
+  setSelectedSubcategory: (sub: string | null) => void;
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
   searchQuery: string;
@@ -257,6 +278,53 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return INITIAL_MEDIA;
     }
   });
+
+  const getInitialView = () => {
+    if (typeof window === 'undefined') return 'home';
+    const hash = window.location.hash.toLowerCase().replace('#', '');
+    const validViews = ['home', 'men', 'women', 'bags', 'footwear', 'shoes', 'accessories', 'collections', 'bestsellers', 'sale', 'new-arrivals'];
+    if (validViews.includes(hash)) {
+      return hash === 'shoes' ? 'footwear' : hash;
+    }
+    return 'home';
+  };
+
+  const [currentView, setCurrentViewState] = useState<string>(() => getInitialView());
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+
+  const setCurrentView = (view: string, subCategory?: string | null) => {
+    const norm = view.toLowerCase().trim() === 'shoes' ? 'footwear' : view.toLowerCase().trim();
+    setCurrentViewState(norm);
+    setSelectedSubcategory(subCategory || null);
+    if (typeof window !== 'undefined') {
+      if (norm === 'home') {
+        try {
+          if (window.location.hash && !window.location.hash.includes('admin')) {
+            window.history.pushState(null, '', window.location.pathname);
+          }
+        } catch {
+          window.location.hash = '';
+        }
+      } else {
+        window.location.hash = norm;
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.toLowerCase().replace('#', '');
+      if (hash && hash !== 'admin' && hash !== 'experience') {
+        const norm = hash === 'shoes' ? 'footwear' : hash;
+        setCurrentViewState(norm);
+      } else if (!hash) {
+        setCurrentViewState('home');
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -425,7 +493,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     titleLine2: 'For Every Moment',
     subtitleItems: ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
     ctaText: 'Shop Now',
-    image: '/images/flagship_banner_16_9.jpg',
+    image: '/images/banner_shirts_pants.jpg',
   };
 
   const [boutiqueHeroConfig, setBoutiqueHeroConfig] = useState<BoutiqueHeroConfig>(() => {
@@ -438,21 +506,42 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return DEFAULT_BOUTIQUE_HERO;
   });
 
-  const updateBoutiqueHeroConfig = (updates: Partial<BoutiqueHeroConfig>) => {
-    setBoutiqueHeroConfig((prev) => {
-      const next = { ...prev, ...updates };
-      try {
-        localStorage.setItem('lol_boutique_hero', JSON.stringify(next));
-      } catch (e) {
-        console.warn('Could not save boutique hero to localStorage:', e);
+  const DEFAULT_BRANDING: BrandingConfig = {
+    logoUrl: '/images/lap_of_luxury_logo.png',
+    storeName: 'LAP OF LUXURY',
+    tagline: 'Mahbubnagar Luxury Atelier',
+  };
+
+  const [brandingConfig, setBrandingConfig] = useState<BrandingConfig>(() => {
+    try {
+      const saved = localStorage.getItem('lol_branding_config');
+      if (saved) {
+        return { ...DEFAULT_BRANDING, ...JSON.parse(saved) };
       }
-      fetch('/api/banners', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ boutiqueHero: next }),
-      }).catch(() => null);
-      return next;
-    });
+    } catch {}
+    return DEFAULT_BRANDING;
+  });
+
+  const updateBoutiqueHeroConfig = async (updates: Partial<BoutiqueHeroConfig>) => {
+    const next = { ...boutiqueHeroConfig, ...updates };
+    setBoutiqueHeroConfig(next);
+    try {
+      localStorage.setItem('lol_boutique_hero', JSON.stringify(next));
+      await setDoc(doc(db, 'storeSettings', 'hero'), next, { merge: true });
+    } catch (e) {
+      console.warn('Could not save boutique hero to Firestore:', e);
+    }
+  };
+
+  const updateBrandingConfig = async (updates: Partial<BrandingConfig>) => {
+    const next = { ...brandingConfig, ...updates };
+    setBrandingConfig(next);
+    try {
+      localStorage.setItem('lol_branding_config', JSON.stringify(next));
+      await setDoc(doc(db, 'storeSettings', 'branding'), next, { merge: true });
+    } catch (e) {
+      console.warn('Could not save branding to Firestore:', e);
+    }
   };
 
   const triggerTransition = (categorySlug: string, _label?: string) => {
@@ -464,7 +553,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const openProductDetail = (product: Product) => {
-    setQuickViewProduct(product);
+    if (typeof window !== 'undefined' && product?.id) {
+      window.open(`/product/${product.id}`, '_blank', 'noopener,noreferrer');
+    }
   };
 
   // Permanent sync state to LocalStorage & IndexedDB (ensuring products never disappear)
@@ -477,54 +568,97 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     idbSetItem('lol_products', products);
   }, [products]);
 
-  // On mount: rehydrate products, banners, and payments from backend authoritative database
+  // On mount: Real-time synchronization with authoritative Firebase Cloud Firestore
   useEffect(() => {
-    // 1. Rehydrate from IndexedDB
+    // 1. Rehydrate products from Firestore in real-time
+    const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
+      if (!snapshot.empty) {
+        const list: Product[] = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() } as Product);
+        });
+        setProducts(list);
+      } else {
+        // If collection is empty, seed initial products so database is populated permanently
+        INITIAL_PRODUCTS.forEach(async (p) => {
+          try {
+            await setDoc(doc(db, 'products', p.id), p);
+          } catch (e) {}
+        });
+      }
+    }, (err) => {
+      console.warn('Firestore products listener error:', err);
+    });
+
+    // 2. Rehydrate banners from Firestore in real-time
+    const unsubBanners = onSnapshot(collection(db, 'banners'), (snapshot) => {
+      if (!snapshot.empty) {
+        const list: BannerSlide[] = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() } as BannerSlide);
+        });
+        setBanners(list);
+      } else {
+        INITIAL_BANNERS.forEach(async (b) => {
+          try {
+            await setDoc(doc(db, 'banners', b.id), b);
+          } catch (e) {}
+        });
+      }
+    }, (err) => {
+      console.warn('Firestore banners listener error:', err);
+    });
+
+    // 3. Rehydrate Boutique Hero configuration from Firestore
+    const unsubHero = onSnapshot(doc(db, 'storeSettings', 'hero'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as BoutiqueHeroConfig;
+        setBoutiqueHeroConfig((prev) => ({ ...prev, ...data }));
+      }
+    }, (err) => {
+      console.warn('Firestore hero listener error:', err);
+    });
+
+    // 4. Rehydrate Branding & Logo configuration from Firestore
+    const unsubBranding = onSnapshot(doc(db, 'storeSettings', 'branding'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as BrandingConfig;
+        setBrandingConfig((prev) => ({ ...prev, ...data }));
+      }
+    }, (err) => {
+      console.warn('Firestore branding listener error:', err);
+    });
+
+    // 5. Rehydrate Orders from Firestore in real-time
+    const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      if (!snapshot.empty) {
+        const list: Order[] = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() } as Order);
+        });
+        setOrders(list);
+      }
+    }, (err) => {
+      console.warn('Firestore orders listener error:', err);
+    });
+
+    // Fallback rehydrate from IndexedDB for instantaneous local render
     idbGetItem<Product[]>('lol_products').then((savedProducts) => {
       if (Array.isArray(savedProducts) && savedProducts.length > 0) {
         setProducts((current) => {
-          const currentIds = new Set(current.map((p) => p.id));
-          const missing = savedProducts.filter((p) => !currentIds.has(p.id));
-          if (missing.length > 0) {
-            return [...current, ...missing];
-          }
+          if (current.length === 0) return savedProducts;
           return current;
         });
       }
     });
 
-    // 2. Authoritative sync from backend /api/products
-    fetch('/api/products')
-      .then((res) => res.json())
-      .then((backendProds) => {
-        if (Array.isArray(backendProds) && backendProds.length > 0) {
-          setProducts(backendProds);
-        }
-      })
-      .catch(() => null);
-
-    // 3. Authoritative sync from backend /api/banners
-    fetch('/api/banners')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.boutiqueHero) {
-          setBoutiqueHeroConfig((prev) => ({ ...prev, ...data.boutiqueHero }));
-        }
-        if (Array.isArray(data?.banners) && data.banners.length > 0) {
-          setBanners(data.banners);
-        }
-      })
-      .catch(() => null);
-
-    // 4. Authoritative sync from backend /api/payments/config
-    fetch('/api/payments/config')
-      .then((res) => res.json())
-      .then((config) => {
-        if (config) {
-          setPaymentConfig((prev) => ({ ...prev, ...config, enableCOD: false }));
-        }
-      })
-      .catch(() => null);
+    return () => {
+      unsubProducts();
+      unsubBanners();
+      unsubHero();
+      unsubBranding();
+      unsubOrders();
+    };
   }, []);
 
   useEffect(() => {
@@ -615,75 +749,100 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // Products actions (persisted to state, IndexedDB, and backend cloud API)
-  const addProduct = (productData: Omit<Product, 'id'>) => {
+  // Products actions (persisted to Firestore, state, and IndexedDB)
+  const addProduct = async (productData: Omit<Product, 'id'>) => {
     const newProduct: Product = {
       ...productData,
       id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     };
     setProducts((prev) => [newProduct, ...prev]);
 
-    // Persist to backend server
-    fetch('/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newProduct),
-    }).catch(() => null);
+    try {
+      await setDoc(doc(db, 'products', newProduct.id), newProduct);
+    } catch (e) {
+      console.warn('Firestore addProduct error:', e);
+    }
   };
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
     );
 
-    // Persist to backend server
-    fetch('/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ...updates }),
-    }).catch(() => null);
+    try {
+      await setDoc(doc(db, 'products', id), updates, { merge: true });
+    } catch (e) {
+      console.warn('Firestore updateProduct error:', e);
+    }
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
-    // Persist deletion to backend server
-    fetch(`/api/products/${id}`, {
-      method: 'DELETE',
-    }).catch(() => null);
+    try {
+      await deleteDoc(doc(db, 'products', id));
+    } catch (e) {
+      console.warn('Firestore deleteProduct error:', e);
+    }
   };
 
-  const updateStock = (id: string, newStock: number) => {
+  const updateStock = async (id: string, newStock: number) => {
+    const safeStock = Math.max(0, newStock);
+    const inStock = safeStock > 0;
     setProducts((prev) =>
       prev.map((p) =>
         p.id === id
           ? {
               ...p,
-              stockCount: Math.max(0, newStock),
-              inStock: newStock > 0,
+              stockCount: safeStock,
+              inStock,
             }
           : p
       )
     );
+
+    try {
+      await updateDoc(doc(db, 'products', id), { stockCount: safeStock, inStock });
+    } catch (e) {
+      console.warn('Firestore updateStock error:', e);
+    }
   };
 
-  // Banner actions
-  const addBanner = (bannerData: Omit<BannerSlide, 'id'>) => {
+  // Banner actions (persisted to Firestore & state)
+  const addBanner = async (bannerData: Omit<BannerSlide, 'id'>) => {
     const newBanner: BannerSlide = {
       ...bannerData,
       id: `banner-${Date.now()}`,
     };
     setBanners((prev) => [...prev, newBanner]);
+
+    try {
+      await setDoc(doc(db, 'banners', newBanner.id), newBanner);
+    } catch (e) {
+      console.warn('Firestore addBanner error:', e);
+    }
   };
 
-  const updateBanner = (id: string, updates: Partial<BannerSlide>) => {
+  const updateBanner = async (id: string, updates: Partial<BannerSlide>) => {
     setBanners((prev) =>
       prev.map((b) => (b.id === id ? { ...b, ...updates } : b))
     );
+
+    try {
+      await setDoc(doc(db, 'banners', id), updates, { merge: true });
+    } catch (e) {
+      console.warn('Firestore updateBanner error:', e);
+    }
   };
 
-  const deleteBanner = (id: string) => {
+  const deleteBanner = async (id: string) => {
     setBanners((prev) => prev.filter((b) => b.id !== id));
+
+    try {
+      await deleteDoc(doc(db, 'banners', id));
+    } catch (e) {
+      console.warn('Firestore deleteBanner error:', e);
+    }
   };
 
   // Category actions
@@ -707,28 +866,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Cart actions
   const addToCart = (product: Product, size?: string, quantity: number = 1) => {
-    const chosenSize = size || (product.sizes.length > 0 ? product.sizes[0] : 'Standard');
+    const chosenSize = size || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Standard');
     setCart((prev) => {
       const existing = prev.find(
-        (item) => item.product.id === product.id && item.selectedSize === chosenSize
+        (item) => item.product.id === product.id && (item.selectedSize === chosenSize || item.size === chosenSize)
       );
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id && item.selectedSize === chosenSize
+          item.product.id === product.id && (item.selectedSize === chosenSize || item.size === chosenSize)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prev, { product, selectedSize: chosenSize, quantity }];
+      return [...prev, { product, selectedSize: chosenSize, size: chosenSize, quantity }];
     });
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string, size: string) => {
+  const removeFromCart = (productId: string, size?: string, color?: string) => {
     setCart((prev) =>
-      prev.filter(
-        (item) => !(item.product.id === productId && item.selectedSize === size)
-      )
+      prev.filter((item) => {
+        if (item.product.id !== productId) return true;
+        if (size && item.selectedSize !== size && item.size !== size) return true;
+        if (color && item.color !== color) return true;
+        return false;
+      })
     );
   };
 
@@ -739,10 +901,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     setCart((prev) =>
       prev.map((item) =>
-        item.product.id === productId && item.selectedSize === size
+        item.product.id === productId && (item.selectedSize === size || item.size === size)
           ? { ...item, quantity }
           : item
       )
+    );
+  };
+
+  const updateQuantity = (productId: string, sizeOrQty?: any, qtyOrColor?: any, color?: any) => {
+    let size: string | undefined;
+    let qty: number;
+    if (typeof sizeOrQty === 'number') {
+      qty = sizeOrQty;
+    } else {
+      size = sizeOrQty;
+      qty = typeof qtyOrColor === 'number' ? qtyOrColor : 1;
+    }
+    if (qty <= 0) {
+      removeFromCart(productId, size, color);
+      return;
+    }
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.product.id !== productId) return item;
+        if (size && item.selectedSize !== size && item.size !== size) return item;
+        return { ...item, quantity: qty };
+      })
     );
   };
 
@@ -764,6 +948,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return [...prev, product];
     });
+  };
+
+  const removeFromWishlist = (productId: string) => {
+    setWishlist((prev) => prev.filter((p) => p.id !== productId));
   };
 
   const isInWishlist = (productId: string) => {
@@ -799,6 +987,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       address: customer.address,
       city: customer.city || 'Mahbubnagar',
       pincode: customer.pincode,
+      customer: {
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        city: customer.city || 'Mahbubnagar',
+        pincode: customer.pincode,
+      },
       items: [...cart],
       subtotal,
       discount,
@@ -819,18 +1015,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return { productId: cartItem.product.id, quantity: cartItem.quantity };
     });
 
-    // Persist order & inventory deduction to backend database
-    fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newOrder),
-    }).catch(() => null);
-
-    fetch('/api/products/inventory', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deductions }),
-    }).catch(() => null);
+    // Persist order directly to Firestore
+    try {
+      setDoc(doc(db, 'orders', newOrder.id), newOrder);
+    } catch (e) {
+      console.warn('Firestore placeOrder error:', e);
+    }
 
     setOrders((prev) => [newOrder, ...prev]);
     setLastPlacedOrder(newOrder);
@@ -839,10 +1029,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newOrder;
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status } : o))
     );
+
+    try {
+      await updateDoc(doc(db, 'orders', orderId), { status });
+    } catch (e) {
+      console.warn('Firestore updateOrderStatus error:', e);
+    }
   };
 
   const markOrderRead = (orderId: string) => {
@@ -872,6 +1068,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     let storageUrl = dataUrl;
+    try {
+      const storageRef = ref(storage, `uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`);
+      await uploadBytes(storageRef, file);
+      const downloadUrl = await getDownloadURL(storageRef);
+      if (downloadUrl) {
+        storageUrl = downloadUrl;
+      }
+    } catch (e) {
+      console.warn('Firebase Storage upload error, falling back to dataUrl:', e);
+    }
     try {
       const res = await fetch('/api/media/upload', {
         method: 'POST',
@@ -927,6 +1133,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addToCart,
         removeFromCart,
         updateCartQuantity,
+        updateQuantity,
         clearCart,
         cartTotal,
         cartCount,
@@ -934,6 +1141,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsCartOpen,
         wishlist,
         toggleWishlist,
+        removeFromWishlist,
         isInWishlist,
         orders,
         placeOrder,
@@ -946,6 +1154,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         mediaAssets,
         uploadMediaAsset,
         deleteMediaAsset,
+        currentView,
+        setCurrentView,
+        selectedSubcategory,
+        setSelectedSubcategory,
         selectedCategory,
         setSelectedCategory,
         searchQuery,
@@ -964,6 +1176,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updatePaymentConfig,
         boutiqueHeroConfig,
         updateBoutiqueHeroConfig,
+        brandingConfig,
+        updateBrandingConfig,
         isTransitioning,
         transitionLabel,
         triggerTransition,

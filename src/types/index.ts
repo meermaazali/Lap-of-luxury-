@@ -2,6 +2,10 @@ export interface Product {
   id: string;
   name: string;
   category: string;
+  subCategory?: string;
+  department?: 'Men' | 'Women' | 'Bags' | 'Footwear' | 'Accessories';
+  brand?: string;
+  color?: string;
   price: number;
   originalPrice?: number;
   rating: number;
@@ -10,6 +14,10 @@ export interface Product {
   secondaryImage?: string;
   description: string;
   sizes: string[];
+  colors?: string[];
+  images?: string[];
+  slug?: string;
+  subcategory?: string;
   inStock: boolean;
   stockCount: number;
   isBestSeller?: boolean;
@@ -42,7 +50,18 @@ export interface CategoryItem {
 export interface CartItem {
   product: Product;
   selectedSize: string;
+  size?: string;
+  color?: string;
   quantity: number;
+}
+
+export interface OrderCustomerInfo {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  pincode?: string;
 }
 
 export interface Order {
@@ -54,6 +73,7 @@ export interface Order {
   address: string;
   city: string;
   pincode: string;
+  customer?: OrderCustomerInfo;
   items: CartItem[];
   subtotal: number;
   discount: number;
@@ -107,3 +127,10 @@ export interface BoutiqueHeroConfig {
   ctaText: string;
   image: string;
 }
+
+export interface BrandingConfig {
+  logoUrl: string;
+  storeName: string;
+  tagline: string;
+}
+

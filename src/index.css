@@ -2,10 +2,12 @@
 
 @layer base {
   :root {
-    --font-bodoni: 'Bodoni Moda', 'Cinzel', serif;
-    --font-display: 'Bodoni Moda', 'Cinzel', serif;
-    --font-editorial: 'Cormorant Garamond', Georgia, serif;
-    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-primary: 'Roboto Slab', serif;
+  }
+
+  *, *::before, *::after {
+    font-family: 'Roboto Slab', Georgia, serif !important;
+    font-weight: 400 !important;
   }
 
   html, body {
@@ -14,22 +16,32 @@
     max-width: 100%;
     overscroll-behavior-x: none;
     touch-action: pan-y;
-    font-family: var(--font-sans);
+    font-family: 'Roboto Slab', Georgia, serif !important;
+    font-weight: 400 !important;
     background-color: #FAF8F5;
-    color: #1F1F23;
+    color: #111113;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6, p, span, a, button, input, textarea, select, label, strong, b {
+    font-family: 'Roboto Slab', Georgia, serif !important;
+    font-weight: 400 !important;
   }
 }
 
-.font-bodoni {
-  font-family: 'Bodoni Moda', 'Cinzel', serif;
-}
-
+/* Force Roboto Slab 400 on all font classes */
+.font-serif,
+.font-bodoni,
+.font-editorial,
+.font-sans,
 .font-display {
-  font-family: 'Bodoni Moda', 'Cinzel', serif;
+  font-family: 'Roboto Slab', Georgia, serif !important;
+  font-weight: 400 !important;
 }
 
-.font-editorial {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+/* Disallow bold anywhere across the app as strictly mandated */
+b, strong, .font-bold, .font-semibold, .font-medium, .font-black, .font-extrabold {
+  font-weight: 400 !important;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -43,7 +55,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -52,13 +64,13 @@
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .reveal-on-scroll {
   opacity: 0.99;
   transform: translateY(0);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
@@ -66,6 +78,3 @@
   opacity: 1;
   transform: translateY(0);
 }
-
-
-

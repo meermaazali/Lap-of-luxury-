@@ -89,7 +89,7 @@ export const ClientPhotoGuide: React.FC = () => {
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Style:</strong> Horizontal luxury photoshoot with models, lifestyle scenery, or flagship boutique showcase.
+                  <strong>Style:</strong> Horizontal luxury photoshoot with models, lifestyle scenery, or flagship luxury store showcase.
                 </span>
               </div>
               <div className="flex items-start gap-2">
@@ -284,7 +284,7 @@ export const ClientPhotoGuide: React.FC = () => {
               LIVE IMAGE FALLBACK PROTECTION (VERCEL COMPLIANT)
             </h4>
             <p className="text-[11px] text-[#5C4A19] mt-0.5 leading-relaxed">
-              The website has built-in smart fallback protection. If an image path is ever missing or offline, the boutique automatically swaps in an official luxury brand asset so your storefront is <strong>never broken and has zero blank boxes</strong>.
+              The website has built-in smart fallback protection. If an image path is ever missing or offline, the store automatically swaps in an official luxury brand asset so your storefront is <strong>never broken and has zero blank boxes</strong>.
             </p>
           </div>
         </div>

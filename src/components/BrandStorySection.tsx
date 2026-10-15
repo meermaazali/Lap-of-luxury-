@@ -39,13 +39,13 @@ export const BrandStorySection: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 text-white">
                 <span className="font-sans uppercase tracking-[0.16em] text-xs text-[#D4AF37] font-semibold">
-                  Flagship Boutique
+                  Flagship Store
                 </span>
                 <p className="font-bodoni text-xl sm:text-2xl font-normal sm:font-medium tracking-wider mt-1">
                   VISIT OUR STORE
                 </p>
                 <p className="text-xs text-gray-200 mt-1">
-                  Mahabubnagar · Tap for directions & boutique hours
+                  Mahbubnagar · Tap for directions & store timings (9:30 AM–10:00 PM)
                 </p>
               </div>
             </div>
