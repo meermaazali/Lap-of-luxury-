@@ -45,7 +45,6 @@ export interface CategoryItem {
   slug: string;
   image: string;
   itemCount?: number;
-  subcategories?: string[];
 }
 
 export interface CartItem {

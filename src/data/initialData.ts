@@ -62,7 +62,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Men',
     image: '/images/category_mens_bw.jpg',
     itemCount: 42,
-    subcategories: ['Shirts', 'T-Shirts', 'Trousers', 'Hoodies', 'Kurta Sets'],
   },
   {
     id: 'cat-2',
@@ -70,7 +69,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Women',
     image: '/images/category_womens_bw.jpg',
     itemCount: 24,
-    subcategories: ['Dresses', 'Tops', 'Handbags', 'Banarasi Sarees', 'Co-ord Sets', 'Heels'],
   },
   {
     id: 'cat-3',
@@ -78,7 +76,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Jeans',
     image: '/images/category_jeans_bw.jpg',
     itemCount: 28,
-    subcategories: ['Slim Fit', 'Skinny Fit', 'Raw Denim', 'Relaxed Fit', 'Selvedge'],
   },
   {
     id: 'cat-4',
@@ -86,7 +83,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Watches',
     image: '/images/category_watches_bw.jpg',
     itemCount: 19,
-    subcategories: ['Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions', 'Sports Watches'],
   },
   {
     id: 'cat-5',
@@ -94,7 +90,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Bags',
     image: '/images/category_bags_bw.jpg',
     itemCount: 31,
-    subcategories: ['Handbags', 'Shoulder Bags', 'Sling Bags', 'Clutches', 'Totes', 'Wallets', 'Travel Bags'],
   },
   {
     id: 'cat-6',
@@ -102,7 +97,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Shoes',
     image: '/images/category_shoes_bw.jpg',
     itemCount: 22,
-    subcategories: ['Sneakers', 'Formal Shoes', 'Loafers', 'Sandals', 'Heels', 'Flats'],
   },
   {
     id: 'cat-7',
@@ -110,7 +104,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Accessories',
     image: '/images/category_accessories_bw.jpg',
     itemCount: 35,
-    subcategories: ['Watches and Accessories', 'Sunglasses', 'Belts', 'Wallets', 'Cufflinks'],
   },
   {
     id: 'cat-8',
@@ -118,7 +111,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     slug: 'Perfumes',
     image: '/images/category_perfumes_bw.jpg',
     itemCount: 16,
-    subcategories: ['Oud & Extrait', 'Parfum', 'Eau de Parfum', 'Amber Bourbon'],
   },
 ];
 
@@ -347,24 +339,24 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'prod-13',
-    name: 'Luxury Supima Tailored Casual Shirt',
+    name: 'Royal Bandhgala Velvet Blazer',
     category: 'Men',
-    subCategory: 'Shirts',
+    subCategory: 'Blazers',
     department: 'Men',
-    brand: 'LAP OF LUXURY SARTORIAL',
-    price: 1899,
-    originalPrice: 3499,
+    brand: 'LAP OF LUXURY COUTURE',
+    price: 4999,
+    originalPrice: 8999,
     rating: 4.9,
     reviewsCount: 42,
-    image: '/images/category_mens_fashion_1791290148102.jpg',
-    secondaryImage: '/images/category_mens_bw.jpg',
-    description: 'Luxurious 100% Supima long-staple cotton tailored shirt with refined mother-of-pearl buttons and breathable all-day comfort finish.',
+    image: '/images/cat_mens_blazer.jpg',
+    secondaryImage: '/images/category_mens_fashion_1791290148102.jpg',
+    description: 'Regal midnight navy micro-velvet bandhgala jacket with hand-cast antiqued metal crest buttons and structured shoulder tailoring.',
     sizes: ['38', '40', '42', '44'],
     inStock: true,
-    stockCount: 28,
+    stockCount: 15,
     isBestSeller: true,
     isFestiveEdit: true,
-    tags: ['Men', 'Shirts', 'Festive Edit', 'Casual Luxury'],
+    tags: ['Men', 'Blazers', 'Festive Edit', 'Wedding'],
   },
   {
     id: 'prod-14',
@@ -567,7 +559,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 46,
     image: '/images/category_mens_fashion_1791290148102.jpg',
-    secondaryImage: '/images/category_mens_bw.jpg',
+    secondaryImage: '/images/cat_mens_blazer.jpg',
     description: 'Chanderi silk festive kurta featuring tonal thread work along the mandarin collar and placket, accompanied by tailored churidar trousers.',
     sizes: ['38', '40', '42', '44'],
     inStock: true,

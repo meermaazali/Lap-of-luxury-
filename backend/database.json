@@ -316,18 +316,18 @@
     },
     {
       "id": "prod-13",
-      "name": "Luxury Supima Tailored Casual Shirt",
+      "name": "Royal Bandhgala Velvet Blazer",
       "category": "Men",
-      "subCategory": "Shirts",
+      "subCategory": "Blazers",
       "department": "Men",
-      "brand": "LAP OF LUXURY SARTORIAL",
-      "price": 1899,
-      "originalPrice": 3499,
+      "brand": "LAP OF LUXURY COUTURE",
+      "price": 4999,
+      "originalPrice": 8999,
       "rating": 4.9,
       "reviewsCount": 42,
-      "image": "/images/category_mens_fashion_1791290148102.jpg",
-      "secondaryImage": "/images/category_mens_bw.jpg",
-      "description": "Luxurious 100% Supima long-staple cotton tailored shirt with refined mother-of-pearl buttons and breathable all-day comfort finish.",
+      "image": "/images/cat_mens_blazer.jpg",
+      "secondaryImage": "/images/category_mens_fashion_1791290148102.jpg",
+      "description": "Regal midnight navy micro-velvet bandhgala jacket with hand-cast antiqued metal crest buttons and structured shoulder tailoring.",
       "sizes": [
         "38",
         "40",
@@ -335,14 +335,14 @@
         "44"
       ],
       "inStock": true,
-      "stockCount": 28,
+      "stockCount": 15,
       "isBestSeller": true,
       "isFestiveEdit": true,
       "tags": [
         "Men",
-        "Shirts",
+        "Blazers",
         "Festive Edit",
-        "Casual Luxury"
+        "Wedding"
       ]
     },
     {
@@ -616,7 +616,7 @@
       "rating": 4.9,
       "reviewsCount": 46,
       "image": "/images/category_mens_fashion_1791290148102.jpg",
-      "secondaryImage": "/images/category_mens_bw.jpg",
+      "secondaryImage": "/images/cat_mens_blazer.jpg",
       "description": "Chanderi silk festive kurta featuring tonal thread work along the mandarin collar and placket, accompanied by tailored churidar trousers.",
       "sizes": [
         "38",

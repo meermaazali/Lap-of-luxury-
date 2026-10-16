@@ -87,21 +87,6 @@
         "phonepeMerchantId": { "type": "string" }
       },
       "required": ["id"]
-    },
-    "MediaAsset": {
-      "title": "MediaAsset",
-      "description": "Cloud media asset uploaded via admin",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "size": { "type": "number" },
-        "type": { "type": "string" },
-        "dataUrl": { "type": "string" },
-        "category": { "type": "string" },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "dataUrl"]
     }
   },
   "firestore": {
@@ -124,10 +109,6 @@
     "/storeSettings/{settingId}": {
       "schema": { "$ref": "#/entities/StoreSettings" },
       "description": "Global store settings"
-    },
-    "/media/{mediaId}": {
-      "schema": { "$ref": "#/entities/MediaAsset" },
-      "description": "Admin media assets collection"
     }
   }
 }

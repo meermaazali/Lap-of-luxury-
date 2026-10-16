@@ -31,14 +31,14 @@ interface DeptMeta {
 const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
   men: {
     title: "MEN'S FASHION & SARTORIAL",
-    tagline: 'Impeccable tailoring, double-ply cotton shirts, luxury polos, raw denim and handcrafted footwear.',
-    bannerImage: '/images/category_mens_fashion_1791290148102.jpg',
+    tagline: 'Impeccable tailoring, double-ply cotton shirts, raw denim, blazers and handcrafted footwear.',
+    bannerImage: '/images/cat_mens_blazer.jpg',
     subcategories: [
       'All Men',
       'Shirts',
-      'T-Shirts & Polos',
       'Trousers',
       'Jeans',
+      'Blazers',
       'Kurta Sets',
       'Sneakers',
       'Loafers',
@@ -179,9 +179,8 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           cat === 'men' ||
           cat === 'jeans' ||
           sub.includes('shirt') ||
-          sub.includes('polo') ||
-          sub.includes('t-shirt') ||
           sub.includes('trouser') ||
+          sub.includes('blazer') ||
           sub.includes('kurta') ||
           tags.includes('men')
         );
