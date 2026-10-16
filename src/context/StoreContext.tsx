@@ -49,24 +49,24 @@ import {
 interface StoreContextType {
   // Products
   products: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => Promise<void> | void;
-  updateProduct: (id: string, updates: Partial<Product>) => Promise<void> | void;
-  deleteProduct: (id: string) => Promise<void> | void;
-  updateStock: (id: string, newStock: number) => Promise<void> | void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<Product>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  updateStock: (id: string, newStock: number) => Promise<void>;
 
   // Banners
   banners: BannerSlide[];
-  addBanner: (banner: Omit<BannerSlide, 'id'>) => Promise<void> | void;
-  updateBanner: (id: string, updates: Partial<BannerSlide>) => Promise<void> | void;
-  deleteBanner: (id: string) => Promise<void> | void;
+  addBanner: (banner: Omit<BannerSlide, 'id'>) => Promise<BannerSlide>;
+  updateBanner: (id: string, updates: Partial<BannerSlide>) => Promise<void>;
+  deleteBanner: (id: string) => Promise<void>;
   bannerInterval: number;
   setBannerInterval: (interval: number) => void;
 
   // Categories
   categories: CategoryItem[];
-  addCategory: (category: Omit<CategoryItem, 'id'>) => Promise<void> | void;
-  updateCategory: (id: string, updates: Partial<CategoryItem>) => Promise<void> | void;
-  deleteCategory: (id: string) => Promise<void> | void;
+  addCategory: (category: Omit<CategoryItem, 'id'>) => Promise<CategoryItem>;
+  updateCategory: (id: string, updates: Partial<CategoryItem>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
   categoryInterval: number;
   setCategoryInterval: (interval: number) => void;
 
@@ -464,78 +464,52 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // ============================================================================
 
   // Products
-  const addProduct = async (productData: Omit<Product, 'id'>) => {
-    try {
-      const created = await cloudAddProduct(productData);
-      setProducts((prev) => [created, ...prev.filter((p) => p.id !== created.id)]);
-    } catch (err) {
-      console.error('Failed to add product to cloud:', err);
-    }
+  const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
+    const created = await cloudAddProduct(productData);
+    setProducts((prev) => [created, ...prev.filter((p) => p.id !== created.id)]);
+    return created;
   };
 
-  const updateProduct = async (id: string, updates: Partial<Product>) => {
-    try {
-      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
-      await cloudUpdateProduct(id, updates);
-    } catch (err) {
-      console.error('Failed to update product in cloud:', err);
-    }
+  const updateProduct = async (id: string, updates: Partial<Product>): Promise<void> => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    await cloudUpdateProduct(id, updates);
   };
 
-  const deleteProduct = async (id: string) => {
-    try {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-      await cloudDeleteProduct(id);
-    } catch (err) {
-      console.error('Failed to delete product from cloud:', err);
-    }
+  const deleteProduct = async (id: string): Promise<void> => {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    await cloudDeleteProduct(id);
   };
 
-  const updateStock = async (id: string, newStock: number) => {
-    try {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                stockCount: Math.max(0, newStock),
-                inStock: newStock > 0,
-              }
-            : p
-        )
-      );
-      await cloudUpdateStock(id, newStock);
-    } catch (err) {
-      console.error('Failed to update stock in cloud:', err);
-    }
+  const updateStock = async (id: string, newStock: number): Promise<void> => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              stockCount: Math.max(0, newStock),
+              inStock: newStock > 0,
+            }
+          : p
+      )
+    );
+    await cloudUpdateStock(id, newStock);
   };
 
   // Banners
-  const addBanner = async (bannerData: Omit<BannerSlide, 'id'>) => {
-    try {
-      const created = await cloudAddBanner(bannerData);
-      setBanners((prev) => [...prev.filter((b) => b.id !== created.id), created]);
-    } catch (err) {
-      console.error('Failed to add banner to cloud:', err);
-    }
+  const addBanner = async (bannerData: Omit<BannerSlide, 'id'>): Promise<BannerSlide> => {
+    const created = await cloudAddBanner(bannerData);
+    setBanners((prev) => [...prev.filter((b) => b.id !== created.id), created]);
+    return created;
   };
 
-  const updateBanner = async (id: string, updates: Partial<BannerSlide>) => {
-    try {
-      setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
-      await cloudUpdateBanner(id, updates);
-    } catch (err) {
-      console.error('Failed to update banner in cloud:', err);
-    }
+  const updateBanner = async (id: string, updates: Partial<BannerSlide>): Promise<void> => {
+    setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+    await cloudUpdateBanner(id, updates);
   };
 
-  const deleteBanner = async (id: string) => {
-    try {
-      setBanners((prev) => prev.filter((b) => b.id !== id));
-      await cloudDeleteBanner(id);
-    } catch (err) {
-      console.error('Failed to delete banner from cloud:', err);
-    }
+  const deleteBanner = async (id: string): Promise<void> => {
+    setBanners((prev) => prev.filter((b) => b.id !== id));
+    await cloudDeleteBanner(id);
   };
 
   const setBannerInterval = (interval: number) => {
@@ -544,31 +518,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Categories
-  const addCategory = async (catData: Omit<CategoryItem, 'id'>) => {
-    try {
-      const created = await cloudAddCategory(catData);
-      setCategories((prev) => [...prev.filter((c) => c.id !== created.id), created]);
-    } catch (err) {
-      console.error('Failed to add category to cloud:', err);
-    }
+  const addCategory = async (catData: Omit<CategoryItem, 'id'>): Promise<CategoryItem> => {
+    const created = await cloudAddCategory(catData);
+    setCategories((prev) => [...prev.filter((c) => c.id !== created.id), created]);
+    return created;
   };
 
-  const updateCategory = async (id: string, updates: Partial<CategoryItem>) => {
-    try {
-      setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
-      await cloudUpdateCategory(id, updates);
-    } catch (err) {
-      console.error('Failed to update category in cloud:', err);
-    }
+  const updateCategory = async (id: string, updates: Partial<CategoryItem>): Promise<void> => {
+    setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+    await cloudUpdateCategory(id, updates);
   };
 
-  const deleteCategory = async (id: string) => {
-    try {
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-      await cloudDeleteCategory(id);
-    } catch (err) {
-      console.error('Failed to delete category from cloud:', err);
-    }
+  const deleteCategory = async (id: string): Promise<void> => {
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+    await cloudDeleteCategory(id);
   };
 
   const setCategoryInterval = (interval: number) => {

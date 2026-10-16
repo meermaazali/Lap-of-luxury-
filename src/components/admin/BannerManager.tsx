@@ -33,6 +33,8 @@ export const BannerManager: React.FC = () => {
   const [editingBanner, setEditingBanner] = useState<BannerSlide | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSavingHero, setIsSavingHero] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -75,7 +77,7 @@ export const BannerManager: React.FC = () => {
     try {
       const asset = await uploadMediaAsset(file, 'Banners');
       setBoutiqueHeroData((prev) => ({ ...prev, image: asset.dataUrl }));
-      showToast('✓ Photo uploaded from device successfully! Click "Save Changes" below to publish.');
+      showToast('✓ Photo uploaded and optimized successfully! Click "Save Changes" below to publish.');
     } catch (err: unknown) {
       showToast('Upload failed: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
@@ -84,7 +86,7 @@ export const BannerManager: React.FC = () => {
     }
   };
 
-  const handleSaveBoutiqueHero = (e: React.FormEvent) => {
+  const handleSaveBoutiqueHero = async (e: React.FormEvent) => {
     e.preventDefault();
     let img = boutiqueHeroData.image.trim();
     if (!img.startsWith('/') && !img.startsWith('http') && !img.startsWith('data:')) {
@@ -96,16 +98,23 @@ export const BannerManager: React.FC = () => {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    updateBoutiqueHeroConfig({
-      kicker: boutiqueHeroData.kicker,
-      titleLine1: boutiqueHeroData.titleLine1,
-      titleLine2: boutiqueHeroData.titleLine2,
-      subtitleItems: items.length ? items : ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
-      ctaText: boutiqueHeroData.ctaText,
-      image: img,
-    });
-    setBoutiqueHeroData((prev) => ({ ...prev, image: img }));
-    showToast('✓ Flagship Luxury Showcase banner & texts updated! Changes are live on the storefront.');
+    setIsSavingHero(true);
+    try {
+      await updateBoutiqueHeroConfig({
+        kicker: boutiqueHeroData.kicker,
+        titleLine1: boutiqueHeroData.titleLine1,
+        titleLine2: boutiqueHeroData.titleLine2,
+        subtitleItems: items.length ? items : ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
+        ctaText: boutiqueHeroData.ctaText,
+        image: img,
+      });
+      setBoutiqueHeroData((prev) => ({ ...prev, image: img }));
+      showToast('✓ Flagship Luxury Showcase banner & texts updated and saved to Firebase!');
+    } catch (err: unknown) {
+      showToast('Failed to save to Firebase: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSavingHero(false);
+    }
   };
 
   const handleOpenAdd = () => {
@@ -165,7 +174,7 @@ export const BannerManager: React.FC = () => {
     setFormData((prev) => ({ ...prev, image: '' }));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) {
       setFormError('Main Title is required.');
@@ -176,35 +185,44 @@ export const BannerManager: React.FC = () => {
       return;
     }
 
-    if (editingBanner) {
-      updateBanner(editingBanner.id, {
-        title: formData.title,
-        subtitle: formData.subtitle,
-        kicker: formData.kicker,
-        ctaText: formData.ctaText,
-        ctaLink: formData.ctaLink,
-        secondaryCtaText: formData.secondaryCtaText,
-        secondaryCtaLink: formData.secondaryCtaLink,
-        image: formData.image,
-        active: formData.active,
-      });
-      showToast('✓ Banner slide updated! Live storefront reflects the changes.');
-    } else {
-      addBanner({
-        title: formData.title,
-        subtitle: formData.subtitle,
-        kicker: formData.kicker,
-        ctaText: formData.ctaText,
-        ctaLink: formData.ctaLink,
-        secondaryCtaText: formData.secondaryCtaText,
-        secondaryCtaLink: formData.secondaryCtaLink,
-        image: formData.image,
-        active: formData.active,
-        order: banners.length + 1,
-      });
-      showToast('✓ New banner slide created successfully!');
+    setIsSaving(true);
+    setFormError(null);
+
+    try {
+      if (editingBanner) {
+        await updateBanner(editingBanner.id, {
+          title: formData.title,
+          subtitle: formData.subtitle,
+          kicker: formData.kicker,
+          ctaText: formData.ctaText,
+          ctaLink: formData.ctaLink,
+          secondaryCtaText: formData.secondaryCtaText,
+          secondaryCtaLink: formData.secondaryCtaLink,
+          image: formData.image,
+          active: formData.active,
+        });
+        showToast('✓ Banner slide updated and saved to Firebase Cloud!');
+      } else {
+        await addBanner({
+          title: formData.title,
+          subtitle: formData.subtitle,
+          kicker: formData.kicker,
+          ctaText: formData.ctaText,
+          ctaLink: formData.ctaLink,
+          secondaryCtaText: formData.secondaryCtaText,
+          secondaryCtaLink: formData.secondaryCtaLink,
+          image: formData.image,
+          active: formData.active,
+          order: banners.length + 1,
+        });
+        showToast('✓ New banner slide created and saved to Firebase Cloud!');
+      }
+      setIsModalOpen(false);
+    } catch (err: unknown) {
+      setFormError('Failed to save banner to Firebase: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSaving(false);
     }
-    setIsModalOpen(false);
   };
 
   const handleConfirmDelete = () => {
@@ -502,10 +520,20 @@ export const BannerManager: React.FC = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs font-black tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2"
+                  disabled={isSavingHero}
+                  className="w-full py-3.5 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] text-xs font-black tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
                 >
-                  <Check className="w-4 h-4" />
-                  <span>SAVE & PUBLISH TO LIVE STOREFRONT</span>
+                  {isSavingHero ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      <span>SAVING TO FIREBASE CLOUD...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>SAVE & PUBLISH TO LIVE STOREFRONT</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -888,9 +916,17 @@ export const BannerManager: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#1E1E22] hover:bg-[#34343A] text-white text-xs font-bold uppercase tracking-wider rounded shadow cursor-pointer transition-all active:scale-95"
+                  disabled={isSaving}
+                  className="px-6 py-2 bg-[#1E1E22] hover:bg-[#34343A] text-white text-xs font-bold uppercase tracking-wider rounded shadow cursor-pointer transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  Save Slide
+                  {isSaving ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Saving to Firebase...</span>
+                    </>
+                  ) : (
+                    <span>Save Slide</span>
+                  )}
                 </button>
               </div>
             </form>
