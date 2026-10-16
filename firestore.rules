@@ -38,5 +38,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isValidId(settingId);
     }
+
+    // Media: public read for assets, admin write
+    match /media/{mediaId} {
+      allow read: if true;
+      allow write: if isValidId(mediaId);
+    }
   }
 }

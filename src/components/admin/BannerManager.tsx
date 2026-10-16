@@ -685,9 +685,9 @@ export const BannerManager: React.FC = () => {
 
       {/* Edit/Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FAF8F5] w-full max-w-xl rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-white border-b border-[#E8DEC8] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FAF8F5] w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 bg-white border-b border-[#E8DEC8] flex items-center justify-between shrink-0">
               <h3 className="font-display text-base font-bold tracking-wider uppercase text-[#1E1E22]">
                 {editingBanner ? 'EDIT BANNER SLIDE' : 'CREATE NEW BANNER SLIDE'}
               </h3>
@@ -700,13 +700,13 @@ export const BannerManager: React.FC = () => {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl flex items-center gap-2">
+              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl flex items-center gap-2 shrink-0">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSave} className="p-6 space-y-4">
+            <form onSubmit={handleSave} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-semibold text-[#4A4033] mb-1">
                   MAIN TITLE (Display Face) *
@@ -878,7 +878,7 @@ export const BannerManager: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#E8DEC8] flex justify-end gap-3">
+              <div className="pt-4 border-t border-[#E8DEC8] flex justify-end gap-3 sticky bottom-0 bg-[#FAF8F5] pb-2 z-10 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

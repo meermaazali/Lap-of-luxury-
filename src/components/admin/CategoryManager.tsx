@@ -207,12 +207,12 @@ export const CategoryManager: React.FC = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FAF8F5] w-full max-w-md rounded-2xl border border-[#D5C2A5] shadow-2xl p-6">
-            <h3 className="font-display text-base font-bold tracking-wider uppercase text-[#1E1E22] mb-4">
+          <div className="bg-[#FAF8F5] w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl border border-[#D5C2A5] shadow-2xl p-6 my-auto overflow-hidden">
+            <h3 className="font-display text-base font-bold tracking-wider uppercase text-[#1E1E22] mb-4 shrink-0">
               {editingCategory ? 'EDIT CATEGORY' : 'ADD NEW CATEGORY'}
             </h3>
 
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-4 overflow-y-auto flex-1">
               {formError && (
                 <div className="p-2.5 bg-red-50 border border-red-300 text-red-700 text-xs rounded-lg font-semibold">
                   {formError}
@@ -271,17 +271,17 @@ export const CategoryManager: React.FC = () => {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#E8DEC8]">
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#E8DEC8] sticky bottom-0 bg-[#FAF8F5] pb-1 z-10 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-[#D5C7B0] text-xs font-semibold uppercase rounded hover:bg-[#F2ECE1]"
+                  className="px-4 py-2 border border-[#D5C7B0] text-xs font-semibold uppercase rounded hover:bg-[#F2ECE1] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#1E1E22] text-white text-xs font-bold uppercase rounded shadow"
+                  className="px-5 py-2 bg-[#1E1E22] text-white text-xs font-bold uppercase rounded shadow cursor-pointer transition-all active:scale-95"
                 >
                   Save Category
                 </button>
