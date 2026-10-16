@@ -105,99 +105,113 @@ export const DEFAULT_BOUTIQUE_HERO: BoutiqueHeroConfig = {
  * 3. Falls back seamlessly to /api/media/upload or optimized data URL.
  * 4. Resolves in <300ms, ensuring uploads never hang or block.
  */
+
+/* ============================================================================
+   CLOUD STORAGE UPLOAD HELPER
+   Uploads images to Firebase Storage and returns a permanent HTTPS URL.
+   Does not silently fall back to temporary data URLs or local images.
+============================================================================ */
+
 export async function uploadFileToFirebaseStorage(
   file: File | Blob,
   folder: string = 'media',
   customName?: string
 ): Promise<string> {
-  let compressedDataUrl: string = '';
-
-  // 1. Instant client-side compression to web-optimized dimensions & quality (<60KB)
-  if (file instanceof File && file.type.startsWith('image/')) {
-    try {
-      compressedDataUrl = await compressImage(file, 1000, 0.78);
-    } catch (e) {
-      console.warn('Image compression warning, using raw file:', e);
-    }
+  // 1. Validate the selected file.
+  if (!file || file.size === 0) {
+    throw new Error('The selected image is empty. Please choose another image.');
   }
 
-  // If compression failed or file wasn't an image, convert to dataURL as fallback
-  if (!compressedDataUrl && file instanceof File) {
+  let uploadBlob: Blob = file;
+
+  // 2. Compress images before uploading to reduce upload time.
+  if (
+    typeof File !== 'undefined' &&
+    file instanceof File &&
+    file.type.startsWith('image/')
+  ) {
     try {
-      compressedDataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(file);
-      });
-    } catch {}
-  }
+      const compressedDataUrl = await compressImage(file, 1600, 0.82);
 
-  // 2. Try Firebase Cloud Storage with a 2.5-second race timeout
-  try {
-    let uploadBlob: Blob = file;
-    if (compressedDataUrl) {
-      try {
-        const res = await fetch(compressedDataUrl);
-        uploadBlob = await res.blob();
-      } catch {
-        uploadBlob = file;
-      }
-    }
+      if (compressedDataUrl.startsWith('data:')) {
+        const response = await fetch(compressedDataUrl);
 
-    const cleanName = (customName || (file instanceof File ? file.name : `image_${Date.now()}.jpg`))
-      .toLowerCase()
-      .replace(/[^a-z0-9_.-]/g, '_');
-    const storagePath = `${folder}/${Date.now()}_${cleanName}`;
-    const storageRef = ref(storage, storagePath);
+        if (!response.ok) {
+          throw new Error('Could not process the compressed image.');
+        }
 
-    // Timeout promise to cancel hanging network/CORS issues after 2.5 seconds
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Firebase Storage timeout after 2500ms')), 2500)
-    );
+        const compressedBlob = await response.blob();
 
-    const uploadPromise = (async () => {
-      await uploadBytes(storageRef, uploadBlob, {
-        contentType: uploadBlob.type || 'image/jpeg',
-      });
-      return await getDownloadURL(storageRef);
-    })();
-
-    const downloadUrl = await Promise.race([uploadPromise, timeoutPromise]);
-    if (downloadUrl) {
-      return downloadUrl;
-    }
-  } catch (error) {
-    console.warn('Firebase Storage upload bypassed (timed out or unconfigured), using local/cloud fallback:', error);
-  }
-
-  // 3. Try server API upload endpoint (/api/media/upload)
-  if (compressedDataUrl && typeof window !== 'undefined') {
-    try {
-      const apiRes = await fetch('/api/media/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dataUrl: compressedDataUrl }),
-      });
-      if (apiRes.ok) {
-        const json = await apiRes.json();
-        if (json.url) {
-          return json.url;
+        if (compressedBlob.size > 0) {
+          uploadBlob = compressedBlob;
         }
       }
-    } catch (apiErr) {
-      console.warn('API media upload endpoint bypassed:', apiErr);
+    } catch (error) {
+      // If compression fails, upload the original image.
+      console.warn(
+        'Image compression failed. Uploading the original image.',
+        error
+      );
+      uploadBlob = file;
     }
   }
 
-  // 4. Return the compressed data URL (guaranteed <60KB, stores cleanly in Firestore)
-  if (compressedDataUrl) {
-    return compressedDataUrl;
+  // 3. Create a safe, unique filename.
+  const originalName =
+    customName ||
+    (typeof File !== 'undefined' && file instanceof File
+      ? file.name
+      : `image_${Date.now()}.jpg`);
+
+  const cleanName = originalName
+    .replace(/[^a-zA-Z0-9_.-]/g, '_')
+    .slice(-120);
+
+  const safeFolder = folder
+    .split('/')
+    .filter(Boolean)
+    .map((part) => part.replace(/[^a-zA-Z0-9_-]/g, '_'))
+    .join('/');
+
+  const uniqueId =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+  const storagePath = `${safeFolder || 'media'}/${uniqueId}_${cleanName}`;
+  const storageRef = ref(storage, storagePath);
+
+  // 4. Upload to Firebase Storage.
+  // Do not use a short timeout: genuine uploads may take longer than 2.5 seconds.
+  try {
+    await uploadBytes(storageRef, uploadBlob, {
+      contentType:
+        uploadBlob.type ||
+        (typeof File !== 'undefined' && file instanceof File
+          ? file.type
+          : '') ||
+        'application/octet-stream',
+    });
+
+    // 5. Get the permanent Firebase download URL.
+    const downloadUrl = await getDownloadURL(storageRef);
+
+    if (!downloadUrl.startsWith('https://')) {
+      throw new Error('Firebase did not return a valid HTTPS image URL.');
+    }
+
+    return downloadUrl;
+  } catch (error) {
+    console.error('Firebase Storage upload failed:', error);
+
+    const details =
+      error instanceof Error ? error.message : String(error);
+
+    throw new Error(
+      `Image upload failed. Check that Firebase Storage is enabled and its security rules allow this upload. Details: ${details}`
+    );
   }
-
-  return '/images/category_mens_fashion_1791290148102.jpg';
 }
-
 // ============================================================================
 // ONE-TIME SAFE CLOUD DATA SEEDING & MIGRATION
 // ============================================================================

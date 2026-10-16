@@ -122,7 +122,7 @@ interface StoreContextType {
   // Media Library / Cloud Storage
   mediaAssets: MediaAsset[];
   uploadMediaAsset: (file: File, category?: string) => Promise<MediaAsset>;
-  deleteMediaAsset: (id: string) => void;
+  deleteMediaAsset: (id: string) => Promise<void>;
 
   // Navigation & Filtering
   currentView: string;
@@ -162,7 +162,7 @@ export function playOrderChime() {
 }
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Authoritative Cloud Collections (initialized with clean presets, kept in live real-time sync with Firestore)
+  // 1. Cloud collections
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [banners, setBanners] = useState<BannerSlide[]>(INITIAL_BANNERS);
   const [bannerInterval, setBannerIntervalState] = useState<number>(5);
@@ -171,9 +171,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [orders, setOrders] = useState<Order[]>([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(INITIAL_MEDIA);
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(DEFAULT_PAYMENT_CONFIG);
-  const [boutiqueHeroConfig, setBoutiqueHeroConfig] = useState<BoutiqueHeroConfig>(DEFAULT_BOUTIQUE_HERO);
+  const [boutiqueHeroConfig, setBoutiqueHeroConfig] =
+    useState<BoutiqueHeroConfig>(DEFAULT_BOUTIQUE_HERO);
 
-  // 2. Shopper Local Session Storage (Cart & Wishlist specific to current shopper's browser)
+  // 2. Shopper session storage: cart and wishlist
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('lol_cart');
@@ -204,14 +205,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {}
   }, [wishlist]);
 
-  // 3. Navigation & Route States
+  // 3. Navigation and route states
   const getInitialView = () => {
     if (typeof window === 'undefined') return 'home';
+
     const hash = window.location.hash.toLowerCase().replace('#', '');
-    const validViews = ['home', 'men', 'women', 'bags', 'footwear', 'shoes', 'accessories', 'collections', 'bestsellers', 'sale', 'new-arrivals'];
+    const validViews = [
+      'home',
+      'men',
+      'women',
+      'bags',
+      'footwear',
+      'shoes',
+      'accessories',
+      'collections',
+      'bestsellers',
+      'sale',
+      'new-arrivals',
+    ];
+
     if (validViews.includes(hash)) {
       return hash === 'shoes' ? 'footwear' : hash;
     }
+
     return 'home';
   };
 
@@ -219,9 +235,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   const setCurrentView = (view: string, subCategory?: string | null) => {
-    const norm = view.toLowerCase().trim() === 'shoes' ? 'footwear' : view.toLowerCase().trim();
+    const norm =
+      view.toLowerCase().trim() === 'shoes'
+        ? 'footwear'
+        : view.toLowerCase().trim();
+
     setCurrentViewState(norm);
     setSelectedSubcategory(subCategory || null);
+
     if (typeof window !== 'undefined') {
       if (norm === 'home') {
         try {
@@ -234,6 +255,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } else {
         window.location.hash = norm;
       }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -241,6 +263,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.toLowerCase().replace('#', '');
+
       if (hash && hash !== 'admin' && hash !== 'experience') {
         const norm = hash === 'shoes' ? 'footwear' : hash;
         setCurrentViewState(norm);
@@ -248,6 +271,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCurrentViewState('home');
       }
     };
+
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
@@ -262,28 +286,45 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const checkIsAdminRoute = () => {
     if (typeof window === 'undefined') return false;
+
     const path = window.location.pathname.toLowerCase();
     const hash = window.location.hash.toLowerCase();
     const search = window.location.search.toLowerCase();
-    return path.startsWith('/admin') || hash.includes('admin') || search.includes('admin');
+
+    return (
+      path.startsWith('/admin') ||
+      hash.includes('admin') ||
+      search.includes('admin')
+    );
   };
 
   const checkIsExperienceRoute = () => {
     if (typeof window === 'undefined') return false;
+
     const path = window.location.pathname.toLowerCase();
     const hash = window.location.hash.toLowerCase();
     const search = window.location.search.toLowerCase();
-    return path.startsWith('/experience') || hash.includes('experience') || search.includes('experience');
+
+    return (
+      path.startsWith('/experience') ||
+      hash.includes('experience') ||
+      search.includes('experience')
+    );
   };
 
   const [isAdminMode, setIsAdminModeState] = useState<boolean>(() => checkIsAdminRoute());
-  const [isExperienceOpen, setIsExperienceOpenState] = useState<boolean>(() => checkIsExperienceRoute());
+  const [isExperienceOpen, setIsExperienceOpenState] =
+    useState<boolean>(() => checkIsExperienceRoute());
 
   const setIsAdminMode = (admin: boolean) => {
     setIsAdminModeState(admin);
+
     if (typeof window !== 'undefined') {
       if (admin) {
-        if (!window.location.pathname.startsWith('/admin') && !window.location.hash.includes('admin')) {
+        if (
+          !window.location.pathname.startsWith('/admin') &&
+          !window.location.hash.includes('admin')
+        ) {
           try {
             window.history.pushState(null, '', '/admin');
           } catch {
@@ -291,7 +332,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }
       } else {
-        if (window.location.pathname.startsWith('/admin') || window.location.hash.includes('admin')) {
+        if (
+          window.location.pathname.startsWith('/admin') ||
+          window.location.hash.includes('admin')
+        ) {
           try {
             window.history.pushState(null, '', '/');
           } catch {
@@ -304,9 +348,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setIsExperienceOpen = (open: boolean) => {
     setIsExperienceOpenState(open);
+
     if (typeof window !== 'undefined') {
       if (open) {
-        if (!window.location.pathname.startsWith('/experience') && !window.location.hash.includes('experience')) {
+        if (
+          !window.location.pathname.startsWith('/experience') &&
+          !window.location.hash.includes('experience')
+        ) {
           try {
             window.history.pushState(null, '', '/experience');
           } catch {
@@ -314,7 +362,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }
       } else {
-        if (window.location.pathname.startsWith('/experience') || window.location.hash.includes('experience')) {
+        if (
+          window.location.pathname.startsWith('/experience') ||
+          window.location.hash.includes('experience')
+        ) {
           try {
             window.history.pushState(null, '', '/');
           } catch {
@@ -330,8 +381,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setIsAdminModeState(checkIsAdminRoute());
       setIsExperienceOpenState(checkIsExperienceRoute());
     };
+
     window.addEventListener('popstate', handleUrlChange);
     window.addEventListener('hashchange', handleUrlChange);
+
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('hashchange', handleUrlChange);
@@ -343,12 +396,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const triggerTransition = (categorySlug: string, label?: string) => {
     setSelectedCategory(categorySlug);
+
     if (label) {
       setTransitionLabel(label);
       setIsTransitioning(true);
       setTimeout(() => setIsTransitioning(false), 300);
     }
+
     const element = document.getElementById('catalog-section');
+
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
@@ -361,7 +417,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // ============================================================================
-  // 4. REAL-TIME FIRESTORE DATA SYNCHRONIZATION (AUTHORITATIVE CLOUD CONNECTION)
+  // 4. REAL-TIME FIRESTORE DATA SYNCHRONIZATION
   // ============================================================================
   useEffect(() => {
     let unsubProducts: (() => void) | undefined;
@@ -370,86 +426,92 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let unsubOrders: (() => void) | undefined;
     let unsubSettings: (() => void) | undefined;
     let unsubMedia: (() => void) | undefined;
+    let cancelled = false;
 
-    // A. Verify or Seed Cloud Firestore if completely empty
     ensureCloudDataSeeded()
-      .catch((err) => console.warn('Cloud seeding check:', err))
+      .catch((err) => {
+        console.warn('Cloud seeding check:', err);
+      })
       .finally(() => {
-        // B. Attach live real-time listeners across all devices
+        if (cancelled) return;
+
+        // Products
         try {
           unsubProducts = subscribeToProducts((cloudProducts) => {
-            if (cloudProducts && cloudProducts.length > 0) {
-              setProducts(cloudProducts);
-            }
+            setProducts(cloudProducts);
           });
-        } catch (e) {
-          console.error('Failed to subscribe to products:', e);
+        } catch (error) {
+          console.error('Failed to subscribe to products:', error);
         }
 
+        // Banners
         try {
           unsubBanners = subscribeToBanners((cloudBanners) => {
-            if (cloudBanners && cloudBanners.length > 0) {
-              setBanners(cloudBanners);
-            }
+            setBanners(cloudBanners);
           });
-        } catch (e) {
-          console.error('Failed to subscribe to banners:', e);
+        } catch (error) {
+          console.error('Failed to subscribe to banners:', error);
         }
 
+        // Categories
         try {
           unsubCategories = subscribeToCategories((cloudCategories) => {
-            if (cloudCategories && cloudCategories.length > 0) {
-              setCategories(cloudCategories);
-            }
+            setCategories(cloudCategories);
           });
-        } catch (e) {
-          console.error('Failed to subscribe to categories:', e);
+        } catch (error) {
+          console.error('Failed to subscribe to categories:', error);
         }
 
+        // Orders and notifications
         try {
           unsubOrders = subscribeToOrders((cloudOrders) => {
             setOrders(cloudOrders);
-            // Trigger in-app notification if a new unread order arrives
-            const unread = cloudOrders.find((o) => !o.isRead);
+
+            const unread = cloudOrders.find((order) => !order.isRead);
+
             if (unread) {
               setLatestNotification(unread);
             }
           });
-        } catch (e) {
-          console.error('Failed to subscribe to orders:', e);
+        } catch (error) {
+          console.error('Failed to subscribe to orders:', error);
         }
 
+        // Store settings
         try {
           unsubSettings = subscribeToStoreSettings((settings) => {
             if (settings.paymentConfig) {
               setPaymentConfig(settings.paymentConfig);
             }
+
             if (settings.boutiqueHeroConfig) {
               setBoutiqueHeroConfig(settings.boutiqueHeroConfig);
             }
+
             if (typeof settings.bannerInterval === 'number') {
               setBannerIntervalState(settings.bannerInterval);
             }
+
             if (typeof settings.categoryInterval === 'number') {
               setCategoryIntervalState(settings.categoryInterval);
             }
           });
-        } catch (e) {
-          console.error('Failed to subscribe to storeSettings:', e);
+        } catch (error) {
+          console.error('Failed to subscribe to store settings:', error);
         }
 
+        // Media library: also accept an empty cloud list after deletions
         try {
           unsubMedia = subscribeToMediaAssets((cloudMedia) => {
-            if (cloudMedia && cloudMedia.length > 0) {
-              setMediaAssets(cloudMedia);
-            }
+            setMediaAssets(cloudMedia);
           });
-        } catch (e) {
-          console.error('Failed to subscribe to media:', e);
+        } catch (error) {
+          console.error('Failed to subscribe to media:', error);
         }
       });
 
     return () => {
+      cancelled = true;
       unsubProducts?.();
       unsubBanners?.();
       unsubCategories?.();
@@ -460,56 +522,92 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   // ============================================================================
-  // 5. CLOUD MUTATION ACTIONS (WRITES TO FIRESTORE DIRECTLY)
+  // 5. CLOUD MUTATION ACTIONS
   // ============================================================================
 
   // Products
-  const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
+  const addProduct = async (
+    productData: Omit<Product, 'id'>
+  ): Promise<Product> => {
     const created = await cloudAddProduct(productData);
-    setProducts((prev) => [created, ...prev.filter((p) => p.id !== created.id)]);
+
+    setProducts((prev) => [
+      created,
+      ...prev.filter((product) => product.id !== created.id),
+    ]);
+
     return created;
   };
 
-  const updateProduct = async (id: string, updates: Partial<Product>): Promise<void> => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+  const updateProduct = async (
+    id: string,
+    updates: Partial<Product>
+  ): Promise<void> => {
+    setProducts((prev) =>
+      prev.map((product) =>
+        product.id === id ? { ...product, ...updates } : product
+      )
+    );
+
     await cloudUpdateProduct(id, updates);
   };
 
   const deleteProduct = async (id: string): Promise<void> => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
     await cloudDeleteProduct(id);
+    setProducts((prev) => prev.filter((product) => product.id !== id));
   };
 
-  const updateStock = async (id: string, newStock: number): Promise<void> => {
+  const updateStock = async (
+    id: string,
+    newStock: number
+  ): Promise<void> => {
+    const safeStock = Math.max(0, newStock);
+
+    await cloudUpdateStock(id, safeStock);
+
     setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
+      prev.map((product) =>
+        product.id === id
           ? {
-              ...p,
-              stockCount: Math.max(0, newStock),
-              inStock: newStock > 0,
+              ...product,
+              stockCount: safeStock,
+              inStock: safeStock > 0,
             }
-          : p
+          : product
       )
     );
-    await cloudUpdateStock(id, newStock);
   };
 
   // Banners
-  const addBanner = async (bannerData: Omit<BannerSlide, 'id'>): Promise<BannerSlide> => {
+  const addBanner = async (
+    bannerData: Omit<BannerSlide, 'id'>
+  ): Promise<BannerSlide> => {
     const created = await cloudAddBanner(bannerData);
-    setBanners((prev) => [...prev.filter((b) => b.id !== created.id), created]);
+
+    setBanners((prev) => [
+      ...prev.filter((banner) => banner.id !== created.id),
+      created,
+    ]);
+
     return created;
   };
 
-  const updateBanner = async (id: string, updates: Partial<BannerSlide>): Promise<void> => {
-    setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+  const updateBanner = async (
+    id: string,
+    updates: Partial<BannerSlide>
+  ): Promise<void> => {
     await cloudUpdateBanner(id, updates);
+
+    setBanners((prev) =>
+      prev.map((banner) =>
+        banner.id === id ? { ...banner, ...updates } : banner
+      )
+    );
   };
 
   const deleteBanner = async (id: string): Promise<void> => {
-    setBanners((prev) => prev.filter((b) => b.id !== id));
     await cloudDeleteBanner(id);
+    setBanners((prev) => prev.filter((banner) => banner.id !== id));
   };
 
   const setBannerInterval = (interval: number) => {
@@ -518,20 +616,35 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Categories
-  const addCategory = async (catData: Omit<CategoryItem, 'id'>): Promise<CategoryItem> => {
-    const created = await cloudAddCategory(catData);
-    setCategories((prev) => [...prev.filter((c) => c.id !== created.id), created]);
+  const addCategory = async (
+    categoryData: Omit<CategoryItem, 'id'>
+  ): Promise<CategoryItem> => {
+    const created = await cloudAddCategory(categoryData);
+
+    setCategories((prev) => [
+      ...prev.filter((category) => category.id !== created.id),
+      created,
+    ]);
+
     return created;
   };
 
-  const updateCategory = async (id: string, updates: Partial<CategoryItem>): Promise<void> => {
-    setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+  const updateCategory = async (
+    id: string,
+    updates: Partial<CategoryItem>
+  ): Promise<void> => {
     await cloudUpdateCategory(id, updates);
+
+    setCategories((prev) =>
+      prev.map((category) =>
+        category.id === id ? { ...category, ...updates } : category
+      )
+    );
   };
 
   const deleteCategory = async (id: string): Promise<void> => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
     await cloudDeleteCategory(id);
+    setCategories((prev) => prev.filter((category) => category.id !== id));
   };
 
   const setCategoryInterval = (interval: number) => {
@@ -540,25 +653,52 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Cart actions
-  const addToCart = (product: Product, size?: string, quantity: number = 1) => {
-    const chosenSize = size || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Standard');
+  const addToCart = (
+    product: Product,
+    size?: string,
+    quantity: number = 1
+  ) => {
+    const chosenSize =
+      size ||
+      (product.sizes && product.sizes.length > 0
+        ? product.sizes[0]
+        : 'Standard');
+
     setCart((prev) => {
       const existing = prev.find(
-        (item) => item.product.id === product.id && (item.selectedSize === chosenSize || item.size === chosenSize)
+        (item) =>
+          item.product.id === product.id &&
+          (item.selectedSize === chosenSize || item.size === chosenSize)
       );
+
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id && (item.selectedSize === chosenSize || item.size === chosenSize)
+          item.product.id === product.id &&
+          (item.selectedSize === chosenSize || item.size === chosenSize)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prev, { product, selectedSize: chosenSize, size: chosenSize, quantity }];
+
+      return [
+        ...prev,
+        {
+          product,
+          selectedSize: chosenSize,
+          size: chosenSize,
+          quantity,
+        },
+      ];
     });
+
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string, size?: string, color?: string) => {
+  const removeFromCart = (
+    productId: string,
+    size?: string,
+    color?: string
+  ) => {
     setCart((prev) =>
       prev.filter((item) => {
         if (item.product.id !== productId) return true;
@@ -569,37 +709,52 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   };
 
-  const updateCartQuantity = (productId: string, size: string, quantity: number) => {
+  const updateCartQuantity = (
+    productId: string,
+    size: string,
+    quantity: number
+  ) => {
     if (quantity <= 0) {
       removeFromCart(productId, size);
       return;
     }
+
     setCart((prev) =>
       prev.map((item) =>
-        item.product.id === productId && (item.selectedSize === size || item.size === size)
+        item.product.id === productId &&
+        (item.selectedSize === size || item.size === size)
           ? { ...item, quantity }
           : item
       )
     );
   };
 
-  const updateQuantity = (productId: string, sizeOrQty?: any, qtyOrColor?: any, color?: any) => {
+  const updateQuantity = (
+    productId: string,
+    sizeOrQty?: any,
+    qtyOrColor?: any,
+    color?: any
+  ) => {
     let size: string | undefined;
     let qty: number;
+
     if (typeof sizeOrQty === 'number') {
       qty = sizeOrQty;
     } else {
       size = sizeOrQty;
       qty = typeof qtyOrColor === 'number' ? qtyOrColor : 1;
     }
+
     if (qty <= 0) {
       removeFromCart(productId, size, color);
       return;
     }
+
     setCart((prev) =>
       prev.map((item) => {
         if (item.product.id !== productId) return item;
         if (size && item.selectedSize !== size && item.size !== size) return item;
+
         return { ...item, quantity: qty };
       })
     );
@@ -607,29 +762,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const clearCart = () => setCart([]);
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = cart.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+
+  const cartCount = cart.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
   // Wishlist actions
   const toggleWishlist = (product: Product) => {
     setWishlist((prev) => {
-      const exists = prev.some((p) => p.id === product.id);
+      const exists = prev.some((item) => item.id === product.id);
+
       if (exists) {
-        return prev.filter((p) => p.id !== product.id);
+        return prev.filter((item) => item.id !== product.id);
       }
+
       return [...prev, product];
     });
   };
 
   const removeFromWishlist = (productId: string) => {
-    setWishlist((prev) => prev.filter((p) => p.id !== productId));
+    setWishlist((prev) =>
+      prev.filter((product) => product.id !== productId)
+    );
   };
 
   const isInWishlist = (productId: string) => {
-    return wishlist.some((p) => p.id === productId);
+    return wishlist.some((product) => product.id === productId);
   };
 
-  // Orders and Notifications
+  // Orders and notifications
   const placeOrder = (
     customer: {
       name: string;
@@ -680,62 +846,123 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       isRead: false,
     };
 
-    // Deduct stock in Cloud Firestore across all devices
+    // Deduct stock in the cloud
     cart.forEach((cartItem) => {
-      void cloudUpdateStock(cartItem.product.id, Math.max(0, cartItem.product.stockCount - cartItem.quantity));
+      void cloudUpdateStock(
+        cartItem.product.id,
+        Math.max(
+          0,
+          cartItem.product.stockCount - cartItem.quantity
+        )
+      ).catch((error) => {
+        console.error('Failed to update product stock:', error);
+      });
     });
 
-    // Write order directly to Cloud Firestore
-    void cloudPlaceOrder(newOrder);
+    // Save the order in the cloud
+    void cloudPlaceOrder(newOrder).catch((error) => {
+      console.error('Failed to save order to the cloud:', error);
+    });
 
     setOrders((prev) => [newOrder, ...prev]);
     setLastPlacedOrder(newOrder);
     sendOrderEmailNotification(newOrder);
     clearCart();
+
     return newOrder;
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
+  const updateOrderStatus = (
+    orderId: string,
+    status: Order['status']
+  ) => {
+    void cloudUpdateOrderStatus(orderId, status).catch((error) => {
+      console.error('Failed to update order status:', error);
+    });
+
     setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status } : o))
+      prev.map((order) =>
+        order.id === orderId ? { ...order, status } : order
+      )
     );
-    void cloudUpdateOrderStatus(orderId, status);
   };
 
   const markOrderRead = (orderId: string) => {
+    void cloudMarkOrderRead(orderId).catch((error) => {
+      console.error('Failed to mark order as read:', error);
+    });
+
     setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, isRead: true } : o))
+      prev.map((order) =>
+        order.id === orderId ? { ...order, isRead: true } : order
+      )
     );
-    void cloudMarkOrderRead(orderId);
   };
 
-  const unreadOrdersCount = orders.filter((o) => !o.isRead).length;
+  const unreadOrdersCount = orders.filter(
+    (order) => !order.isRead
+  ).length;
 
   const dismissNotification = () => {
     setLatestNotification(null);
   };
 
-  // Payment Setup Configuration
+  // Payment setup configuration
   const updatePaymentConfig = (updates: Partial<PaymentConfig>) => {
     setPaymentConfig((prev) => {
-      const next = { ...prev, ...updates, enableCOD: false };
-      void cloudUpdateStoreSettings({ paymentConfig: next });
+      const next = {
+        ...prev,
+        ...updates,
+        enableCOD: false,
+      };
+
+      void cloudUpdateStoreSettings({ paymentConfig: next }).catch((error) => {
+        console.error('Failed to save payment settings:', error);
+      });
+
       return next;
     });
   };
 
-  // Flagship Boutique Hero Configuration
-  const updateBoutiqueHeroConfig = (updates: Partial<BoutiqueHeroConfig>) => {
+  // Boutique hero configuration
+  const updateBoutiqueHeroConfig = (
+    updates: Partial<BoutiqueHeroConfig>
+  ) => {
     setBoutiqueHeroConfig((prev) => {
       const next = { ...prev, ...updates };
-      void cloudUpdateStoreSettings({ boutiqueHeroConfig: next });
+
+      void cloudUpdateStoreSettings({
+        boutiqueHeroConfig: next,
+      }).catch((error) => {
+        console.error('Failed to save boutique settings:', error);
+      });
+
       return next;
     });
   };
 
-  // Media upload with direct Firebase Storage upload
-  const uploadMediaAsset = async (file: File, category: string = 'Products'): Promise<MediaAsset> => {
+  // ============================================================================
+  // Media library and Firebase Storage
+  // ============================================================================
+
+  const uploadMediaAsset = async (
+    file: File,
+    category: string = 'Products'
+  ): Promise<MediaAsset> => {
+    if (!file || file.size === 0) {
+      throw new Error('Please select a valid image file.');
+    }
+
+    // Upload the actual file to Firebase Storage first.
     const storageUrl = await uploadFileToFirebaseStorage(file, 'media');
+
+    if (!storageUrl.startsWith('https://')) {
+      throw new Error(
+        'The image upload did not return a permanent HTTPS URL.'
+      );
+    }
+
+    // Save its URL and details to the cloud media collection.
     const newAsset = await cloudAddMediaAsset({
       name: file.name,
       size: file.size,
@@ -744,14 +971,27 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       createdAt: new Date().toISOString(),
       category,
     });
-    setMediaAssets((prev) => [newAsset, ...prev]);
+
+    setMediaAssets((prev) => [
+      newAsset,
+      ...prev.filter((asset) => asset.id !== newAsset.id),
+    ]);
+
     return newAsset;
   };
 
-  const deleteMediaAsset = (id: string) => {
-    setMediaAssets((prev) => prev.filter((m) => m.id !== id));
-    void cloudDeleteMediaAsset(id);
+  const deleteMediaAsset = async (id: string): Promise<void> => {
+    // Delete the cloud record before removing it from the visible gallery.
+    await cloudDeleteMediaAsset(id);
+
+    setMediaAssets((prev) =>
+      prev.filter((asset) => asset.id !== id)
+    );
   };
+
+  // ============================================================================
+  // Provide the store context to the existing website
+  // ============================================================================
 
   return (
     <StoreContext.Provider
@@ -761,18 +1001,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateProduct,
         deleteProduct,
         updateStock,
+
         banners,
         addBanner,
         updateBanner,
         deleteBanner,
         bannerInterval,
         setBannerInterval,
+
         categories,
         addCategory,
         updateCategory,
         deleteCategory,
         categoryInterval,
         setCategoryInterval,
+
         cart,
         addToCart,
         removeFromCart,
@@ -783,10 +1026,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         cartCount,
         isCartOpen,
         setIsCartOpen,
+
         wishlist,
         toggleWishlist,
         removeFromWishlist,
         isInWishlist,
+
         orders,
         placeOrder,
         updateOrderStatus,
@@ -795,9 +1040,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         latestNotification,
         dismissNotification,
         playOrderChime,
+
+        paymentConfig,
+        updatePaymentConfig,
+        boutiqueHeroConfig,
+        updateBoutiqueHeroConfig,
+
         mediaAssets,
         uploadMediaAsset,
         deleteMediaAsset,
+
         currentView,
         setCurrentView,
         selectedSubcategory,
@@ -812,14 +1064,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsCheckoutOpen,
         lastPlacedOrder,
         setLastPlacedOrder,
+
         isAdminMode,
         setIsAdminMode,
         isExperienceOpen,
         setIsExperienceOpen,
-        paymentConfig,
-        updatePaymentConfig,
-        boutiqueHeroConfig,
-        updateBoutiqueHeroConfig,
+
         isTransitioning,
         transitionLabel,
         triggerTransition,
@@ -833,8 +1083,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useStore = () => {
   const context = useContext(StoreContext);
+
   if (!context) {
-    throw new Error('useStore must be used within a StoreProvider');
-  }
+    throw new Error('useStore must be used within a StoreProvider
+    }
+
   return context;
 };
