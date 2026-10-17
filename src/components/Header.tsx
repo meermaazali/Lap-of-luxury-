@@ -37,7 +37,7 @@ const MOBILE_DEPARTMENTS = [
       { label: 'Shirts', sub: 'Shirts' },
       { label: 'Trousers & Chinos', sub: 'Trousers' },
       { label: 'Jeans & Denim', sub: 'Jeans' },
-      { label: 'Blazers & Tuxedos', sub: 'Blazers' },
+      { label: 'T-Shirts & Polos', sub: 'T-Shirts' },
       { label: 'Kurta Sets & Ethnic Wear', sub: 'Kurta Sets' },
       { label: 'Luxury Sneakers & Shoes', sub: 'Sneakers' },
       { label: 'Leather Loafers & Formal', sub: 'Loafers' },

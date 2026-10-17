@@ -9,6 +9,7 @@ import {
   CheckCircle,
   AlertCircle,
   X,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { Product } from '../../types';
@@ -27,6 +28,10 @@ export const ProductsManager: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteConfirmProduct, setDeleteConfirmProduct] = useState<Product | null>(null);
+
+  // Tabs for image selection in modal
+  const [primaryImageTab, setPrimaryImageTab] = useState<'url' | 'upload' | 'media'>('url');
+  const [secondaryImageTab, setSecondaryImageTab] = useState<'url' | 'upload' | 'media'>('url');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -478,9 +483,9 @@ export const ProductsManager: React.FC = () => {
 
       {/* Add / Edit Product Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FAF8F5] w-full max-w-2xl rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-white border-b border-[#E8DEC8] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FAF8F5] w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 bg-white border-b border-[#E8DEC8] flex items-center justify-between shrink-0">
               <h3 className="font-display text-base font-bold tracking-wider uppercase text-[#1E1E22]">
                 {editingProduct ? 'EDIT PRODUCT' : 'ADD NEW LUXURY PRODUCT'}
               </h3>
@@ -493,13 +498,13 @@ export const ProductsManager: React.FC = () => {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl flex items-center gap-2">
+              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl flex items-center gap-2 shrink-0">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSave} className="p-6 space-y-4">
+            <form onSubmit={handleSave} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-[#4A4033] mb-1">
@@ -602,33 +607,97 @@ export const ProductsManager: React.FC = () => {
                 />
               </div>
 
-              {/* Primary Image Input & Direct Upload / Delete */}
+              {/* Primary Image: 3-Way Choice (Paste URL / Upload File / Media Library) */}
               <div className="p-4 bg-white rounded-xl border border-[#D5C7B0] space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
                       <ImageIcon className="w-4 h-4 text-[#B89758]" />
-                      Primary Product Image (PNG / JPG) *
+                      Primary Product Image *
                     </label>
                     <span className="text-[10px] text-[#7A6C58] block mt-0.5">
-                      Recommended ratio: <strong>1:1 Square</strong> (800×800px) or <strong>4:5 Portrait</strong> (800×1000px) · Must start with <code className="text-[#8C6D1F] font-bold">/</code>
+                      Recommended: 1:1 Square (800×800px) or 4:5 Portrait · Any valid URL or file accepted
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {formData.image && (
-                      <button
-                        type="button"
-                        onClick={handleRemovePrimaryImage}
-                        className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded cursor-pointer flex items-center gap-1 font-semibold transition-colors"
-                        title="Delete current primary image"
-                      >
-                        <Trash2 className="w-3 h-3 text-red-600" />
-                        <span>Remove Image</span>
-                      </button>
-                    )}
-                    <label className="text-xs bg-[#FAF6EE] hover:bg-[#EFE8DD] text-[#1E1E22] border border-[#C5B39E] px-3 py-1 rounded cursor-pointer flex items-center gap-1 font-semibold transition-colors">
+
+                  {formData.image && (
+                    <button
+                      type="button"
+                      onClick={handleRemovePrimaryImage}
+                      className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1 font-semibold transition-colors"
+                      title="Clear primary image"
+                    >
+                      <Trash2 className="w-3 h-3 text-red-600" />
+                      <span>Clear</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Segmented Selector Tabs */}
+                <div className="grid grid-cols-3 gap-1 bg-[#EFE8DC] p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setPrimaryImageTab('url')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      primaryImageTab === 'url'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Paste Image URL</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPrimaryImageTab('upload')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      primaryImageTab === 'upload'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Upload File</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPrimaryImageTab('media')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      primaryImageTab === 'media'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Media Library</span>
+                  </button>
+                </div>
+
+                {/* Primary Image - Tab 1: Paste URL */}
+                {primaryImageTab === 'url' && (
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      required
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      placeholder="Paste image URL (Unsplash, Imgur, any CDN, WebP, JPG, PNG...)"
+                      className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs font-medium focus:border-[#B89758] focus:outline-none"
+                    />
+                    <span className="text-[10px] text-[#7A6C58] block">
+                      Accepts any image URL. Persisted permanently to Cloud Firestore.
+                    </span>
+                  </div>
+                )}
+
+                {/* Primary Image - Tab 2: Upload File */}
+                {primaryImageTab === 'upload' && (
+                  <div className="p-3 bg-[#FAF8F5] rounded-xl border border-dashed border-[#D5C7B0] text-center space-y-2">
+                    <label className="inline-flex px-4 py-2 bg-[#FAF6EE] hover:bg-[#EFE8DD] text-[#1E1E22] border border-[#C5B39E] rounded-xl cursor-pointer items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs">
                       <Upload className="w-3.5 h-3.5 text-[#B89758]" />
-                      <span>{isUploadingPrimary ? 'Uploading...' : 'Upload PNG/JPG'}</span>
+                      <span>{isUploadingPrimary ? 'Uploading & Optimizing...' : 'Upload Primary Photo'}</span>
                       <input
                         type="file"
                         accept="image/png, image/jpeg, image/jpg, image/webp"
@@ -636,36 +705,46 @@ export const ProductsManager: React.FC = () => {
                         className="sr-only"
                       />
                     </label>
+                    <span className="text-[10px] text-[#7A6C58] block">
+                      Fast compression and instant Cloud Firestore synchronization.
+                    </span>
                   </div>
-                </div>
+                )}
 
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    required
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    onBlur={() => {
-                      const v = formData.image.trim();
-                      if (v && !v.startsWith('/') && !v.startsWith('http') && !v.startsWith('data:')) {
-                        setFormData((prev) => ({ ...prev, image: '/' + v }));
-                      }
-                    }}
-                    placeholder="e.g. /images/cat_watch_gold.jpg or /cat_bag.png"
-                    className="flex-1 px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded text-xs font-mono focus:border-[#B89758] focus:outline-none"
-                  />
-                  {formData.image && !formData.image.startsWith('/') && !formData.image.startsWith('http') && (
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, image: '/' + prev.image.trim() }))}
-                      className="px-2.5 py-1.5 bg-[#FAF6EE] hover:bg-[#F2ECE1] border border-[#B89758] text-[#8C6D1F] text-xs font-bold rounded cursor-pointer whitespace-nowrap"
-                      title="Add leading / to path"
-                    >
-                      + Add /
-                    </button>
-                  )}
-                  {formData.image && (
-                    <div className="relative group w-12 h-12 rounded border border-[#C5B39E] overflow-hidden shrink-0 bg-[#F5EFE3]">
+                {/* Primary Image - Tab 3: Cloud Media Library */}
+                {primaryImageTab === 'media' && (
+                  <div>
+                    {mediaAssets && mediaAssets.length > 0 ? (
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                        {mediaAssets.map((asset) => (
+                          <div
+                            key={asset.id}
+                            onClick={() => setFormData({ ...formData, image: asset.dataUrl })}
+                            className={`w-14 h-14 rounded-lg border cursor-pointer shrink-0 overflow-hidden ${
+                              formData.image === asset.dataUrl
+                                ? 'border-[#B89758] ring-2 ring-[#B89758]'
+                                : 'border-[#D5C7B0] opacity-80 hover:opacity-100'
+                            }`}
+                            title={asset.name}
+                          >
+                            <img
+                              src={normalizeImageUrl(asset.dataUrl)}
+                              alt={asset.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-[#7A6C58]">No media assets found in library.</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Primary Preview */}
+                {formData.image && (
+                  <div className="flex items-center gap-3 p-2 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-[#D5C7B0] bg-[#F5EFE3] shrink-0">
                       <img
                         src={normalizeImageUrl(formData.image, formData.category)}
                         alt="Preview"
@@ -674,74 +753,104 @@ export const ProductsManager: React.FC = () => {
                         }}
                         className="w-full h-full object-cover"
                       />
-                      <button
-                        type="button"
-                        onClick={handleRemovePrimaryImage}
-                        className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
-                        title="Remove"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
                     </div>
-                  )}
-                </div>
-
-                {/* Quick picker from Cloud Media Library */}
-                {mediaAssets.length > 0 && (
-                  <div className="pt-2">
-                    <span className="text-[10px] text-[#7A6C58] uppercase font-bold block mb-1">
-                      Or pick from Cloud Media Assets:
-                    </span>
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-                      {mediaAssets.map((asset) => (
-                        <div
-                          key={asset.id}
-                          onClick={() => setFormData({ ...formData, image: asset.dataUrl })}
-                          className={`w-12 h-12 rounded border cursor-pointer shrink-0 overflow-hidden ${
-                            formData.image === asset.dataUrl
-                              ? 'border-[#B89758] ring-2 ring-[#B89758]'
-                              : 'border-[#D5C7B0] opacity-80 hover:opacity-100'
-                          }`}
-                        >
-                          <img
-                            src={asset.dataUrl}
-                            alt={asset.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
+                    <div className="flex-1 min-w-0 text-xs">
+                      <span className="font-bold text-[#1E1E22] block truncate">Selected Primary Image</span>
+                      <span className="text-[10px] text-[#7A6C58] font-mono truncate block">
+                        {formData.image.startsWith('data:') ? 'Custom uploaded image (Ready)' : formData.image}
+                      </span>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Optional Secondary / Multi-Angle Image */}
+              {/* Secondary / Multi-Angle Image: 3-Way Choice (Optional) */}
               <div className="p-4 bg-white rounded-xl border border-[#D5C7B0] space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
                       <ImageIcon className="w-4 h-4 text-[#B89758]" />
-                      Secondary / Detail Angle Image (Optional)
+                      Secondary / Hover Angle Image (Optional)
                     </label>
                     <span className="text-[10px] text-[#7A6C58] block mt-0.5">
-                      Recommended: 1:1 or 4:5 · Auto-prefixes leading <code className="text-[#8C6D1F] font-bold">/</code>
+                      Displayed when shopper hovers over the product card
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {formData.secondaryImage && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveSecondaryImage}
-                        className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded cursor-pointer flex items-center gap-1 font-semibold transition-colors"
-                        title="Delete secondary image"
-                      >
-                        <Trash2 className="w-3 h-3 text-red-600" />
-                        <span>Remove</span>
-                      </button>
-                    )}
-                    <label className="text-xs bg-[#FAF6EE] hover:bg-[#EFE8DD] text-[#1E1E22] border border-[#C5B39E] px-3 py-1 rounded cursor-pointer flex items-center gap-1 font-semibold transition-colors">
+
+                  {formData.secondaryImage && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveSecondaryImage}
+                      className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1 font-semibold transition-colors"
+                      title="Clear secondary image"
+                    >
+                      <Trash2 className="w-3 h-3 text-red-600" />
+                      <span>Clear</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Segmented Selector Tabs */}
+                <div className="grid grid-cols-3 gap-1 bg-[#EFE8DC] p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setSecondaryImageTab('url')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      secondaryImageTab === 'url'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Paste Image URL</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSecondaryImageTab('upload')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      secondaryImageTab === 'upload'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Upload Angle</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSecondaryImageTab('media')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      secondaryImageTab === 'media'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Media Library</span>
+                  </button>
+                </div>
+
+                {/* Secondary Image - Tab 1: Paste URL */}
+                {secondaryImageTab === 'url' && (
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      value={formData.secondaryImage}
+                      onChange={(e) => setFormData({ ...formData, secondaryImage: e.target.value })}
+                      placeholder="Paste secondary image URL (e.g. Unsplash, Imgur, CDN link...)"
+                      className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs font-medium focus:border-[#B89758] focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                {/* Secondary Image - Tab 2: Upload File */}
+                {secondaryImageTab === 'upload' && (
+                  <div className="p-3 bg-[#FAF8F5] rounded-xl border border-dashed border-[#D5C7B0] text-center space-y-2">
+                    <label className="inline-flex px-4 py-2 bg-[#FAF6EE] hover:bg-[#EFE8DD] text-[#1E1E22] border border-[#C5B39E] rounded-xl cursor-pointer items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs">
                       <Upload className="w-3.5 h-3.5 text-[#B89758]" />
-                      <span>{isUploadingSecondary ? 'Uploading...' : 'Upload Angle'}</span>
+                      <span>{isUploadingSecondary ? 'Uploading...' : 'Upload Angle Photo'}</span>
                       <input
                         type="file"
                         accept="image/png, image/jpeg, image/jpg, image/webp"
@@ -750,50 +859,56 @@ export const ProductsManager: React.FC = () => {
                       />
                     </label>
                   </div>
-                </div>
+                )}
 
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    value={formData.secondaryImage}
-                    onChange={(e) => setFormData({ ...formData, secondaryImage: e.target.value })}
-                    onBlur={() => {
-                      const v = formData.secondaryImage.trim();
-                      if (v && !v.startsWith('/') && !v.startsWith('http') && !v.startsWith('data:')) {
-                        setFormData((prev) => ({ ...prev, secondaryImage: '/' + v }));
-                      }
-                    }}
-                    placeholder="e.g. /images/cat_shoes_white.jpg or /angle_2.png"
-                    className="flex-1 px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded text-xs font-mono focus:border-[#B89758] focus:outline-none"
-                  />
-                  {formData.secondaryImage && !formData.secondaryImage.startsWith('/') && !formData.secondaryImage.startsWith('http') && (
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, secondaryImage: '/' + prev.secondaryImage.trim() }))}
-                      className="px-2.5 py-1.5 bg-[#FAF6EE] hover:bg-[#F2ECE1] border border-[#B89758] text-[#8C6D1F] text-xs font-bold rounded cursor-pointer whitespace-nowrap"
-                      title="Add leading / to path"
-                    >
-                      + Add /
-                    </button>
-                  )}
-                  {formData.secondaryImage && (
-                    <div className="relative group w-12 h-12 rounded border border-[#C5B39E] overflow-hidden shrink-0 bg-[#F5EFE3]">
+                {/* Secondary Image - Tab 3: Cloud Media Library */}
+                {secondaryImageTab === 'media' && (
+                  <div>
+                    {mediaAssets && mediaAssets.length > 0 ? (
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                        {mediaAssets.map((asset) => (
+                          <div
+                            key={asset.id}
+                            onClick={() => setFormData({ ...formData, secondaryImage: asset.dataUrl })}
+                            className={`w-14 h-14 rounded-lg border cursor-pointer shrink-0 overflow-hidden ${
+                              formData.secondaryImage === asset.dataUrl
+                                ? 'border-[#B89758] ring-2 ring-[#B89758]'
+                                : 'border-[#D5C7B0] opacity-80 hover:opacity-100'
+                            }`}
+                            title={asset.name}
+                          >
+                            <img
+                              src={normalizeImageUrl(asset.dataUrl)}
+                              alt={asset.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-[#7A6C58]">No media assets found in library.</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Secondary Preview */}
+                {formData.secondaryImage && (
+                  <div className="flex items-center gap-3 p-2 bg-[#FAF8F5] rounded-lg border border-[#E8DEC8]">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-[#D5C7B0] bg-[#F5EFE3] shrink-0">
                       <img
                         src={normalizeImageUrl(formData.secondaryImage, formData.category)}
                         alt="Secondary Preview"
                         className="w-full h-full object-cover"
                       />
-                      <button
-                        type="button"
-                        onClick={handleRemoveSecondaryImage}
-                        className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
-                        title="Remove"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
                     </div>
-                  )}
-                </div>
+                    <div className="flex-1 min-w-0 text-xs">
+                      <span className="font-bold text-[#1E1E22] block truncate">Selected Secondary Image</span>
+                      <span className="text-[10px] text-[#7A6C58] font-mono truncate block">
+                        {formData.secondaryImage.startsWith('data:') ? 'Custom uploaded image (Ready)' : formData.secondaryImage}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Merchandising Badges */}
@@ -833,7 +948,7 @@ export const ProductsManager: React.FC = () => {
                 </label>
               </div>
 
-              <div className="pt-4 border-t border-[#E8DEC8] flex justify-end gap-3">
+              <div className="pt-4 border-t border-[#E8DEC8] flex justify-end gap-3 sticky bottom-0 bg-[#FAF8F5] pb-2 z-10 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

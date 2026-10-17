@@ -13,34 +13,60 @@ import {
   INITIAL_BANNERS,
   INITIAL_CATEGORIES,
   INITIAL_PRODUCTS,
-  INITIAL_ORDERS,
   INITIAL_MEDIA,
 } from '../data/initialData';
-import { normalizeImageUrl, compressImage, FALLBACK_CATEGORY_IMAGES } from '../utils/imageUtils';
+import { normalizeImageUrl } from '../utils/imageUtils';
 import { sendOrderEmailNotification } from '../utils/orderNotification';
-import { idbSetItem, idbGetItem } from '../utils/idbStorage';
+import {
+  ensureCloudDataSeeded,
+  subscribeToProducts,
+  subscribeToBanners,
+  subscribeToCategories,
+  subscribeToOrders,
+  subscribeToStoreSettings,
+  subscribeToMediaAssets,
+  cloudAddProduct,
+  cloudUpdateProduct,
+  cloudDeleteProduct,
+  cloudUpdateStock,
+  cloudAddBanner,
+  cloudUpdateBanner,
+  cloudDeleteBanner,
+  cloudAddCategory,
+  cloudUpdateCategory,
+  cloudDeleteCategory,
+  cloudPlaceOrder,
+  cloudUpdateOrderStatus,
+  cloudMarkOrderRead,
+  cloudUpdateStoreSettings,
+  uploadFileToFirebaseStorage,
+  cloudAddMediaAsset,
+  cloudDeleteMediaAsset,
+  DEFAULT_PAYMENT_CONFIG,
+  DEFAULT_BOUTIQUE_HERO,
+} from '../lib/firebaseServices';
 
 interface StoreContextType {
   // Products
   products: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
-  updateStock: (id: string, newStock: number) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void> | void;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<void> | void;
+  deleteProduct: (id: string) => Promise<void> | void;
+  updateStock: (id: string, newStock: number) => Promise<void> | void;
 
   // Banners
   banners: BannerSlide[];
-  addBanner: (banner: Omit<BannerSlide, 'id'>) => void;
-  updateBanner: (id: string, updates: Partial<BannerSlide>) => void;
-  deleteBanner: (id: string) => void;
-  bannerInterval: number; // in seconds
+  addBanner: (banner: Omit<BannerSlide, 'id'>) => Promise<void> | void;
+  updateBanner: (id: string, updates: Partial<BannerSlide>) => Promise<void> | void;
+  deleteBanner: (id: string) => Promise<void> | void;
+  bannerInterval: number;
   setBannerInterval: (interval: number) => void;
 
   // Categories
   categories: CategoryItem[];
-  addCategory: (category: Omit<CategoryItem, 'id'>) => void;
-  updateCategory: (id: string, updates: Partial<CategoryItem>) => void;
-  deleteCategory: (id: string) => void;
+  addCategory: (category: Omit<CategoryItem, 'id'>) => Promise<void> | void;
+  updateCategory: (id: string, updates: Partial<CategoryItem>) => Promise<void> | void;
+  deleteCategory: (id: string) => Promise<void> | void;
   categoryInterval: number;
   setCategoryInterval: (interval: number) => void;
 
@@ -96,6 +122,7 @@ interface StoreContextType {
   // Media Library / Cloud Storage
   mediaAssets: MediaAsset[];
   uploadMediaAsset: (file: File, category?: string) => Promise<MediaAsset>;
+  addMediaAssetByUrl: (url: string, name: string, category?: string) => Promise<MediaAsset>;
   deleteMediaAsset: (id: string) => void;
 
   // Navigation & Filtering
@@ -131,29 +158,16 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-// Silent order notification helper (No notification sounds per requirement)
 export function playOrderChime() {
-  // Intentionally silent
+  // Silent per luxury branding requirement
 }
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial from localStorage or defaults with image path normalization
+  // 1. Authoritative Cloud Collections (initialized with local cache or luxury defaults, synchronized in live real-time with Cloud Firestore)
   const [products, setProducts] = useState<Product[]>(() => {
     try {
-      const saved = localStorage.getItem('lol_products');
-      let list: Product[] = saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-      if (Array.isArray(list)) {
-        const existingIds = new Set(list.map((p) => p.id));
-        const missingInitial = INITIAL_PRODUCTS.filter((p) => !existingIds.has(p.id));
-        list = [...list, ...missingInitial];
-      } else {
-        list = INITIAL_PRODUCTS;
-      }
-      return list.map((p) => ({
-        ...p,
-        image: normalizeImageUrl(p.image, p.category),
-        secondaryImage: p.secondaryImage ? normalizeImageUrl(p.secondaryImage, p.category) : undefined,
-      }));
+      const saved = localStorage.getItem('lol_products_cache');
+      return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
     } catch {
       return INITIAL_PRODUCTS;
     }
@@ -161,67 +175,54 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [banners, setBanners] = useState<BannerSlide[]>(() => {
     try {
-      const saved = localStorage.getItem('lol_banners');
-      const list: BannerSlide[] = saved ? JSON.parse(saved) : INITIAL_BANNERS;
-      return list.map((b) => ({
-        ...b,
-        image: normalizeImageUrl(b.image),
-      }));
+      const saved = localStorage.getItem('lol_banners_cache');
+      return saved ? JSON.parse(saved) : INITIAL_BANNERS;
     } catch {
       return INITIAL_BANNERS;
     }
   });
 
-  const [bannerInterval, setBannerInterval] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('lol_banner_interval');
-      return saved ? Number(saved) : 5;
-    } catch {
-      return 5;
-    }
-  });
+  const [bannerInterval, setBannerIntervalState] = useState<number>(5);
 
   const [categories, setCategories] = useState<CategoryItem[]>(() => {
     try {
-      const saved = localStorage.getItem('lol_categories');
-      if (saved) {
-        const list: CategoryItem[] = JSON.parse(saved);
-        if (Array.isArray(list) && list.length > 0) {
-          // Deduplicate by slug and ensure clean valid categories
-          const seen = new Set<string>();
-          const deduped: CategoryItem[] = [];
-          for (const c of list) {
-            if (!c || !c.slug || seen.has(c.slug.toLowerCase())) continue;
-            seen.add(c.slug.toLowerCase());
-            const bw = FALLBACK_CATEGORY_IMAGES[c.slug];
-            const isOld =
-              !c.image ||
-              c.image.includes('unsplash.com') ||
-              c.image.includes('festive_edit_luxury') ||
-              c.image.includes('hero_luxury_fashion');
-            deduped.push({
-              ...c,
-              image: isOld && bw ? bw : normalizeImageUrl(c.image, c.slug),
-            });
-          }
-          if (deduped.length > 0) return deduped;
-        }
-      }
-      return INITIAL_CATEGORIES;
+      const saved = localStorage.getItem('lol_categories_cache');
+      return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
     } catch {
       return INITIAL_CATEGORIES;
     }
   });
 
-  const [categoryInterval, setCategoryInterval] = useState<number>(() => {
+  const [categoryInterval, setCategoryIntervalState] = useState<number>(4);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(() => {
     try {
-      const saved = localStorage.getItem('lol_category_interval');
-      return saved ? Number(saved) : 4;
+      const saved = localStorage.getItem('lol_media_cache');
+      return saved ? JSON.parse(saved) : INITIAL_MEDIA;
     } catch {
-      return 4;
+      return INITIAL_MEDIA;
     }
   });
 
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
+    try {
+      const saved = localStorage.getItem('lol_payment_cache');
+      return saved ? JSON.parse(saved) : DEFAULT_PAYMENT_CONFIG;
+    } catch {
+      return DEFAULT_PAYMENT_CONFIG;
+    }
+  });
+
+  const [boutiqueHeroConfig, setBoutiqueHeroConfig] = useState<BoutiqueHeroConfig>(() => {
+    try {
+      const saved = localStorage.getItem('lol_boutique_hero_cache');
+      return saved ? JSON.parse(saved) : DEFAULT_BOUTIQUE_HERO;
+    } catch {
+      return DEFAULT_BOUTIQUE_HERO;
+    }
+  });
+
+  // 2. Shopper Local Session Storage (Cart & Wishlist specific to current shopper's browser)
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('lol_cart');
@@ -240,30 +241,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
-  const [orders, setOrders] = useState<Order[]>(() => {
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem('lol_orders');
-      if (saved) {
-        const parsed: Order[] = JSON.parse(saved);
-        return parsed.filter((o) => o.id !== 'order-101' && o.id !== 'order-102');
-      }
+      localStorage.setItem('lol_cart', JSON.stringify(cart));
     } catch {}
-    return [];
-  });
+  }, [cart]);
 
-  const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(() => {
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem('lol_media');
-      const list: MediaAsset[] = saved ? JSON.parse(saved) : INITIAL_MEDIA;
-      return list.map((m) => ({
-        ...m,
-        dataUrl: normalizeImageUrl(m.dataUrl),
-      }));
-    } catch {
-      return INITIAL_MEDIA;
-    }
-  });
+      localStorage.setItem('lol_wishlist', JSON.stringify(wishlist));
+    } catch {}
+  }, [wishlist]);
 
+  // 3. Navigation & Route States
   const getInitialView = () => {
     if (typeof window === 'undefined') return 'home';
     const hash = window.location.hash.toLowerCase().replace('#', '');
@@ -397,119 +387,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // White Screen Luxury Transition State
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [transitionLabel, setTransitionLabel] = useState<string>('');
 
-  // Payment Setup Configuration (Kept empty per user request - client will add later)
-  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
-    try {
-      const saved = localStorage.getItem('lol_payment_config');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const upiId =
-          parsed.upiId &&
-          !parsed.upiId.toLowerCase().includes('maaz') &&
-          !parsed.upiId.toLowerCase().includes('axis') &&
-          !parsed.upiId.includes('7578887888')
-            ? parsed.upiId
-            : '';
-        const payeeName =
-          parsed.payeeName &&
-          !parsed.payeeName.toLowerCase().includes('maaz') &&
-          !parsed.payeeName.includes('7578887888')
-            ? parsed.payeeName
-            : '';
-        const upiNumber =
-          parsed.upiNumber && !parsed.upiNumber.toLowerCase().includes('maaz')
-            ? parsed.upiNumber
-            : '';
-        return {
-          ...parsed,
-          acceptPaymentsOnline: false,
-          upiId,
-          payeeName,
-          upiNumber,
-          enableCOD: false,
-          qrCodeImage: upiId
-            ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi%3A%2F%2Fpay%3Fpa%3D${encodeURIComponent(
-                upiId
-              )}%26pn%3D${encodeURIComponent(payeeName)}%26cu%3DINR`
-            : '',
-        };
-      }
-    } catch {}
-    return {
-      acceptPaymentsOnline: false,
-      upiId: '', // Kept empty per user request - client will add later
-      payeeName: '', // Kept empty
-      upiNumber: '',
-      qrCodeImage: '',
-      enableUPI: true,
-      enableCOD: false,
-      enableCard: false,
-      bankAccountNumber: '',
-      bankIfsc: '',
-      bankName: '',
-      instructions: '',
-    };
-  });
-
-  const updatePaymentConfig = (updates: Partial<PaymentConfig>) => {
-    setPaymentConfig((prev) => {
-      const next = { ...prev, ...updates, enableCOD: false };
-      try {
-        localStorage.setItem('lol_payment_config', JSON.stringify(next));
-      } catch (e) {
-        console.warn('Could not save payment config to localStorage:', e);
-      }
-      fetch('/api/payments/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(next),
-      }).catch(() => null);
-      return next;
-    });
-  };
-
-  const DEFAULT_BOUTIQUE_HERO: BoutiqueHeroConfig = {
-    kicker: 'EXCLUSIVE COLLECTION',
-    titleLine1: 'Luxury',
-    titleLine2: 'For Every Moment',
-    subtitleItems: ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
-    ctaText: 'Shop Now',
-    image: '/images/flagship_banner_16_9.jpg',
-  };
-
-  const [boutiqueHeroConfig, setBoutiqueHeroConfig] = useState<BoutiqueHeroConfig>(() => {
-    try {
-      const saved = localStorage.getItem('lol_boutique_hero');
-      if (saved) {
-        return { ...DEFAULT_BOUTIQUE_HERO, ...JSON.parse(saved) };
-      }
-    } catch {}
-    return DEFAULT_BOUTIQUE_HERO;
-  });
-
-  const updateBoutiqueHeroConfig = (updates: Partial<BoutiqueHeroConfig>) => {
-    setBoutiqueHeroConfig((prev) => {
-      const next = { ...prev, ...updates };
-      try {
-        localStorage.setItem('lol_boutique_hero', JSON.stringify(next));
-      } catch (e) {
-        console.warn('Could not save boutique hero to localStorage:', e);
-      }
-      fetch('/api/banners', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ boutiqueHero: next }),
-      }).catch(() => null);
-      return next;
-    });
-  };
-
-  const triggerTransition = (categorySlug: string, _label?: string) => {
+  const triggerTransition = (categorySlug: string, label?: string) => {
     setSelectedCategory(categorySlug);
+    if (label) {
+      setTransitionLabel(label);
+      setIsTransitioning(true);
+      setTimeout(() => setIsTransitioning(false), 300);
+    }
     const element = document.getElementById('catalog-section');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -522,270 +409,294 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Permanent sync state to LocalStorage & IndexedDB (ensuring products never disappear)
+  // ============================================================================
+  // 4. REAL-TIME FIRESTORE DATA SYNCHRONIZATION (AUTHORITATIVE CLOUD CONNECTION)
+  // ============================================================================
   useEffect(() => {
+    let unsubProducts: (() => void) | undefined;
+    let unsubBanners: (() => void) | undefined;
+    let unsubCategories: (() => void) | undefined;
+    let unsubOrders: (() => void) | undefined;
+    let unsubSettings: (() => void) | undefined;
+    let unsubMedia: (() => void) | undefined;
+
+    // Attach live real-time listeners across all devices immediately on mount
     try {
-      localStorage.setItem('lol_products', JSON.stringify(products));
-    } catch (e) {
-      console.warn('LocalStorage quota exceeded for products, syncing to IndexedDB', e);
-    }
-    idbSetItem('lol_products', products);
-  }, [products]);
-
-  // On mount: rehydrate products, banners, and payments from backend authoritative database
-  useEffect(() => {
-    // 1. Rehydrate from IndexedDB
-    idbGetItem<Product[]>('lol_products').then((savedProducts) => {
-      if (Array.isArray(savedProducts) && savedProducts.length > 0) {
-        setProducts((current) => {
-          const currentIds = new Set(current.map((p) => p.id));
-          const missing = savedProducts.filter((p) => !currentIds.has(p.id));
-          if (missing.length > 0) {
-            return [...current, ...missing];
-          }
-          return current;
-        });
-      }
-    });
-
-    // 2. Authoritative sync from backend /api/products
-    fetch('/api/products')
-      .then((res) => res.json())
-      .then((backendProds) => {
-        if (Array.isArray(backendProds) && backendProds.length > 0) {
-          setProducts(backendProds);
+      unsubProducts = subscribeToProducts((cloudProducts) => {
+        if (Array.isArray(cloudProducts) && cloudProducts.length > 0) {
+          setProducts(cloudProducts);
+          try {
+            localStorage.setItem('lol_products_cache', JSON.stringify(cloudProducts));
+          } catch {}
         }
-      })
-      .catch(() => null);
-
-    // 3. Authoritative sync from backend /api/banners
-    fetch('/api/banners')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.boutiqueHero) {
-          setBoutiqueHeroConfig((prev) => ({ ...prev, ...data.boutiqueHero }));
-        }
-        if (Array.isArray(data?.banners) && data.banners.length > 0) {
-          setBanners(data.banners);
-        }
-      })
-      .catch(() => null);
-
-    // 4. Authoritative sync from backend /api/payments/config
-    fetch('/api/payments/config')
-      .then((res) => res.json())
-      .then((config) => {
-        if (config) {
-          setPaymentConfig((prev) => ({ ...prev, ...config, enableCOD: false }));
-        }
-      })
-      .catch(() => null);
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_banners', JSON.stringify(banners));
-    } catch {
-      // safe fallback
-    }
-    idbSetItem('lol_banners', banners);
-  }, [banners]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_banner_interval', bannerInterval.toString());
-    } catch {
-      // safe fallback
-    }
-  }, [bannerInterval]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_categories', JSON.stringify(categories));
-    } catch {
-      // safe fallback
-    }
-    idbSetItem('lol_categories', categories);
-  }, [categories]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_category_interval', categoryInterval.toString());
-    } catch {
-      // safe fallback
-    }
-  }, [categoryInterval]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_cart', JSON.stringify(cart));
-    } catch {
-      // safe fallback
-    }
-  }, [cart]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_wishlist', JSON.stringify(wishlist));
-    } catch {
-      // safe fallback
-    }
-  }, [wishlist]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_orders', JSON.stringify(orders));
-    } catch {
-      // safe fallback
-    }
-    idbSetItem('lol_orders', orders);
-  }, [orders]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('lol_media', JSON.stringify(mediaAssets));
-    } catch {
-      // safe fallback
-    }
-    idbSetItem('lol_media', mediaAssets);
-  }, [mediaAssets]);
-
-  // Listen to path & hash changes for direct admin access (/admin or #admin)
-  useEffect(() => {
-    const handleUrlChange = () => {
-      const path = window.location.pathname.toLowerCase();
-      const hash = window.location.hash.toLowerCase();
-      const search = window.location.search.toLowerCase();
-      if (path.startsWith('/admin') || hash.includes('admin') || search.includes('admin')) {
-        setIsAdminModeState(true);
-      } else {
-        setIsAdminModeState(false);
-      }
-    };
-    window.addEventListener('hashchange', handleUrlChange);
-    window.addEventListener('popstate', handleUrlChange);
-    return () => {
-      window.removeEventListener('hashchange', handleUrlChange);
-      window.removeEventListener('popstate', handleUrlChange);
-    };
-  }, []);
-
-  // Products actions (persisted to state, IndexedDB, and backend cloud API)
-  const addProduct = (productData: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-    };
-    setProducts((prev) => [newProduct, ...prev]);
-
-    // Persist to backend server
-    fetch('/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newProduct),
-    }).catch(() => null);
-  };
-
-  const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
-    );
-
-    // Persist to backend server
-    fetch('/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ...updates }),
-    }).catch(() => null);
-  };
-
-  const deleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-
-    // Persist deletion to backend server
-    fetch(`/api/products/${id}`, {
-      method: 'DELETE',
-    }).catch(() => null);
-  };
-
-  const updateStock = (id: string, newStock: number) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              stockCount: Math.max(0, newStock),
-              inStock: newStock > 0,
-            }
-          : p
-      )
-    );
-  };
-
- // Banner actions — save changes locally and request cloud persistence
-  const persistBannersToCloud = async (nextBanners: BannerSlide[]) => {
-    try {
-      const response = await fetch('/api/banners', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ banners: nextBanners }),
       });
+    } catch (e) {
+      console.error('Failed to subscribe to products:', e);
+    }
 
-      if (!response.ok) {
-        throw new Error(`Banner save failed: ${response.status}`);
-      }
-    } catch (error) {
-      console.error(
-        'Could not sync banners to the server. Check /api/banners.',
-        error
-      );
+    try {
+      unsubBanners = subscribeToBanners((cloudBanners) => {
+        if (Array.isArray(cloudBanners)) {
+          setBanners(cloudBanners);
+          try {
+            localStorage.setItem('lol_banners_cache', JSON.stringify(cloudBanners));
+          } catch {}
+        }
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to banners:', e);
+    }
+
+    try {
+      unsubCategories = subscribeToCategories((cloudCategories) => {
+        if (Array.isArray(cloudCategories)) {
+          setCategories(cloudCategories);
+          try {
+            localStorage.setItem('lol_categories_cache', JSON.stringify(cloudCategories));
+          } catch {}
+        }
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to categories:', e);
+    }
+
+    try {
+      unsubOrders = subscribeToOrders((cloudOrders) => {
+        setOrders(cloudOrders);
+        // Trigger in-app notification if a new unread order arrives
+        const unread = cloudOrders.find((o) => !o.isRead);
+        if (unread) {
+          setLatestNotification(unread);
+        }
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to orders:', e);
+    }
+
+    try {
+      unsubSettings = subscribeToStoreSettings((settings) => {
+        if (settings.paymentConfig) {
+          setPaymentConfig(settings.paymentConfig);
+          try {
+            localStorage.setItem('lol_payment_cache', JSON.stringify(settings.paymentConfig));
+          } catch {}
+        }
+        if (settings.boutiqueHeroConfig) {
+          setBoutiqueHeroConfig(settings.boutiqueHeroConfig);
+          try {
+            localStorage.setItem('lol_boutique_hero_cache', JSON.stringify(settings.boutiqueHeroConfig));
+          } catch {}
+        }
+        if (typeof settings.bannerInterval === 'number') {
+          setBannerIntervalState(settings.bannerInterval);
+        }
+        if (typeof settings.categoryInterval === 'number') {
+          setCategoryIntervalState(settings.categoryInterval);
+        }
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to storeSettings:', e);
+    }
+
+    try {
+      unsubMedia = subscribeToMediaAssets((cloudMedia) => {
+        if (Array.isArray(cloudMedia)) {
+          setMediaAssets(cloudMedia);
+          try {
+            localStorage.setItem('lol_media_cache', JSON.stringify(cloudMedia));
+          } catch {}
+        }
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to media:', e);
+    }
+
+    // Verify or Seed Cloud Firestore if completely empty (runs concurrently)
+    ensureCloudDataSeeded().catch((err) => console.warn('Cloud seeding check:', err));
+
+    return () => {
+      unsubProducts?.();
+      unsubBanners?.();
+      unsubCategories?.();
+      unsubOrders?.();
+      unsubSettings?.();
+      unsubMedia?.();
+    };
+  }, []);
+
+  // ============================================================================
+  // 5. CLOUD MUTATION ACTIONS (WRITES TO FIRESTORE DIRECTLY)
+  // ============================================================================
+
+  // Products
+  const addProduct = async (productData: Omit<Product, 'id'>) => {
+    try {
+      const created = await cloudAddProduct(productData);
+      setProducts((prev) => {
+        const next = [created, ...prev.filter((p) => p.id !== created.id)];
+        try {
+          localStorage.setItem('lol_products_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    } catch (err) {
+      console.error('Failed to add product to cloud:', err);
     }
   };
 
-  const addBanner = (bannerData: Omit<BannerSlide, 'id'>) => {
-    const newBanner: BannerSlide = {
-      ...bannerData,
-      id: `banner-${Date.now()}`,
-    };
-
-    const nextBanners = [...banners, newBanner];
-    setBanners(nextBanners);
-    void persistBannersToCloud(nextBanners);
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    try {
+      setProducts((prev) => {
+        const next = prev.map((p) => (p.id === id ? { ...p, ...updates } : p));
+        try {
+          localStorage.setItem('lol_products_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      await cloudUpdateProduct(id, updates);
+    } catch (err) {
+      console.error('Failed to update product in cloud:', err);
+    }
   };
 
-  const updateBanner = (id: string, updates: Partial<BannerSlide>) => {
-    const nextBanners = banners.map((banner) =>
-      banner.id === id ? { ...banner, ...updates } : banner
-    );
-
-    setBanners(nextBanners);
-    void persistBannersToCloud(nextBanners);
+  const deleteProduct = async (id: string) => {
+    try {
+      setProducts((prev) => {
+        const next = prev.filter((p) => p.id !== id);
+        try {
+          localStorage.setItem('lol_products_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      await cloudDeleteProduct(id);
+    } catch (err) {
+      console.error('Failed to delete product from cloud:', err);
+    }
   };
 
-  const deleteBanner = (id: string) => {
-    const nextBanners = banners.filter((banner) => banner.id !== id);
-
-    setBanners(nextBanners);
-    void persistBannersToCloud(nextBanners);
+  const updateStock = async (id: string, newStock: number) => {
+    try {
+      setProducts((prev) => {
+        const next = prev.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                stockCount: Math.max(0, newStock),
+                inStock: newStock > 0,
+              }
+            : p
+        );
+        try {
+          localStorage.setItem('lol_products_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      await cloudUpdateStock(id, newStock);
+    } catch (err) {
+      console.error('Failed to update stock in cloud:', err);
+    }
   };
 
-  // Category actions
-  const addCategory = (catData: Omit<CategoryItem, 'id'>) => {
-    const newCat: CategoryItem = {
-      ...catData,
-      id: `cat-${Date.now()}`,
-    };
-    setCategories((prev) => [...prev, newCat]);
+  // Banners
+  const addBanner = async (bannerData: Omit<BannerSlide, 'id'>) => {
+    try {
+      const created = await cloudAddBanner(bannerData);
+      setBanners((prev) => {
+        const next = [...prev.filter((b) => b.id !== created.id), created];
+        try {
+          localStorage.setItem('lol_banners_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    } catch (err) {
+      console.error('Failed to add banner to cloud:', err);
+    }
   };
 
-  const updateCategory = (id: string, updates: Partial<CategoryItem>) => {
-    setCategories((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
-    );
+  const updateBanner = async (id: string, updates: Partial<BannerSlide>) => {
+    try {
+      setBanners((prev) => {
+        const next = prev.map((b) => (b.id === id ? { ...b, ...updates } : b));
+        try {
+          localStorage.setItem('lol_banners_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      await cloudUpdateBanner(id, updates);
+    } catch (err) {
+      console.error('Failed to update banner in cloud:', err);
+    }
   };
 
-  const deleteCategory = (id: string) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+  const deleteBanner = async (id: string) => {
+    try {
+      setBanners((prev) => {
+        const next = prev.filter((b) => b.id !== id);
+        try {
+          localStorage.setItem('lol_banners_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      await cloudDeleteBanner(id);
+    } catch (err) {
+      console.error('Failed to delete banner from cloud:', err);
+    }
+  };
+
+  const setBannerInterval = (interval: number) => {
+    setBannerIntervalState(interval);
+    void cloudUpdateStoreSettings({ bannerInterval: interval });
+  };
+
+  // Categories
+  const addCategory = async (catData: Omit<CategoryItem, 'id'>) => {
+    try {
+      const created = await cloudAddCategory(catData);
+      setCategories((prev) => {
+        const next = [...prev.filter((c) => c.id !== created.id), created];
+        try {
+          localStorage.setItem('lol_categories_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    } catch (err) {
+      console.error('Failed to add category to cloud:', err);
+    }
+  };
+
+  const updateCategory = async (id: string, updates: Partial<CategoryItem>) => {
+    try {
+      setCategories((prev) => {
+        const next = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
+        try {
+          localStorage.setItem('lol_categories_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      await cloudUpdateCategory(id, updates);
+    } catch (err) {
+      console.error('Failed to update category in cloud:', err);
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    try {
+      setCategories((prev) => {
+        const next = prev.filter((c) => c.id !== id);
+        try {
+          localStorage.setItem('lol_categories_cache', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      await cloudDeleteCategory(id);
+    } catch (err) {
+      console.error('Failed to delete category from cloud:', err);
+    }
+  };
+
+  const setCategoryInterval = (interval: number) => {
+    setCategoryIntervalState(interval);
+    void cloudUpdateStoreSettings({ categoryInterval: interval });
   };
 
   // Cart actions
@@ -856,11 +767,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const clearCart = () => setCart([]);
 
-  const cartTotal = cart.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
-
+  const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   // Wishlist actions
@@ -933,24 +840,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       isRead: false,
     };
 
-    // Deduct stock safely across items
-    const deductions = cart.map((cartItem) => {
-      updateStock(cartItem.product.id, cartItem.product.stockCount - cartItem.quantity);
-      return { productId: cartItem.product.id, quantity: cartItem.quantity };
+    // Deduct stock in Cloud Firestore across all devices
+    cart.forEach((cartItem) => {
+      void cloudUpdateStock(cartItem.product.id, Math.max(0, cartItem.product.stockCount - cartItem.quantity));
     });
 
-    // Persist order & inventory deduction to backend database
-    fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newOrder),
-    }).catch(() => null);
-
-    fetch('/api/products/inventory', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deductions }),
-    }).catch(() => null);
+    // Write order directly to Cloud Firestore
+    void cloudPlaceOrder(newOrder);
 
     setOrders((prev) => [newOrder, ...prev]);
     setLastPlacedOrder(newOrder);
@@ -963,12 +859,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status } : o))
     );
+    void cloudUpdateOrderStatus(orderId, status);
   };
 
   const markOrderRead = (orderId: string) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, isRead: true } : o))
     );
+    void cloudMarkOrderRead(orderId);
   };
 
   const unreadOrdersCount = orders.filter((o) => !o.isRead).length;
@@ -977,50 +875,80 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLatestNotification(null);
   };
 
-  // Media upload with direct storage upload to avoid storing base64 blobs in product records
+  // Payment Setup Configuration
+  const updatePaymentConfig = (updates: Partial<PaymentConfig>) => {
+    setPaymentConfig((prev) => {
+      const next = { ...prev, ...updates, enableCOD: false };
+      try {
+        localStorage.setItem('lol_payment_cache', JSON.stringify(next));
+      } catch {}
+      void cloudUpdateStoreSettings({ paymentConfig: next });
+      return next;
+    });
+  };
+
+  // Flagship Boutique Hero Configuration
+  const updateBoutiqueHeroConfig = (updates: Partial<BoutiqueHeroConfig>) => {
+    setBoutiqueHeroConfig((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('lol_boutique_hero_cache', JSON.stringify(next));
+      } catch {}
+      void cloudUpdateStoreSettings({ boutiqueHeroConfig: next });
+      return next;
+    });
+  };
+
+  // Media upload with direct Firebase Storage upload
   const uploadMediaAsset = async (file: File, category: string = 'Products'): Promise<MediaAsset> => {
-    let dataUrl: string;
-    try {
-      dataUrl = await compressImage(file, 1200, 0.85);
-    } catch {
-      dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
-    let storageUrl = dataUrl;
-    try {
-      const res = await fetch('/api/media/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dataUrl, filename: file.name }),
-      });
-      const data = await res.json();
-      if (data && data.url) {
-        storageUrl = data.url;
-      }
-    } catch (e) {
-      console.warn('Backend media upload error, using local url:', e);
-    }
-
-    const newAsset: MediaAsset = {
-      id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    const storageUrl = await uploadFileToFirebaseStorage(file, 'media');
+    const newAsset = await cloudAddMediaAsset({
       name: file.name,
-      size: Math.round(dataUrl.length * 0.75),
-      type: 'image/jpeg',
+      size: file.size,
+      type: file.type || 'image/jpeg',
       dataUrl: storageUrl,
       createdAt: new Date().toISOString(),
       category,
-    };
-    setMediaAssets((prev) => [newAsset, ...prev]);
+    });
+    setMediaAssets((prev) => {
+      const next = [newAsset, ...prev];
+      try {
+        localStorage.setItem('lol_media_cache', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    return newAsset;
+  };
+
+  const addMediaAssetByUrl = async (url: string, name: string, category: string = 'Products'): Promise<MediaAsset> => {
+    const cleanUrl = normalizeImageUrl(url.trim());
+    const newAsset = await cloudAddMediaAsset({
+      name: name.trim() || 'Linked Media Asset',
+      size: 45000,
+      type: 'image/jpeg',
+      dataUrl: cleanUrl,
+      createdAt: new Date().toISOString(),
+      category,
+    });
+    setMediaAssets((prev) => {
+      const next = [newAsset, ...prev.filter((m) => m.id !== newAsset.id)];
+      try {
+        localStorage.setItem('lol_media_cache', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     return newAsset;
   };
 
   const deleteMediaAsset = (id: string) => {
-    setMediaAssets((prev) => prev.filter((m) => m.id !== id));
+    setMediaAssets((prev) => {
+      const next = prev.filter((m) => m.id !== id);
+      try {
+        localStorage.setItem('lol_media_cache', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    void cloudDeleteMediaAsset(id);
   };
 
   return (
@@ -1067,6 +995,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         playOrderChime,
         mediaAssets,
         uploadMediaAsset,
+        addMediaAssetByUrl,
         deleteMediaAsset,
         currentView,
         setCurrentView,

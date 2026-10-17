@@ -109,41 +109,75 @@ export function normalizeImageUrl(url?: string, category?: string): string {
 
   let clean = url.trim();
 
+  // If protocol-relative URL (e.g. //images.unsplash.com/...)
+  if (clean.startsWith('//')) {
+    return 'https:' + clean;
+  }
+
+  // If standard HTTP/HTTPS or data URL or blob URL, preserve it untouched!
+  if (
+    clean.startsWith('http://') ||
+    clean.startsWith('https://') ||
+    clean.startsWith('data:') ||
+    clean.startsWith('blob:')
+  ) {
+    return clean;
+  }
+
+  // If user pasted a domain-like URL without scheme (e.g. images.unsplash.com/..., i.ibb.co/...)
+  if (
+    clean.startsWith('images.unsplash.com') ||
+    clean.startsWith('i.ibb.co') ||
+    clean.startsWith('cdn.') ||
+    clean.startsWith('res.cloudinary.com') ||
+    clean.startsWith('images.pexels.com') ||
+    clean.includes('.firebasestorage.app') ||
+    clean.includes('.googleapis.com')
+  ) {
+    return 'https://' + clean;
+  }
+
   // Fix Vite /src/assets/images dev paths to production /images/
   if (clean.startsWith('/src/assets/images/')) {
     clean = clean.replace('/src/assets/images/', '/images/');
   }
 
-  // Auto-prefix leading "/" to local PNG/JPG image paths (e.g. "images/cat_watch.jpg" -> "/images/cat_watch.jpg")
-  if (
-    !clean.startsWith('http://') &&
-    !clean.startsWith('https://') &&
-    !clean.startsWith('data:') &&
-    !clean.startsWith('blob:')
-  ) {
-    if (!clean.startsWith('/')) {
-      if (clean.startsWith('images/')) {
-        clean = '/' + clean;
-      } else if (
-        clean.endsWith('.png') ||
-        clean.endsWith('.jpg') ||
-        clean.endsWith('.jpeg') ||
-        clean.endsWith('.webp') ||
-        clean.endsWith('.svg')
-      ) {
-        clean = '/images/' + clean;
-      } else {
-        clean = '/' + clean;
-      }
+  // Auto-prefix leading "/" to local PNG/JPG image paths or https:// to external domains
+  if (!clean.startsWith('/')) {
+    if (
+      clean.includes('.') &&
+      (clean.includes('.com') ||
+        clean.includes('.net') ||
+        clean.includes('.org') ||
+        clean.includes('.io') ||
+        clean.includes('.co') ||
+        clean.includes('.app') ||
+        clean.includes('.cc') ||
+        clean.includes('.me') ||
+        clean.includes('.dev') ||
+        clean.includes('.in') ||
+        clean.includes('imgur') ||
+        clean.includes('pinimg') ||
+        clean.includes('unsplash') ||
+        clean.includes('cloudinary') ||
+        clean.includes('shopify'))
+    ) {
+      return 'https://' + clean;
     }
-  }
 
-  // Convert unreliable remote Unsplash URLs to locally bundled high-definition category images
-  if (clean.includes('images.unsplash.com')) {
-    if (category && FALLBACK_CATEGORY_IMAGES[category]) {
-      return FALLBACK_CATEGORY_IMAGES[category];
+    if (clean.startsWith('images/')) {
+      clean = '/' + clean;
+    } else if (
+      clean.endsWith('.png') ||
+      clean.endsWith('.jpg') ||
+      clean.endsWith('.jpeg') ||
+      clean.endsWith('.webp') ||
+      clean.endsWith('.svg')
+    ) {
+      clean = '/images/' + clean;
+    } else {
+      clean = '/' + clean;
     }
-    return FALLBACK_LUXURY_IMAGE;
   }
 
   return clean;

@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Check,
   CheckCircle,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { BannerSlide } from '../../types';
@@ -37,6 +38,10 @@ export const BannerManager: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // Tab state for hero image and carousel modal
+  const [heroImageTab, setHeroImageTab] = useState<'url' | 'upload' | 'media'>('url');
+  const [modalImageTab, setModalImageTab] = useState<'url' | 'upload' | 'media'>('url');
+
   // Flagship Boutique Hero state
   const [boutiqueHeroData, setBoutiqueHeroData] = useState({
     kicker: boutiqueHeroConfig?.kicker || 'EXCLUSIVE COLLECTION',
@@ -60,8 +65,6 @@ export const BannerManager: React.FC = () => {
   });
 
   const [isUploadingHero, setIsUploadingHero] = useState(false);
-  const [showManualHeroUrl, setShowManualHeroUrl] = useState(false);
-  const [showMediaPickerHero, setShowMediaPickerHero] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -86,10 +89,12 @@ export const BannerManager: React.FC = () => {
 
   const handleSaveBoutiqueHero = (e: React.FormEvent) => {
     e.preventDefault();
-    let img = boutiqueHeroData.image.trim();
-    if (!img.startsWith('/') && !img.startsWith('http') && !img.startsWith('data:')) {
-      img = '/' + img;
+    const rawImg = boutiqueHeroData.image.trim();
+    if (!rawImg) {
+      showToast('Please provide an image for the hero showcase banner.');
+      return;
     }
+    const cleanImg = normalizeImageUrl(rawImg);
 
     const items = boutiqueHeroData.subtitle
       .split(/[|,]/)
@@ -102,10 +107,10 @@ export const BannerManager: React.FC = () => {
       titleLine2: boutiqueHeroData.titleLine2,
       subtitleItems: items.length ? items : ['Premium Fashion', 'Elegant Accessories', 'Timeless Style'],
       ctaText: boutiqueHeroData.ctaText,
-      image: img,
+      image: cleanImg,
     });
-    setBoutiqueHeroData((prev) => ({ ...prev, image: img }));
-    showToast('✓ Flagship Luxury Showcase banner & texts updated! Changes are live on the storefront.');
+    setBoutiqueHeroData((prev) => ({ ...prev, image: cleanImg }));
+    showToast('✓ Flagship Showcase banner saved to Firebase & live across all devices!');
   };
 
   const handleOpenAdd = () => {
@@ -176,6 +181,8 @@ export const BannerManager: React.FC = () => {
       return;
     }
 
+    const cleanImg = normalizeImageUrl(formData.image.trim());
+
     if (editingBanner) {
       updateBanner(editingBanner.id, {
         title: formData.title,
@@ -185,10 +192,10 @@ export const BannerManager: React.FC = () => {
         ctaLink: formData.ctaLink,
         secondaryCtaText: formData.secondaryCtaText,
         secondaryCtaLink: formData.secondaryCtaLink,
-        image: formData.image,
+        image: cleanImg,
         active: formData.active,
       });
-      showToast('✓ Banner slide updated! Live storefront reflects the changes.');
+      showToast('✓ Banner slide updated! Saved to Firebase and live across all devices.');
     } else {
       addBanner({
         title: formData.title,
@@ -198,11 +205,11 @@ export const BannerManager: React.FC = () => {
         ctaLink: formData.ctaLink,
         secondaryCtaText: formData.secondaryCtaText,
         secondaryCtaLink: formData.secondaryCtaLink,
-        image: formData.image,
+        image: cleanImg,
         active: formData.active,
         order: banners.length + 1,
       });
-      showToast('✓ New banner slide created successfully!');
+      showToast('✓ New banner slide created! Saved to Firebase and live across all devices.');
     }
     setIsModalOpen(false);
   };
@@ -267,23 +274,109 @@ export const BannerManager: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left 7 cols: Inputs */}
             <div className="lg:col-span-7 space-y-4">
-              {/* Banner Photo Upload (Direct Device Upload, No Links Needed) */}
-              <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#D5C7B0] space-y-3">
+              {/* Banner Photo Section: 3-Way Choice (Paste URL / Upload File / Media Library) */}
+              <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#D5C7B0] space-y-3.5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
                       <ImageIcon className="w-4 h-4 text-[#B89758]" />
-                      <span>HERO BANNER PHOTO (DIRECT UPLOAD)</span>
+                      <span>HERO SHOWCASE BANNER IMAGE</span>
                     </label>
                     <span className="text-[10px] text-[#7A6C58] block mt-0.5">
-                      Recommended: <strong>16:9 Widescreen (1920 × 1080 px)</strong> · Pick directly from device (no links needed!)
+                      Recommended: 16:9 Widescreen (1920 × 1080 px) · Choose any option below
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <label className="text-xs bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] px-3.5 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 font-bold shadow-xs transition-all active:scale-95">
-                      <Upload className="w-3.5 h-3.5 text-[#111113]" />
-                      <span>{isUploadingHero ? 'Uploading...' : 'Upload Photo from Device'}</span>
+                  <button
+                    type="button"
+                    onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/images/flagship_banner_16_9.jpg' })}
+                    className="text-[11px] text-[#7A6C58] hover:text-black underline cursor-pointer"
+                    title="Reset to default luxury banner"
+                  >
+                    Reset Default
+                  </button>
+                </div>
+
+                {/* Segmented Selector Tabs */}
+                <div className="grid grid-cols-3 gap-1 bg-[#EFE8DC] p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setHeroImageTab('url')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      heroImageTab === 'url'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Paste Image URL</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setHeroImageTab('upload')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      heroImageTab === 'upload'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Upload File</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setHeroImageTab('media')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      heroImageTab === 'media'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Cloud Media ({mediaAssets.length})</span>
+                  </button>
+                </div>
+
+                {/* Tab 1: Paste Image URL */}
+                {heroImageTab === 'url' && (
+                  <div className="space-y-2 p-3 bg-white rounded-xl border border-[#E8DEC8]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-[#3D3327]">
+                        PASTE ANY IMAGE URL:
+                      </span>
+                      <span className="text-[10px] text-[#8C6D1F]">
+                        Supports Unsplash, Imgur, any CDN, WebP, JPG, PNG
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={boutiqueHeroData.image}
+                        onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, image: e.target.value })}
+                        placeholder="Paste image URL (https://images.unsplash.com/...)"
+                        className="flex-1 px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs font-medium text-[#111111] focus:outline-none focus:border-[#B89758]"
+                      />
+                      {boutiqueHeroData.image && (
+                        <button
+                          type="button"
+                          onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '' })}
+                          className="px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 2: Upload File */}
+                {heroImageTab === 'upload' && (
+                  <div className="p-4 bg-white rounded-xl border border-[#E8DEC8] flex flex-col items-center justify-center text-center space-y-2">
+                    <label className="px-5 py-2.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] rounded-xl cursor-pointer flex items-center gap-2 font-bold text-xs shadow-sm transition-all active:scale-95">
+                      <Upload className="w-4 h-4 text-[#111113]" />
+                      <span>{isUploadingHero ? 'Uploading & Optimizing...' : 'Select Photo from Computer'}</span>
                       <input
                         type="file"
                         accept="image/png, image/jpeg, image/jpg, image/webp"
@@ -291,104 +384,62 @@ export const BannerManager: React.FC = () => {
                         className="sr-only"
                       />
                     </label>
-
-                    {mediaAssets.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowMediaPickerHero(!showMediaPickerHero)}
-                        className="text-xs bg-white hover:bg-gray-50 text-[#1E1E22] border border-[#D5C7B0] px-2.5 py-1.5 rounded-lg cursor-pointer font-semibold transition-colors"
-                      >
-                        Pick from Media
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/images/flagship_banner_16_9.jpg' })}
-                      className="text-[11px] text-[#7A6C58] hover:text-black underline cursor-pointer"
-                      title="Reset to default luxury banner"
-                    >
-                      Reset Default
-                    </button>
-                  </div>
-                </div>
-
-                {/* Media Library Quick Dropdown */}
-                {showMediaPickerHero && mediaAssets.length > 0 && (
-                  <div className="p-3 bg-white rounded-lg border border-[#D5C7B0] space-y-2 animate-in fade-in">
-                    <span className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider block">
-                      Select From Uploaded Media Library:
+                    <span className="text-[11px] text-[#7A6C58]">
+                      Fast compression & instant Cloud Firestore persistence.
                     </span>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-36 overflow-y-auto p-1">
-                      {mediaAssets.map((asset) => (
-                        <div
-                          key={asset.id}
-                          onClick={() => {
-                            setBoutiqueHeroData((prev) => ({ ...prev, image: asset.dataUrl }));
-                            setShowMediaPickerHero(false);
-                            showToast('Selected banner photo from Media Library!');
-                          }}
-                          className="aspect-[16/9] rounded border border-gray-200 overflow-hidden cursor-pointer hover:border-[#D4AF37] hover:scale-105 transition-all shadow-2xs"
-                        >
-                          <img src={asset.dataUrl} alt={asset.name} className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                    </div>
+                  </div>
+                )}
+
+                {/* Tab 3: Cloud Media Library */}
+                {heroImageTab === 'media' && (
+                  <div className="p-3 bg-white rounded-xl border border-[#E8DEC8] space-y-2">
+                    <span className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider block">
+                      Click to Select Any Saved Media:
+                    </span>
+                    {mediaAssets.length > 0 ? (
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1">
+                        {mediaAssets.map((asset) => (
+                          <div
+                            key={asset.id}
+                            onClick={() => {
+                              setBoutiqueHeroData((prev) => ({ ...prev, image: asset.dataUrl }));
+                              showToast('Selected banner photo from Media Library!');
+                            }}
+                            className={`aspect-[16/9] rounded-lg border overflow-hidden cursor-pointer hover:border-[#D4AF37] hover:scale-105 transition-all shadow-2xs ${
+                              boutiqueHeroData.image === asset.dataUrl ? 'ring-2 ring-[#B89758] border-[#B89758]' : 'border-gray-200'
+                            }`}
+                          >
+                            <img src={asset.dataUrl} alt={asset.name} className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[#7A6C58] p-2">No media assets found. Upload images in the Media Storage tab.</p>
+                    )}
                   </div>
                 )}
 
                 {/* Current Active Image Info Box */}
-                <div className="flex items-center gap-3 p-2.5 bg-white rounded-lg border border-[#E8DEC8]">
-                  <div className="w-16 h-10 rounded overflow-hidden bg-black shrink-0 border border-[#D4AF37]/50">
+                <div className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-[#E8DEC8]">
+                  <div className="w-16 h-10 rounded-lg overflow-hidden bg-black shrink-0 border border-[#D4AF37]/50">
                     <img
                       src={normalizeImageUrl(boutiqueHeroData.image)}
                       alt="Banner thumbnail"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
+                      }}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="flex-1 min-w-0 text-xs">
                     <p className="font-bold text-[#111111] truncate">
-                      Current Banner Image
+                      Active Image Link
                     </p>
-                    <p className="text-[10px] text-[#7A6C58] truncate">
-                      {boutiqueHeroData.image.startsWith('data:') ? 'Custom uploaded image (Ready)' : boutiqueHeroData.image}
+                    <p className="text-[10px] text-[#7A6C58] truncate font-mono">
+                      {boutiqueHeroData.image.startsWith('data:') ? 'Custom uploaded image (Ready)' : boutiqueHeroData.image || 'No image set'}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowManualHeroUrl(!showManualHeroUrl)}
-                    className="text-[10px] text-[#8C6D1F] hover:underline cursor-pointer shrink-0"
-                  >
-                    {showManualHeroUrl ? 'Hide URL' : 'Advanced: Edit Path'}
-                  </button>
                 </div>
-
-                {/* Advanced Path / URL fallback input (Hidden by default) */}
-                {showManualHeroUrl && (
-                  <div className="pt-2 border-t border-[#E8DEC8] space-y-1">
-                    <span className="text-[10px] font-semibold text-[#7A6C58]">
-                      Manual image path (optional for developers):
-                    </span>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={boutiqueHeroData.image}
-                        onChange={(e) => setBoutiqueHeroData({ ...boutiqueHeroData, image: e.target.value })}
-                        placeholder="e.g. /images/flagship_banner_16_9.jpg"
-                        className="flex-1 px-3 py-1.5 bg-white border border-[#D5C7B0] rounded-lg text-xs font-mono text-[#111111] focus:outline-none focus:border-[#B89758]"
-                      />
-                      {!boutiqueHeroData.image.startsWith('/') && !boutiqueHeroData.image.startsWith('http') && Boolean(boutiqueHeroData.image.trim()) && (
-                        <button
-                          type="button"
-                          onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/' + boutiqueHeroData.image.trim() })}
-                          className="px-2.5 py-1.5 bg-[#B8860B] text-black font-bold text-xs rounded-lg cursor-pointer"
-                        >
-                          + Add /
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Tagline / Kicker */}
@@ -685,9 +736,9 @@ export const BannerManager: React.FC = () => {
 
       {/* Edit/Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FAF8F5] w-full max-w-xl rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-white border-b border-[#E8DEC8] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FAF8F5] w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 bg-white border-b border-[#E8DEC8] flex items-center justify-between shrink-0">
               <h3 className="font-display text-base font-bold tracking-wider uppercase text-[#1E1E22]">
                 {editingBanner ? 'EDIT BANNER SLIDE' : 'CREATE NEW BANNER SLIDE'}
               </h3>
@@ -700,13 +751,13 @@ export const BannerManager: React.FC = () => {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl flex items-center gap-2">
+              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-300 text-red-800 text-xs rounded-xl flex items-center gap-2 shrink-0">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSave} className="p-6 space-y-4">
+            <form onSubmit={handleSave} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-semibold text-[#4A4033] mb-1">
                   MAIN TITLE (Display Face) *
@@ -780,28 +831,91 @@ export const BannerManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Banner Image, Delete & Direct Upload */}
+              {/* Banner Image Selection: 3-Way Choice (Paste URL / Upload File / Media Library) */}
               <div className="p-4 bg-white rounded-xl border border-[#D5C7B0] space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider flex items-center gap-1.5">
                     <ImageIcon className="w-4 h-4 text-[#B89758]" />
-                    Banner Image (PNG / JPG)
+                    Banner Slide Image *
                   </label>
-                  <div className="flex items-center gap-2">
-                    {formData.image && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded cursor-pointer flex items-center gap-1 font-semibold transition-colors"
-                        title="Delete current image"
-                      >
-                        <Trash2 className="w-3 h-3 text-red-600" />
-                        <span>Remove Image</span>
-                      </button>
-                    )}
-                    <label className="text-xs bg-[#FAF6EE] hover:bg-[#EFE8DD] text-[#1E1E22] border border-[#C5B39E] px-3 py-1 rounded cursor-pointer flex items-center gap-1 font-semibold transition-colors">
+                  {formData.image && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1 font-semibold transition-colors"
+                      title="Clear image"
+                    >
+                      <Trash2 className="w-3 h-3 text-red-600" />
+                      <span>Clear</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Segmented Selector Tabs */}
+                <div className="grid grid-cols-3 gap-1 bg-[#EFE8DC] p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setModalImageTab('url')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      modalImageTab === 'url'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Paste Image URL</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setModalImageTab('upload')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      modalImageTab === 'upload'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Upload File</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setModalImageTab('media')}
+                    className={`py-1.5 px-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      modalImageTab === 'media'
+                        ? 'bg-white text-[#1E1E22] shadow-xs'
+                        : 'text-[#6B5E4F] hover:text-[#1E1E22]'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-[#B89758]" />
+                    <span>Media Library</span>
+                  </button>
+                </div>
+
+                {/* Tab 1: Paste URL */}
+                {modalImageTab === 'url' && (
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      required
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      placeholder="Paste image URL (Unsplash, Imgur, any CDN, WebP, JPG, PNG...)"
+                      className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs font-medium focus:border-[#B89758] focus:outline-none"
+                    />
+                    <span className="text-[10px] text-[#7A6C58] block">
+                      Accepts any valid image URL. Saved permanently to Cloud Firestore.
+                    </span>
+                  </div>
+                )}
+
+                {/* Tab 2: Upload File */}
+                {modalImageTab === 'upload' && (
+                  <div className="p-3 bg-[#FAF8F5] rounded-xl border border-dashed border-[#D5C7B0] text-center space-y-2">
+                    <label className="inline-flex px-4 py-2 bg-[#FAF6EE] hover:bg-[#EFE8DD] text-[#1E1E22] border border-[#C5B39E] rounded-xl cursor-pointer items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs">
                       <Upload className="w-3.5 h-3.5 text-[#B89758]" />
-                      <span>{isUploading ? 'Uploading...' : 'Upload PNG/JPG'}</span>
+                      <span>{isUploading ? 'Uploading & Optimizing...' : 'Upload Image File'}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -809,18 +923,43 @@ export const BannerManager: React.FC = () => {
                         className="sr-only"
                       />
                     </label>
+                    <span className="text-[10px] text-[#7A6C58] block">
+                      Device PNG/JPG/WebP · Optimized automatically
+                    </span>
                   </div>
-                </div>
+                )}
 
-                <input
-                  type="text"
-                  required
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="Paste image URL or upload file above"
-                  className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none"
-                />
+                {/* Tab 3: Cloud Media Library */}
+                {modalImageTab === 'media' && (
+                  <div>
+                    {mediaAssets && mediaAssets.length > 0 ? (
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                        {mediaAssets.map((asset) => (
+                          <div
+                            key={asset.id}
+                            onClick={() => setFormData({ ...formData, image: asset.dataUrl })}
+                            className={`w-14 h-10 rounded-lg border cursor-pointer shrink-0 overflow-hidden ${
+                              formData.image === asset.dataUrl
+                                ? 'border-[#B89758] ring-2 ring-[#B89758]'
+                                : 'border-[#D5C7B0] opacity-80 hover:opacity-100'
+                            }`}
+                            title={asset.name}
+                          >
+                            <img
+                              src={normalizeImageUrl(asset.dataUrl)}
+                              alt={asset.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-[#7A6C58]">No media assets found in library.</span>
+                    )}
+                  </div>
+                )}
 
+                {/* Live Preview Box */}
                 {formData.image ? (
                   <div className="relative h-32 rounded-lg overflow-hidden border border-[#D5C7B0] group bg-[#F5EFE3]">
                     <img
@@ -844,7 +983,7 @@ export const BannerManager: React.FC = () => {
                   </div>
                 ) : (
                   <div className="p-4 bg-[#FAF8F5] rounded-lg border border-dashed border-[#D5C7B0] text-center text-xs text-[#8A7966]">
-                    No image selected. Upload a file above or pick from presets below.
+                    No image selected. Paste an image URL or upload above.
                   </div>
                 )}
 
@@ -878,7 +1017,7 @@ export const BannerManager: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#E8DEC8] flex justify-end gap-3">
+              <div className="pt-4 border-t border-[#E8DEC8] flex justify-end gap-3 sticky bottom-0 bg-[#FAF8F5] pb-2 z-10 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

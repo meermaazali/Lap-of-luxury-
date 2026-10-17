@@ -12,6 +12,7 @@ import {
   Grid,
   Check,
 } from 'lucide-react';
+import { useStore } from '../../context/StoreContext';
 
 interface SubcategoryItem {
   id: string;
