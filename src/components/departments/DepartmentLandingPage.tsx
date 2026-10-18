@@ -134,6 +134,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
 }) => {
   const {
     products,
+    categories,
     selectedSubcategory,
     setSelectedSubcategory,
     setCurrentView,
@@ -145,6 +146,39 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
   } = useStore();
 
   const deptMeta = DEPARTMENT_CONFIGS[departmentKey] || DEPARTMENT_CONFIGS.men;
+
+  // Dynamically compute subcategories from configured categories in admin + default presets
+  const availableSubcategories = useMemo(() => {
+    const defaultSubs = deptMeta.subcategories || ['All'];
+    const dynamicSubs = new Set<string>();
+
+    categories.forEach((cat) => {
+      const catDept = (cat.department || cat.parentCategory || '').toLowerCase();
+      const matchesDept =
+        catDept === departmentKey.toLowerCase() ||
+        (departmentKey === 'men' && (cat.slug.toLowerCase() === 'men' || cat.slug.toLowerCase() === 'jeans')) ||
+        (departmentKey === 'women' && cat.slug.toLowerCase() === 'women') ||
+        (departmentKey === 'bags' && cat.slug.toLowerCase() === 'bags') ||
+        (departmentKey === 'footwear' && (cat.slug.toLowerCase() === 'shoes' || cat.slug.toLowerCase() === 'footwear')) ||
+        (departmentKey === 'accessories' && (cat.slug.toLowerCase() === 'accessories' || cat.slug.toLowerCase() === 'watches' || cat.slug.toLowerCase() === 'perfumes'));
+
+      if (matchesDept && Array.isArray(cat.subcategories)) {
+        cat.subcategories.forEach((s) => {
+          if (s && typeof s === 'string' && s.trim()) {
+            dynamicSubs.add(s.trim());
+          }
+        });
+      }
+    });
+
+    const combined = [...defaultSubs];
+    dynamicSubs.forEach((s) => {
+      if (!combined.some((item) => item.toLowerCase() === s.toLowerCase())) {
+        combined.push(s);
+      }
+    });
+    return combined;
+  }, [deptMeta, categories, departmentKey]);
 
   // Local filter states
   const [activeSub, setActiveSub] = useState<string>(selectedSubcategory || 'All');
@@ -170,10 +204,23 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
     return products.filter((p) => {
       const dept = (p.department || '').toLowerCase();
       const cat = (p.category || '').toLowerCase();
-      const sub = (p.subCategory || '').toLowerCase();
+      const sub = (p.subCategory || p.subcategory || '').toLowerCase();
       const tags = (p.tags || []).map((t) => t.toLowerCase());
 
       if (departmentKey === 'men') {
+        // Strict exclusion: never show women's items in Men
+        if (
+          dept === 'women' ||
+          cat === 'women' ||
+          tags.includes('women') ||
+          sub.includes('saree') ||
+          sub.includes('gown') ||
+          sub.includes('lehenga') ||
+          sub.includes('co-ord') ||
+          sub.includes('heels')
+        ) {
+          return false;
+        }
         return (
           dept === 'men' ||
           cat === 'men' ||
@@ -183,10 +230,21 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           sub.includes('t-shirt') ||
           sub.includes('trouser') ||
           sub.includes('kurta') ||
+          sub.includes('loafer') ||
+          sub.includes('oxford') ||
           tags.includes('men')
         );
       }
+
       if (departmentKey === 'women') {
+        // Strict exclusion: never show men's items in Women
+        if (
+          dept === 'men' ||
+          cat === 'men' ||
+          tags.includes('men')
+        ) {
+          return false;
+        }
         return (
           dept === 'women' ||
           cat === 'women' ||
@@ -195,9 +253,13 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           sub.includes('gown') ||
           sub.includes('lehenga') ||
           sub.includes('co-ord') ||
+          sub.includes('handbag') ||
+          sub.includes('clutch') ||
+          sub.includes('heel') ||
           tags.includes('women')
         );
       }
+
       if (departmentKey === 'bags') {
         return (
           dept === 'bags' ||
@@ -205,20 +267,25 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           sub.includes('bag') ||
           sub.includes('clutch') ||
           sub.includes('tote') ||
-          sub.includes('wallet')
+          sub.includes('wallet') ||
+          sub.includes('briefcase')
         );
       }
+
       if (departmentKey === 'footwear') {
         return (
           dept === 'footwear' ||
           cat === 'shoes' ||
+          cat === 'footwear' ||
           sub.includes('sneaker') ||
           sub.includes('loafer') ||
           sub.includes('heel') ||
           sub.includes('shoe') ||
-          sub.includes('sandals')
+          sub.includes('sandals') ||
+          sub.includes('flats')
         );
       }
+
       if (departmentKey === 'accessories') {
         return (
           dept === 'accessories' ||
@@ -227,25 +294,32 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           cat === 'perfumes' ||
           sub.includes('watch') ||
           sub.includes('belt') ||
-          sub.includes('glasses')
+          sub.includes('glasses') ||
+          sub.includes('sunglasses') ||
+          sub.includes('perfume') ||
+          sub.includes('oud')
         );
       }
+
       if (departmentKey === 'collections') {
-        return p.isFestiveEdit || tags.some((t) => t.includes('festive') || t.includes('wedding'));
+        return p.isFestiveEdit || tags.some((t) => t.includes('festive') || t.includes('wedding') || t.includes('collection'));
       }
+
       if (departmentKey === 'bestsellers') {
-        return p.isBestSeller;
+        return !!p.isBestSeller;
       }
+
       if (departmentKey === 'sale') {
         return (
           (p.originalPrice && p.originalPrice > p.price) ||
-          p.price <= 2000 ||
-          p.isFestiveEdit
+          p.price <= 2000
         );
       }
+
       if (departmentKey === 'new-arrivals') {
         return true;
       }
+
       return true;
     });
   }, [products, departmentKey]);
@@ -377,7 +451,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
       <div className="sticky top-[72px] sm:top-[80px] z-20 bg-white/95 backdrop-blur-md border-b border-[#E8DEC8] shadow-xs">
         <div className="max-w-[1540px] mx-auto px-4 sm:px-8 py-3 flex items-center justify-between gap-4 overflow-x-auto scrollbar-none">
           <div className="flex items-center gap-2 shrink-0">
-            {deptMeta.subcategories.map((sub, idx) => {
+            {availableSubcategories.map((sub, idx) => {
               const isActive =
                 activeSub === sub || (sub.startsWith('All') && (!activeSub || activeSub.startsWith('All')));
 

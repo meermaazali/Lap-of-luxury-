@@ -21,13 +21,33 @@ export const CategoryPage: React.FC = () => {
   const filteredProducts = useMemo(() => {
     let list = products.filter((p) => {
       const pCat = (p.category || '').toLowerCase();
+      const pDept = (p.department || '').toLowerCase();
       const targetCat = catName.toLowerCase();
-      const matchCat =
-        pCat === targetCat ||
-        (targetCat === 'men' && (pCat.includes('men') || pCat === 'shirts' || pCat === 'jeans')) ||
-        (targetCat === 'women' && (pCat.includes('women') || pCat === 'dresses' || pCat === 'sarees')) ||
-        (targetCat === 'bags' && pCat.includes('bag')) ||
-        (targetCat === 'footwear' && (pCat.includes('shoe') || pCat.includes('footwear')));
+
+      let matchCat = false;
+      if (targetCat === 'men') {
+        if (pDept === 'women' || pCat === 'women') return false;
+        matchCat =
+          pDept === 'men' ||
+          pCat === 'men' ||
+          pCat === 'jeans' ||
+          pCat === 'shirts';
+      } else if (targetCat === 'women') {
+        if (pDept === 'men' || pCat === 'men') return false;
+        matchCat =
+          pDept === 'women' ||
+          pCat === 'women' ||
+          pCat === 'dresses' ||
+          pCat === 'sarees';
+      } else if (targetCat === 'bags') {
+        matchCat = pDept === 'bags' || pCat.includes('bag');
+      } else if (targetCat === 'footwear' || targetCat === 'shoes') {
+        matchCat = pDept === 'footwear' || pCat.includes('shoe') || pCat.includes('footwear');
+      } else if (targetCat === 'accessories' || targetCat === 'watches' || targetCat === 'perfumes') {
+        matchCat = pDept === 'accessories' || pCat === 'accessories' || pCat === 'watches' || pCat === 'perfumes';
+      } else {
+        matchCat = pCat === targetCat || pCat.includes(targetCat) || pDept === targetCat;
+      }
 
       if (!matchCat) return false;
 

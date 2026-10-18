@@ -45,6 +45,8 @@ export interface CategoryItem {
   slug: string;
   image: string;
   itemCount?: number;
+  parentCategory?: string;
+  department?: string;
   subcategories?: string[];
 }
 
