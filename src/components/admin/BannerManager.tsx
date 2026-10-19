@@ -42,14 +42,14 @@ export const BannerManager: React.FC = () => {
   const [heroImageTab, setHeroImageTab] = useState<'url' | 'upload' | 'media'>('url');
   const [modalImageTab, setModalImageTab] = useState<'url' | 'upload' | 'media'>('url');
 
-  // Flagship Boutique Hero state
+  // Boutique Hero state
   const [boutiqueHeroData, setBoutiqueHeroData] = useState({
     kicker: boutiqueHeroConfig?.kicker || 'EXCLUSIVE COLLECTION',
     titleLine1: boutiqueHeroConfig?.titleLine1 || 'Luxury',
     titleLine2: boutiqueHeroConfig?.titleLine2 || 'For Every Moment',
     subtitle: boutiqueHeroConfig?.subtitleItems?.join(' | ') || 'Premium Fashion | Elegant Accessories | Timeless Style',
     ctaText: boutiqueHeroConfig?.ctaText || 'Shop Now',
-    image: boutiqueHeroConfig?.image || '/images/flagship_banner_16_9.jpg',
+    image: boutiqueHeroConfig?.image || '/images/banner_shirts_pants.jpg',
   });
 
   const [formData, setFormData] = useState({
@@ -110,7 +110,7 @@ export const BannerManager: React.FC = () => {
       image: cleanImg,
     });
     setBoutiqueHeroData((prev) => ({ ...prev, image: cleanImg }));
-    showToast('✓ Flagship Showcase banner saved to Firebase & live across all devices!');
+    showToast('✓ Boutique Showcase banner saved to Firebase & live across all devices!');
   };
 
   const handleOpenAdd = () => {
@@ -235,7 +235,7 @@ export const BannerManager: React.FC = () => {
         </div>
       )}
 
-      {/* 1. FLAGSHIP LUXURY SHOWCASE BANNER & TEXT EDITOR */}
+      {/* 1. BOUTIQUE LUXURY SHOWCASE BANNER & TEXT EDITOR */}
       <div className="bg-white rounded-2xl border-2 border-[#D4AF37]/60 shadow-md overflow-hidden">
         <div className="p-5 sm:p-6 bg-gradient-to-r from-[#1E1E22] via-[#2A261F] to-[#1E1E22] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -244,7 +244,7 @@ export const BannerManager: React.FC = () => {
                 MAIN HOMEPAGE
               </span>
               <h2 className="font-bodoni text-lg sm:text-xl font-bold tracking-wider uppercase text-white">
-                FLAGSHIP FASHION HERO BANNER & TEXTS
+                BOUTIQUE FASHION HERO BANNER & TEXTS
               </h2>
             </div>
             <p className="text-xs text-gray-300 mt-1">
@@ -289,7 +289,7 @@ export const BannerManager: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/images/flagship_banner_16_9.jpg' })}
+                    onClick={() => setBoutiqueHeroData({ ...boutiqueHeroData, image: '/images/banner_shirts_pants.jpg' })}
                     className="text-[11px] text-[#7A6C58] hover:text-black underline cursor-pointer"
                     title="Reset to default luxury banner"
                   >

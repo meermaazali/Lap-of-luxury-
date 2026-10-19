@@ -85,8 +85,10 @@ export const CategoryAutoSlider: React.FC = () => {
           ref={sliderRef}
           className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth pb-2 2xl:justify-center"
         >
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat.slug;
+          {categories
+            .filter((cat) => cat.active !== false && cat.slug.toLowerCase() !== 'women')
+            .map((cat) => {
+              const isSelected = selectedCategory === cat.slug;
             return (
               <div
                 key={cat.id}

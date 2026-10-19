@@ -3,7 +3,7 @@ export interface Product {
   name: string;
   category: string;
   subCategory?: string;
-  department?: 'Men' | 'Women' | 'Bags' | 'Footwear' | 'Accessories';
+  department?: string;
   brand?: string;
   color?: string;
   price: number;
@@ -48,6 +48,9 @@ export interface CategoryItem {
   parentCategory?: string;
   department?: string;
   subcategories?: string[];
+  brands?: string[];
+  order?: number;
+  active?: boolean;
 }
 
 export interface CartItem {

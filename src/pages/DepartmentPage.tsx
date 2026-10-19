@@ -26,6 +26,9 @@ export const DepartmentPage: React.FC<DepartmentPageProps> = ({ department: prop
     if (pathname.includes('women')) return 'women';
     if (pathname.includes('bag')) return 'bags';
     if (pathname.includes('footwear') || pathname.includes('shoes')) return 'footwear';
+    if (pathname.includes('perfume')) return 'perfumes';
+    if (pathname.includes('watch')) return 'watches';
+    if (pathname.includes('jean')) return 'jeans';
     if (pathname.includes('accessories')) return 'accessories';
     if (pathname.includes('collections')) return 'collections';
     if (pathname.includes('bestsellers')) return 'bestsellers';

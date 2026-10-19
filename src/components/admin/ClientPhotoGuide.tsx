@@ -52,7 +52,7 @@ export const ClientPhotoGuide: React.FC = () => {
 
       {/* 3 Main Categories Cards: Hero Banner, Products, Categories */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Card 1: Main Flagship Banner */}
+        {/* Card 1: Main Showcase Banner */}
         <div className="bg-white rounded-2xl p-5 border-2 border-[#D4AF37]/50 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -68,7 +68,7 @@ export const ClientPhotoGuide: React.FC = () => {
               1. MAIN HERO BANNER
             </h3>
             <p className="text-xs text-[#7A6C58] mt-1 mb-4">
-              The flagship showcase at the very top of your homepage.
+              The boutique showcase at the very top of your homepage.
             </p>
 
             {/* Aspect Ratio Diagram */}
@@ -89,7 +89,7 @@ export const ClientPhotoGuide: React.FC = () => {
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Style:</strong> Horizontal luxury photoshoot with models, lifestyle scenery, or flagship luxury store showcase.
+                  <strong>Style:</strong> Horizontal luxury photoshoot with models, lifestyle scenery, or boutique luxury store showcase.
                 </span>
               </div>
               <div className="flex items-start gap-2">

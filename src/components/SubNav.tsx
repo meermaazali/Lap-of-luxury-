@@ -15,15 +15,12 @@ interface NavCategory {
 
 const DEFAULT_NAV_ITEMS: NavCategory[] = [
   { name: "MEN'S FASHION", slug: 'Men' },
-  { name: "WOMEN'S FASHION", slug: 'Women' },
-  { name: 'JEANS & DENIM', slug: 'Jeans' },
-  { name: 'WATCHES & TIMEPIECES', slug: 'Watches' },
-  { name: 'BAGS & WALLETS', slug: 'Bags' },
-  { name: 'SHOES & FOOTWEAR', slug: 'Shoes' },
-  { name: 'LUXURY ACCESSORIES', slug: 'Accessories' },
+  { name: 'FOOTWEAR & SHOES', slug: 'Footwear' },
+  { name: 'BAGS & LUGGAGE', slug: 'Bags' },
   { name: 'PERFUMES & SCENTS', slug: 'Perfumes' },
-  { name: 'SUNGLASSES & EYEWEAR', slug: 'Accessories' },
-  { name: 'LUXURY COUTURE', slug: 'Women' },
+  { name: 'WATCHES & TIMEPIECES', slug: 'Watches' },
+  { name: 'JEANS & DENIM', slug: 'Jeans' },
+  { name: 'LUXURY ACCESSORIES', slug: 'Accessories' },
 ];
 
 const isPromotionalCategory = (name: string, slug: string): boolean => {
@@ -33,8 +30,11 @@ const isPromotionalCategory = (name: string, slug: string): boolean => {
     .replace(/\s+/g, ' ')
     .trim();
 
-  return /\bnew arrivals?\b|\bbest sellers?\b|\boffers?\b|\bsale\b|\bdeals?\b|\bcollections?\b|\bfestive\b|\bpopular\b|\bspecial offers?\b/.test(
-    value
+  return (
+    value.includes('women') ||
+    /\bnew arrivals?\b|\bbest sellers?\b|\boffers?\b|\bsale\b|\bdeals?\b|\bcollections?\b|\bfestive\b|\bpopular\b|\bspecial offers?\b/.test(
+      value
+    )
   );
 };
 
@@ -62,7 +62,10 @@ export const SubNav: React.FC = () => {
 
     if (categories && categories.length > 0) {
       categories.forEach((category) => {
-        if (isPromotionalCategory(category.name, category.slug)) {
+        if (
+          isPromotionalCategory(category.name, category.slug) ||
+          category.slug.toLowerCase() === 'women'
+        ) {
           return;
         }
 

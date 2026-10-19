@@ -24,11 +24,11 @@ export const Footer: React.FC = () => {
             </h2>
             <ul className="space-y-2 text-xs text-[#5E5244]">
               <li><Link to="/men" className="hover:text-[#B8860B] transition-colors">Men's Fashion</Link></li>
-              <li><Link to="/women" className="hover:text-[#B8860B] transition-colors">Women's Fashion</Link></li>
-              <li><Link to="/bags" className="hover:text-[#B8860B] transition-colors">Handbags &amp; Totes</Link></li>
               <li><Link to="/footwear" className="hover:text-[#B8860B] transition-colors">Footwear &amp; Sneakers</Link></li>
-              <li><Link to="/category/watches" className="hover:text-[#B8860B] transition-colors">Watches &amp; Timepieces</Link></li>
-              <li><Link to="/category/jeans" className="hover:text-[#B8860B] transition-colors">Jeans &amp; Raw Denim</Link></li>
+              <li><Link to="/bags" className="hover:text-[#B8860B] transition-colors">Bags &amp; Luggage</Link></li>
+              <li><Link to="/perfumes" className="hover:text-[#B8860B] transition-colors">Royal Perfumes</Link></li>
+              <li><Link to="/watches" className="hover:text-[#B8860B] transition-colors">Watches &amp; Timepieces</Link></li>
+              <li><Link to="/jeans" className="hover:text-[#B8860B] transition-colors">Jeans &amp; Denim</Link></li>
               <li><Link to="/shop" className="hover:text-[#B8860B] transition-colors">Shop All Creations</Link></li>
             </ul>
           </div>

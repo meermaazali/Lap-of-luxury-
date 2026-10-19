@@ -115,7 +115,7 @@ interface StoreContextType {
   paymentConfig: PaymentConfig;
   updatePaymentConfig: (updates: Partial<PaymentConfig>) => void;
 
-  // Flagship Boutique Hero Configuration
+  // Boutique Hero Configuration
   boutiqueHeroConfig: BoutiqueHeroConfig;
   updateBoutiqueHeroConfig: (updates: Partial<BoutiqueHeroConfig>) => void;
 
@@ -887,7 +887,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  // Flagship Boutique Hero Configuration
+  // Boutique Hero Configuration
   const updateBoutiqueHeroConfig = (updates: Partial<BoutiqueHeroConfig>) => {
     setBoutiqueHeroConfig((prev) => {
       const next = { ...prev, ...updates };

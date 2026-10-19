@@ -13,6 +13,9 @@ import {
   X,
   CheckCircle,
   Filter,
+  ArrowUp,
+  ArrowDown,
+  Award,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { CategoryItem } from '../../types';
@@ -20,10 +23,12 @@ import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../../utils/imageUtils
 
 const PARENT_CATEGORY_OPTIONS = [
   { value: 'Men', label: "Men (Men's Fashion & Sartorial)" },
-  { value: 'Women', label: "Women (Women's Couture & Ethnic)" },
-  { value: 'Bags', label: 'Bags (Bags & Leather Atelier)' },
-  { value: 'Footwear', label: 'Footwear (Premium Footwear)' },
-  { value: 'Accessories', label: 'Accessories (Watches & Luxury Accessories)' },
+  { value: 'Footwear', label: 'Footwear (Shoes, Sneakers, Loafers, Crocs)' },
+  { value: 'Bags', label: 'Bags (Bags, Luggage & Leather Atelier)' },
+  { value: 'Perfumes', label: 'Perfumes (Royal Scents & Parfums)' },
+  { value: 'Watches', label: 'Watches (Timepieces & Horology)' },
+  { value: 'Jeans', label: 'Jeans (Denim Atelier)' },
+  { value: 'Accessories', label: 'Accessories (Luxury Accessories)' },
   { value: 'Collections', label: 'Collections (Festive & Wedding Atelier)' },
   { value: 'None', label: 'None (Top-Level Main Category)' },
 ];
@@ -55,11 +60,15 @@ export const CategoryManager: React.FC = () => {
     image: '',
     itemCount: 20,
     subcategories: [] as string[],
+    brands: [] as string[],
   });
 
   const [newSubcategoryInput, setNewSubcategoryInput] = useState('');
+  const [newBrandInput, setNewBrandInput] = useState('');
   const [inlineNewSubInput, setInlineNewSubInput] = useState<{ [catId: string]: string }>({});
   const [inlineInputOpen, setInlineInputOpen] = useState<{ [catId: string]: boolean }>({});
+  const [inlineNewBrandInput, setInlineNewBrandInput] = useState<{ [catId: string]: string }>({});
+  const [inlineBrandInputOpen, setInlineBrandInputOpen] = useState<{ [catId: string]: boolean }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -73,6 +82,7 @@ export const CategoryManager: React.FC = () => {
     setEditingCategory(null);
     setFormError(null);
     setNewSubcategoryInput('');
+    setNewBrandInput('');
     setFormData({
       name: '',
       slug: '',
@@ -81,6 +91,7 @@ export const CategoryManager: React.FC = () => {
       image: '',
       itemCount: 15,
       subcategories: [],
+      brands: [],
     });
     setIsModalOpen(true);
   };
@@ -89,6 +100,7 @@ export const CategoryManager: React.FC = () => {
     setEditingCategory(c);
     setFormError(null);
     setNewSubcategoryInput('');
+    setNewBrandInput('');
     setFormData({
       name: c.name,
       slug: c.slug,
@@ -97,6 +109,7 @@ export const CategoryManager: React.FC = () => {
       image: c.image,
       itemCount: c.itemCount || 10,
       subcategories: Array.isArray(c.subcategories) ? [...c.subcategories] : [],
+      brands: Array.isArray(c.brands) ? [...c.brands] : [],
     });
     setIsModalOpen(true);
   };
@@ -140,6 +153,29 @@ export const CategoryManager: React.FC = () => {
     }));
   };
 
+  const handleAddBrandToForm = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = newBrandInput.trim();
+    if (!trimmed) return;
+    if (formData.brands.some((b) => b.toLowerCase() === trimmed.toLowerCase())) {
+      setFormError(`Brand "${trimmed}" already exists.`);
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      brands: [...prev.brands, trimmed],
+    }));
+    setNewBrandInput('');
+    setFormError(null);
+  };
+
+  const handleRemoveBrandFromForm = (brandToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      brands: prev.brands.filter((b) => b !== brandToRemove),
+    }));
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.image.trim()) {
@@ -159,8 +195,9 @@ export const CategoryManager: React.FC = () => {
         parentCategory,
         department,
         image: cleanImg,
-        itemCount: Number(formData.itemCount) || formData.subcategories.length * 5,
+        itemCount: Number(formData.itemCount) || (formData.subcategories.length + formData.brands.length) * 4,
         subcategories: formData.subcategories,
+        brands: formData.brands,
       });
       showToast(`Category "${formData.name.toUpperCase()}" updated successfully.`);
     } else {
@@ -170,13 +207,32 @@ export const CategoryManager: React.FC = () => {
         parentCategory,
         department,
         image: cleanImg,
-        itemCount: Number(formData.itemCount) || formData.subcategories.length * 5,
+        itemCount: Number(formData.itemCount) || (formData.subcategories.length + formData.brands.length) * 4,
         subcategories: formData.subcategories,
+        brands: formData.brands,
+        order: categories.length + 1,
+        active: true,
       });
       showToast(`Category "${formData.name.toUpperCase()}" created and synced to Cloud Firestore.`);
     }
 
     setIsModalOpen(false);
+  };
+
+  // Reorder categories
+  const handleMoveOrder = async (cat: CategoryItem, direction: 'up' | 'down') => {
+    const sorted = [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const currentIndex = sorted.findIndex((c) => c.id === cat.id);
+    if (currentIndex === -1) return;
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= sorted.length) return;
+
+    const currentOrder = sorted[currentIndex].order ?? currentIndex + 1;
+    const targetOrder = sorted[targetIndex].order ?? targetIndex + 1;
+
+    await updateCategory(sorted[currentIndex].id, { order: targetOrder });
+    await updateCategory(sorted[targetIndex].id, { order: currentOrder });
+    showToast(`Reordered "${cat.name}".`);
   };
 
   // Inline Subcategory Operations (directly from card)
@@ -210,15 +266,42 @@ export const CategoryManager: React.FC = () => {
     showToast(`Removed "${subToRemove}" from ${cat.name}.`);
   };
 
-  // Filter Categories by Department
-  const filteredCategories = categories.filter((cat) => {
-    if (filterDepartment === 'All') return true;
-    const parent = cat.parentCategory || cat.department || '';
-    if (filterDepartment === 'Top-Level') {
-      return !parent || parent === 'None' || parent === 'Root';
+  // Inline Brand Operations
+  const handleAddInlineBrand = (cat: CategoryItem) => {
+    const inputVal = (inlineNewBrandInput[cat.id] || '').trim();
+    if (!inputVal) return;
+
+    const currentBrands = Array.isArray(cat.brands) ? [...cat.brands] : [];
+    if (currentBrands.some((b) => b.toLowerCase() === inputVal.toLowerCase())) {
+      showToast(`Brand "${inputVal}" already exists in ${cat.name}.`);
+      return;
     }
-    return parent.toLowerCase() === filterDepartment.toLowerCase();
-  });
+
+    const updatedBrands = [...currentBrands, inputVal];
+    updateCategory(cat.id, { brands: updatedBrands });
+    setInlineNewBrandInput((prev) => ({ ...prev, [cat.id]: '' }));
+    setInlineBrandInputOpen((prev) => ({ ...prev, [cat.id]: false }));
+    showToast(`Added brand "${inputVal}" to ${cat.name}.`);
+  };
+
+  const handleRemoveInlineBrand = (cat: CategoryItem, brandToRemove: string) => {
+    const currentBrands = Array.isArray(cat.brands) ? cat.brands : [];
+    const updatedBrands = currentBrands.filter((b) => b !== brandToRemove);
+    updateCategory(cat.id, { brands: updatedBrands });
+    showToast(`Removed brand "${brandToRemove}" from ${cat.name}.`);
+  };
+
+  // Filter Categories by Department and sort by order
+  const filteredCategories = categories
+    .filter((cat) => {
+      if (filterDepartment === 'All') return true;
+      const parent = cat.parentCategory || cat.department || '';
+      if (filterDepartment === 'Top-Level') {
+        return !parent || parent === 'None' || parent === 'Root';
+      }
+      return parent.toLowerCase() === filterDepartment.toLowerCase();
+    })
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
     <div className="space-y-6">

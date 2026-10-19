@@ -32,7 +32,7 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact 
         </span>
         <span className="text-[#3A352E]">|</span>
         <span className="text-[10px] tracking-wide text-[#8C8274]">
-          Flagship Boutique · Mahbubnagar
+          Luxury Boutique · Mahbubnagar
         </span>
       </div>
 

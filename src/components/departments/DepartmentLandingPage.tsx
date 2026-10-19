@@ -118,14 +118,32 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
   sale: {
     title: 'EXCLUSIVE ARCHIVE & OFFERS',
     tagline: 'Limited-edition privileged offerings on select festive couture, fine denim and leather accessories.',
-    bannerImage: '/images/flagship_banner_16_9.jpg',
+    bannerImage: '/images/banner_shirts_pants.jpg',
     subcategories: ['All Offers', 'Festive', 'Shirts', 'Jeans', 'Bags'],
+  },
+  perfumes: {
+    title: 'ROYAL PERFUMES & PRIVATE BLENDS',
+    tagline: 'Rare Cambodian oud, pure French parfun, extracted ambroxan and artisanal extrait de parfum.',
+    bannerImage: '/images/cat_perfume_amber.jpg',
+    subcategories: ['All Perfumes', 'Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils', 'Dior', 'Chanel', 'Gucci', 'Tom Ford'],
+  },
+  watches: {
+    title: 'TIMEPIECES & CHRONOGRAPHS',
+    tagline: 'Master Swiss automatic movements, sapphire bezels, fine chronographs and heirloom horology.',
+    bannerImage: '/images/cat_watch_gold.jpg',
+    subcategories: ['All Watches', 'Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions', 'Rado', 'Tissot', 'Rolex', 'Omega'],
+  },
+  jeans: {
+    title: 'LUXURY JEANS & RAW DENIM',
+    tagline: 'Japanese selvedge, tailored slim fit, relaxed regular and contemporary streetwear baggy cuts.',
+    bannerImage: '/images/category_jeans_luxury_1791290260306.jpg',
+    subcategories: ['All Jeans', 'Slim Fit', 'Regular Fit', 'Baggy Fit', 'Raw Denim', 'Relaxed Fit'],
   },
   'new-arrivals': {
     title: 'NEW ARRIVALS · SEASON DROPS',
-    tagline: 'Fresh arrivals direct from our Mahbubnagar flagship atelier and bespoke tailoring line.',
+    tagline: 'Fresh arrivals direct from our Mahbubnagar boutique atelier and bespoke tailoring line.',
     bannerImage: '/images/hero_luxury_fashion_1791098539165.jpg',
-    subcategories: ['All New Arrivals', 'Men', 'Women', 'Bags', 'Footwear', 'Accessories'],
+    subcategories: ['All New Arrivals', 'Men', 'Footwear', 'Bags', 'Perfumes', 'Watches', 'Jeans'],
   },
 };
 
@@ -160,12 +178,23 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         (departmentKey === 'women' && cat.slug.toLowerCase() === 'women') ||
         (departmentKey === 'bags' && cat.slug.toLowerCase() === 'bags') ||
         (departmentKey === 'footwear' && (cat.slug.toLowerCase() === 'shoes' || cat.slug.toLowerCase() === 'footwear')) ||
+        (departmentKey === 'perfumes' && cat.slug.toLowerCase() === 'perfumes') ||
+        (departmentKey === 'watches' && cat.slug.toLowerCase() === 'watches') ||
+        (departmentKey === 'jeans' && cat.slug.toLowerCase() === 'jeans') ||
         (departmentKey === 'accessories' && (cat.slug.toLowerCase() === 'accessories' || cat.slug.toLowerCase() === 'watches' || cat.slug.toLowerCase() === 'perfumes'));
 
       if (matchesDept && Array.isArray(cat.subcategories)) {
         cat.subcategories.forEach((s) => {
           if (s && typeof s === 'string' && s.trim()) {
             dynamicSubs.add(s.trim());
+          }
+        });
+      }
+
+      if (matchesDept && Array.isArray(cat.brands)) {
+        cat.brands.forEach((b) => {
+          if (b && typeof b === 'string' && b.trim()) {
+            dynamicSubs.add(b.trim());
           }
         });
       }
@@ -205,6 +234,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
       const dept = (p.department || '').toLowerCase();
       const cat = (p.category || '').toLowerCase();
       const sub = (p.subCategory || p.subcategory || '').toLowerCase();
+      const brand = (p.brand || '').toLowerCase();
       const tags = (p.tags || []).map((t) => t.toLowerCase());
 
       if (departmentKey === 'men') {
@@ -279,10 +309,47 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           cat === 'footwear' ||
           sub.includes('sneaker') ||
           sub.includes('loafer') ||
+          sub.includes('crocs') ||
           sub.includes('heel') ||
           sub.includes('shoe') ||
           sub.includes('sandals') ||
           sub.includes('flats')
+        );
+      }
+
+      if (departmentKey === 'perfumes') {
+        return (
+          dept === 'perfumes' ||
+          cat === 'perfumes' ||
+          sub.includes('perfume') ||
+          sub.includes('oud') ||
+          sub.includes('scent') ||
+          sub.includes('attar') ||
+          tags.some((t) => t.includes('perfume') || t.includes('scent') || t.includes('oud'))
+        );
+      }
+
+      if (departmentKey === 'watches') {
+        return (
+          dept === 'watches' ||
+          cat === 'watches' ||
+          sub.includes('watch') ||
+          sub.includes('chronograph') ||
+          sub.includes('automatic') ||
+          tags.some((t) => t.includes('watch') || t.includes('timepiece'))
+        );
+      }
+
+      if (departmentKey === 'jeans') {
+        return (
+          dept === 'jeans' ||
+          cat === 'jeans' ||
+          sub.includes('jean') ||
+          sub.includes('denim') ||
+          sub.includes('slim fit') ||
+          sub.includes('regular fit') ||
+          sub.includes('baggy fit') ||
+          tags.some((t) => t.includes('jean') || t.includes('denim'))
         );
       }
 
@@ -334,11 +401,13 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
       result = result.filter((p) => {
         const sub = (p.subCategory || '').toLowerCase();
         const cat = (p.category || '').toLowerCase();
+        const brand = (p.brand || '').toLowerCase();
         const name = p.name.toLowerCase();
         const tags = (p.tags || []).map((t) => t.toLowerCase());
 
         return (
           sub.includes(targetSub) ||
+          brand.includes(targetSub) ||
           cat.includes(targetSub) ||
           name.includes(targetSub) ||
           tags.some((t) => t.includes(targetSub))

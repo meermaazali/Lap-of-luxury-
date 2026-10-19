@@ -18,6 +18,7 @@ import { normalizeImageUrl, FALLBACK_CATEGORY_IMAGES, FALLBACK_LUXURY_IMAGE } fr
 export const ProductsManager: React.FC = () => {
   const {
     products,
+    categories,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -29,14 +30,50 @@ export const ProductsManager: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteConfirmProduct, setDeleteConfirmProduct] = useState<Product | null>(null);
 
+  // Helper functions for dependent subcategories and brands based on category
+  const getRelevantSubcategories = (catSlug: string): string[] => {
+    const slugLower = (catSlug || '').toLowerCase();
+    const found = categories.find(
+      (c) => (c.slug || c.name || '').toLowerCase() === slugLower
+    );
+    if (found && Array.isArray(found.subcategories) && found.subcategories.length > 0) {
+      return found.subcategories;
+    }
+    if (slugLower === 'men') return ['Shirts', 'T-shirts', 'Hoodies', 'Full-sleeve T-shirts', 'Jeans'];
+    if (slugLower === 'footwear' || slugLower === 'shoes') return ['Sneakers', 'Crocs', 'Formal Shoes', 'Loafers', 'Sandals'];
+    if (slugLower === 'bags') return ['Backpacks', 'Briefcases', 'Crossbody Bags', 'Travel Bags', 'Wallets'];
+    if (slugLower === 'perfumes') return ['Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils'];
+    if (slugLower === 'watches') return ['Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions'];
+    if (slugLower === 'jeans') return ['Slim Fit', 'Regular Fit', 'Baggy Fit', 'Raw Denim', 'Relaxed Fit'];
+    return ['Standard', 'Classic'];
+  };
+
+  const getRelevantBrands = (catSlug: string): string[] => {
+    const slugLower = (catSlug || '').toLowerCase();
+    const found = categories.find(
+      (c) => (c.slug || c.name || '').toLowerCase() === slugLower
+    );
+    if (found && Array.isArray(found.brands) && found.brands.length > 0) {
+      return found.brands;
+    }
+    if (slugLower === 'bags') return ['Gucci', 'Louis Vuitton', 'Prada', 'Saint Laurent', 'Bottega Veneta'];
+    if (slugLower === 'perfumes') return ['Dior', 'Chanel', 'Gucci', 'Tom Ford', 'Creed'];
+    if (slugLower === 'watches') return ['Rado', 'Tissot', 'Rolex', 'Omega', 'Tag Heuer'];
+    if (slugLower === 'footwear' || slugLower === 'shoes') return ['Nike', 'Gucci', 'Crocs', 'Prada', 'LAP OF LUXURY SARTORIAL'];
+    if (slugLower === 'jeans') return ['LAP OF LUXURY SARTORIAL', 'Diesel', "Levi's", 'Calvin Klein'];
+    return ['LAP OF LUXURY SARTORIAL', 'Gucci', 'Louis Vuitton', 'Dior', 'Rolex'];
+  };
+
   // Tabs for image selection in modal
   const [primaryImageTab, setPrimaryImageTab] = useState<'url' | 'upload' | 'media'>('url');
   const [secondaryImageTab, setSecondaryImageTab] = useState<'url' | 'upload' | 'media'>('url');
 
-  // Form State
+  // Form State with dependent subCategory and brand
   const [formData, setFormData] = useState({
     name: '',
     category: 'Men',
+    subCategory: 'Shirts',
+    brand: 'LAP OF LUXURY SARTORIAL',
     price: 1000,
     originalPrice: 1999,
     description: '',
@@ -48,12 +85,15 @@ export const ProductsManager: React.FC = () => {
     isBestSeller: true,
   });
 
+  const [customSubCategory, setCustomSubCategory] = useState(false);
+  const [customBrand, setCustomBrand] = useState(false);
+
   const [isUploadingPrimary, setIsUploadingPrimary] = useState(false);
   const [isUploadingSecondary, setIsUploadingSecondary] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Pagination & Filtering for 1,000+ products
+  // Pagination & Filtering for products
   const [adminSearch, setAdminSearch] = useState('');
   const [adminCategory, setAdminCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,7 +104,9 @@ export const ProductsManager: React.FC = () => {
     const matchesSearch =
       !adminSearch.trim() ||
       p.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
-      p.description.toLowerCase().includes(adminSearch.toLowerCase());
+      p.description.toLowerCase().includes(adminSearch.toLowerCase()) ||
+      (p.subCategory && p.subCategory.toLowerCase().includes(adminSearch.toLowerCase())) ||
+      (p.brand && p.brand.toLowerCase().includes(adminSearch.toLowerCase()));
     return matchesCat && matchesSearch;
   });
 
@@ -82,9 +124,17 @@ export const ProductsManager: React.FC = () => {
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setFormError(null);
+    setCustomSubCategory(false);
+    setCustomBrand(false);
+    const initialCat = 'Men';
+    const subs = getRelevantSubcategories(initialCat);
+    const brands = getRelevantBrands(initialCat);
+
     setFormData({
       name: '',
-      category: 'Men',
+      category: initialCat,
+      subCategory: subs[0] || 'Shirts',
+      brand: brands[0] || 'LAP OF LUXURY SARTORIAL',
       price: 1000,
       originalPrice: 1999,
       description: '',
@@ -101,9 +151,16 @@ export const ProductsManager: React.FC = () => {
   const handleOpenEdit = (p: Product) => {
     setEditingProduct(p);
     setFormError(null);
+    setCustomSubCategory(false);
+    setCustomBrand(false);
+    const subs = getRelevantSubcategories(p.category);
+    const brands = getRelevantBrands(p.category);
+
     setFormData({
       name: p.name,
       category: p.category,
+      subCategory: p.subCategory || p.subcategory || subs[0] || 'Shirts',
+      brand: p.brand || brands[0] || 'LAP OF LUXURY SARTORIAL',
       price: p.price,
       originalPrice: p.originalPrice || p.price,
       description: p.description,
@@ -115,6 +172,19 @@ export const ProductsManager: React.FC = () => {
       isBestSeller: !!p.isBestSeller,
     });
     setIsModalOpen(true);
+  };
+
+  const handleCategoryChange = (newCat: string) => {
+    const subs = getRelevantSubcategories(newCat);
+    const brands = getRelevantBrands(newCat);
+    setCustomSubCategory(false);
+    setCustomBrand(false);
+    setFormData((prev) => ({
+      ...prev,
+      category: newCat,
+      subCategory: subs[0] || '',
+      brand: brands[0] || 'LAP OF LUXURY SARTORIAL',
+    }));
   };
 
   const handleFileUpload = async (
@@ -178,10 +248,19 @@ export const ProductsManager: React.FC = () => {
       ? normalizeImageUrl(formData.secondaryImage, formData.category)
       : undefined;
 
+    // Resolve department
+    const foundCat = categories.find(
+      (c) => (c.slug || c.name || '').toLowerCase() === formData.category.toLowerCase()
+    );
+    const resolvedDept = foundCat?.department || foundCat?.parentCategory || formData.category;
+
     if (editingProduct) {
       updateProduct(editingProduct.id, {
         name: formData.name,
         category: formData.category,
+        subCategory: formData.subCategory,
+        brand: formData.brand,
+        department: resolvedDept,
         price: Number(formData.price),
         originalPrice: Number(formData.originalPrice),
         description: formData.description,
@@ -192,12 +271,21 @@ export const ProductsManager: React.FC = () => {
         secondaryImage: finalSecondaryImage,
         isFestiveEdit: formData.isFestiveEdit,
         isBestSeller: formData.isBestSeller,
+        tags: [
+          formData.category,
+          formData.subCategory,
+          formData.brand,
+          formData.isFestiveEdit ? 'Festive Edit' : '',
+        ].filter(Boolean),
       });
       showToast('✓ Product updated! Store catalog updated in real-time.');
     } else {
       addProduct({
         name: formData.name,
         category: formData.category,
+        subCategory: formData.subCategory,
+        brand: formData.brand,
+        department: resolvedDept,
         price: Number(formData.price),
         originalPrice: Number(formData.originalPrice),
         description: formData.description,
@@ -210,7 +298,12 @@ export const ProductsManager: React.FC = () => {
         secondaryImage: finalSecondaryImage,
         isFestiveEdit: formData.isFestiveEdit,
         isBestSeller: formData.isBestSeller,
-        tags: [formData.category, formData.isFestiveEdit ? 'Festive Edit' : ''],
+        tags: [
+          formData.category,
+          formData.subCategory,
+          formData.brand,
+          formData.isFestiveEdit ? 'Festive Edit' : '',
+        ].filter(Boolean),
       });
       showToast('✓ New product created and published to storefront!');
     }
@@ -522,22 +615,122 @@ export const ProductsManager: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-[#4A4033] mb-1">
-                    CATEGORY *
+                    MAIN CATEGORY *
                   </label>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none cursor-pointer"
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none cursor-pointer font-bold text-[#1E1E22]"
                   >
-                    <option value="Men">Men (Shirts & Tops)</option>
-                    <option value="Women">Women's Collection</option>
-                    <option value="Jeans">Jeans & Denim</option>
-                    <option value="Watches">Watches & Horology</option>
-                    <option value="Bags">Handbags & Clutches</option>
-                    <option value="Shoes">Footwear & Sneakers</option>
-                    <option value="Accessories">Accessories</option>
-                    <option value="Perfumes">Perfumes & Fragrances</option>
+                    {categories
+                      .filter(
+                        (c) =>
+                          c.active !== false &&
+                          (c.slug.toLowerCase() !== 'women' || formData.category.toLowerCase() === 'women')
+                      )
+                      .map((c) => (
+                        <option key={c.id} value={c.slug}>
+                          {c.name} ({c.slug})
+                        </option>
+                      ))}
+                    {/* Fallback baseline categories if categories list is still loading */}
+                    {categories.length === 0 && (
+                      <>
+                        <option value="Men">MEN (Shirts, Hoodies, Jeans)</option>
+                        <option value="Footwear">FOOTWEAR (Sneakers, Loafers, Crocs)</option>
+                        <option value="Bags">BAGS (Gucci, Louis Vuitton, Wallets)</option>
+                        <option value="Perfumes">PERFUMES (Dior, Chanel, Tom Ford)</option>
+                        <option value="Watches">WATCHES (Rado, Rolex, Tissot)</option>
+                        <option value="Jeans">JEANS (Slim, Regular, Baggy Fit)</option>
+                      </>
+                    )}
                   </select>
+                </div>
+              </div>
+
+              {/* Dependent Subcategory and Brand Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#F2EDE2]/60 p-3.5 rounded-xl border border-[#D5C2A5]">
+                {/* Dependent Subcategory */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider">
+                      SUBCATEGORY *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCustomSubCategory(!customSubCategory)}
+                      className="text-[10px] text-[#8A671A] hover:underline font-semibold cursor-pointer"
+                    >
+                      {customSubCategory ? 'Select from list' : '+ Custom Subcategory'}
+                    </button>
+                  </div>
+
+                  {customSubCategory ? (
+                    <input
+                      type="text"
+                      required
+                      value={formData.subCategory}
+                      onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
+                      placeholder="e.g. Full-sleeve T-shirts, Crocs..."
+                      className="w-full px-3 py-2 bg-white border border-[#B89758] rounded text-xs focus:outline-none"
+                    />
+                  ) : (
+                    <select
+                      value={formData.subCategory}
+                      onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none cursor-pointer"
+                    >
+                      {getRelevantSubcategories(formData.category).map((sub, idx) => (
+                        <option key={idx} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <span className="text-[10px] text-[#7A6C58] block mt-1">
+                    Relevant to {formData.category}
+                  </span>
+                </div>
+
+                {/* Dependent Brand */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-[#1E1E22] uppercase tracking-wider">
+                      BRAND / MAISON
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCustomBrand(!customBrand)}
+                      className="text-[10px] text-[#8A671A] hover:underline font-semibold cursor-pointer"
+                    >
+                      {customBrand ? 'Select from list' : '+ Custom Brand'}
+                    </button>
+                  </div>
+
+                  {customBrand ? (
+                    <input
+                      type="text"
+                      value={formData.brand}
+                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      placeholder="e.g. Gucci, Dior, Rolex..."
+                      className="w-full px-3 py-2 bg-white border border-[#B89758] rounded text-xs focus:outline-none"
+                    />
+                  ) : (
+                    <select
+                      value={formData.brand}
+                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none cursor-pointer"
+                    >
+                      {getRelevantBrands(formData.category).map((brand, idx) => (
+                        <option key={idx} value={brand}>
+                          {brand}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <span className="text-[10px] text-[#7A6C58] block mt-1">
+                    Relevant brands for {formData.category}
+                  </span>
                 </div>
               </div>
 

@@ -40,10 +40,16 @@ export const CategoryPage: React.FC = () => {
           pCat === 'dresses' ||
           pCat === 'sarees';
       } else if (targetCat === 'bags') {
-        matchCat = pDept === 'bags' || pCat.includes('bag');
+        matchCat = pDept === 'bags' || pCat.includes('bag') || Boolean(p.subCategory && p.subCategory.toLowerCase().includes('bag'));
       } else if (targetCat === 'footwear' || targetCat === 'shoes') {
         matchCat = pDept === 'footwear' || pCat.includes('shoe') || pCat.includes('footwear');
-      } else if (targetCat === 'accessories' || targetCat === 'watches' || targetCat === 'perfumes') {
+      } else if (targetCat === 'perfumes') {
+        matchCat = pDept === 'perfumes' || pCat === 'perfumes' || Boolean(p.subCategory && (p.subCategory.toLowerCase().includes('perfume') || p.subCategory.toLowerCase().includes('oud')));
+      } else if (targetCat === 'watches') {
+        matchCat = pDept === 'watches' || pCat === 'watches' || Boolean(p.subCategory && p.subCategory.toLowerCase().includes('watch'));
+      } else if (targetCat === 'jeans') {
+        matchCat = pDept === 'jeans' || pCat === 'jeans' || Boolean(p.subCategory && p.subCategory.toLowerCase().includes('jean'));
+      } else if (targetCat === 'accessories') {
         matchCat = pDept === 'accessories' || pCat === 'accessories' || pCat === 'watches' || pCat === 'perfumes';
       } else {
         matchCat = pCat === targetCat || pCat.includes(targetCat) || pDept === targetCat;
@@ -54,11 +60,13 @@ export const CategoryPage: React.FC = () => {
       if (subcatName) {
         const targetSub = subcatName.toLowerCase();
         const pSub = (p.subCategory || p.subcategory || '').toLowerCase();
+        const pBrand = (p.brand || '').toLowerCase();
         const pTags = (p.tags || []).map((t) => t.toLowerCase());
         const pDesc = (p.description || '').toLowerCase();
         const pName = (p.name || '').toLowerCase();
         return (
           pSub.includes(targetSub) ||
+          pBrand.includes(targetSub) ||
           pTags.some((t) => t.includes(targetSub)) ||
           pDesc.includes(targetSub) ||
           pName.includes(targetSub)

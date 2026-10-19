@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   ShoppingBag,
@@ -15,6 +16,7 @@ import {
 
 import { useStore } from '../context/StoreContext';
 import { UploadedLogoMark } from './UploadedLogoMark';
+import { WhatsAppButton } from './common/WhatsAppButton';
 import {
   normalizeImageUrl,
   FALLBACK_LUXURY_IMAGE,
@@ -26,94 +28,19 @@ export interface HeaderProps {
   onOpenContactUs?: () => void;
 }
 
-const MOBILE_DEPARTMENTS = [
-  { id: 'home', label: 'Home', view: 'home' },
-  {
-    id: 'men',
-    label: "Men's Fashion",
-    view: 'men',
-    subcategories: [
-      { label: 'All Men Fashion', sub: '' },
-      { label: 'Shirts', sub: 'Shirts' },
-      { label: 'Trousers & Chinos', sub: 'Trousers' },
-      { label: 'Jeans & Denim', sub: 'Jeans' },
-      { label: 'T-Shirts & Polos', sub: 'T-Shirts' },
-      { label: 'Kurta Sets & Ethnic Wear', sub: 'Kurta Sets' },
-      { label: 'Luxury Sneakers & Shoes', sub: 'Sneakers' },
-      { label: 'Leather Loafers & Formal', sub: 'Loafers' },
-      { label: 'Watches & Accessories', sub: 'Watches and Accessories' },
-      { label: 'Belts & Wallets', sub: 'Belts' },
-    ],
-  },
-  {
-    id: 'women',
-    label: "Women's Fashion",
-    view: 'women',
-    subcategories: [
-      { label: 'All Women Fashion', sub: '' },
-      { label: 'Banarasi Sarees', sub: 'Sarees' },
-      { label: 'Designer Lehengas', sub: 'Lehengas' },
-      { label: 'Evening Dresses & Gowns', sub: 'Dresses' },
-      { label: 'Silk Tops & Blouses', sub: 'Tops and Shirts' },
-      { label: 'Co-ord Sets', sub: 'Co-ord Sets' },
-      { label: 'Handbags & Totes', sub: 'Handbags' },
-      { label: 'Evening Clutches', sub: 'Clutches' },
-      { label: 'Stiletto Heels & Flats', sub: 'Heels' },
-    ],
-  },
-  {
-    id: 'bags',
-    label: 'Bags & Leathercraft',
-    view: 'bags',
-    subcategories: [
-      { label: 'All Bags', sub: '' },
-      { label: 'Top-Handle Handbags', sub: 'Handbags' },
-      { label: 'Shoulder Bags', sub: 'Shoulder Bags' },
-      { label: 'Sling Bags & Crossbody', sub: 'Sling Bags' },
-      { label: 'Evening Clutches', sub: 'Clutches' },
-      { label: 'Leather Totes', sub: 'Totes' },
-      { label: 'Wallets & Small Leather Goods', sub: 'Wallets' },
-      { label: 'Travel Duffles & Briefcases', sub: 'Travel Bags' },
-    ],
-  },
-  {
-    id: 'footwear',
-    label: 'Footwear Collection',
-    view: 'footwear',
-    subcategories: [
-      { label: 'All Footwear', sub: '' },
-      { label: 'Luxury Sneakers', sub: 'Sneakers' },
-      { label: 'Formal Shoes & Oxfords', sub: 'Formal Shoes' },
-      { label: 'Handcrafted Loafers', sub: 'Loafers' },
-      { label: 'Heels & Occasion Shoes', sub: 'Heels' },
-      { label: 'Pointed Flats & Sandals', sub: 'Flats' },
-    ],
-  },
-  {
-    id: 'accessories',
-    label: 'Accessories & Fragrances',
-    view: 'accessories',
-    subcategories: [
-      { label: 'All Accessories', sub: '' },
-      { label: 'Gold Chronographs & Watches', sub: 'Watches and Accessories' },
-      { label: 'Royal Amber Oud & Parfums', sub: 'Watches and Accessories' },
-      { label: 'Aviator Sunglasses', sub: 'Watches and Accessories' },
-      { label: 'Reversible Leather Belts', sub: 'Belts' },
-    ],
-  },
-];
-
 export const Header: React.FC<HeaderProps> = ({
   onOpenWishlist,
   onOpenAboutUs,
   onOpenContactUs,
 }) => {
+  const navigate = useNavigate();
   const {
     searchQuery,
     setSearchQuery,
     cartCount,
     setIsCartOpen,
     products,
+    categories,
     openProductDetail,
     currentView,
     setCurrentView,
@@ -128,6 +55,121 @@ export const Header: React.FC<HeaderProps> = ({
     null
   );
 
+  // Dynamic Mobile Departments without Women
+  const mobileDepartments = useMemo(() => {
+    const list = [
+      { id: 'home', label: 'Home', view: 'home', subcategories: [] },
+      {
+        id: 'men',
+        label: "Men's Fashion",
+        view: 'men',
+        subcategories: [
+          { label: 'All Men Fashion', sub: '' },
+          { label: 'Shirts', sub: 'Shirts' },
+          { label: 'T-shirts', sub: 'T-shirts' },
+          { label: 'Hoodies', sub: 'Hoodies' },
+          { label: 'Full-sleeve T-shirts', sub: 'Full-sleeve T-shirts' },
+          { label: 'Jeans', sub: 'Jeans' },
+        ],
+      },
+      {
+        id: 'footwear',
+        label: 'Footwear Collection',
+        view: 'footwear',
+        subcategories: [
+          { label: 'All Footwear', sub: '' },
+          { label: 'Sneakers', sub: 'Sneakers' },
+          { label: 'Crocs', sub: 'Crocs' },
+          { label: 'Formal Shoes', sub: 'Formal Shoes' },
+          { label: 'Loafers', sub: 'Loafers' },
+          { label: 'Sandals', sub: 'Sandals' },
+        ],
+      },
+      {
+        id: 'bags',
+        label: 'Bags & Luggage',
+        view: 'bags',
+        subcategories: [
+          { label: 'All Bags', sub: '' },
+          { label: 'Gucci', sub: 'Gucci' },
+          { label: 'Louis Vuitton', sub: 'Louis Vuitton' },
+          { label: 'Prada', sub: 'Prada' },
+          { label: 'Backpacks', sub: 'Backpacks' },
+          { label: 'Briefcases', sub: 'Briefcases' },
+          { label: 'Travel Bags', sub: 'Travel Bags' },
+          { label: 'Wallets', sub: 'Wallets' },
+        ],
+      },
+      {
+        id: 'perfumes',
+        label: 'Perfumes',
+        view: 'perfumes',
+        subcategories: [
+          { label: 'All Perfumes', sub: '' },
+          { label: 'Dior', sub: 'Dior' },
+          { label: 'Chanel', sub: 'Chanel' },
+          { label: 'Gucci', sub: 'Gucci' },
+          { label: 'Tom Ford', sub: 'Tom Ford' },
+          { label: 'Oud & Extrait', sub: 'Oud & Extrait' },
+        ],
+      },
+      {
+        id: 'watches',
+        label: 'Watches',
+        view: 'watches',
+        subcategories: [
+          { label: 'All Watches', sub: '' },
+          { label: 'Rado', sub: 'Rado' },
+          { label: 'Tissot', sub: 'Tissot' },
+          { label: 'Rolex', sub: 'Rolex' },
+          { label: 'Omega', sub: 'Omega' },
+          { label: 'Chronograph', sub: 'Chronograph' },
+          { label: 'Automatic', sub: 'Automatic' },
+        ],
+      },
+      {
+        id: 'jeans',
+        label: 'Jeans & Denim',
+        view: 'jeans',
+        subcategories: [
+          { label: 'All Jeans', sub: '' },
+          { label: 'Slim Fit', sub: 'Slim Fit' },
+          { label: 'Regular Fit', sub: 'Regular Fit' },
+          { label: 'Baggy Fit', sub: 'Baggy Fit' },
+          { label: 'Raw Denim', sub: 'Raw Denim' },
+        ],
+      },
+    ];
+
+    // Merge any dynamically created categories from Firestore
+    if (categories && categories.length > 0) {
+      categories.forEach((cat) => {
+        const slugLower = (cat.slug || cat.name || '').toLowerCase();
+        if (slugLower === 'women' || cat.active === false) return;
+
+        const existing = list.find((d) => d.view.toLowerCase() === slugLower);
+        if (existing) {
+          if (Array.isArray(cat.subcategories)) {
+            cat.subcategories.forEach((sub) => {
+              if (!existing.subcategories.some((s) => s.sub.toLowerCase() === sub.toLowerCase())) {
+                existing.subcategories.push({ label: sub, sub: sub });
+              }
+            });
+          }
+          if (Array.isArray(cat.brands)) {
+            cat.brands.forEach((brand) => {
+              if (!existing.subcategories.some((s) => s.sub.toLowerCase() === brand.toLowerCase())) {
+                existing.subcategories.push({ label: brand, sub: brand });
+              }
+            });
+          }
+        }
+      });
+    }
+
+    return list;
+  }, [categories]);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleHomeClick = () => {
@@ -139,6 +181,11 @@ export const Header: React.FC<HeaderProps> = ({
   const handleMobileNav = (view: string, subCategory?: string) => {
     setCurrentView(view, subCategory || null);
     setIsMobileMenuOpen(false);
+    if (subCategory && subCategory.trim()) {
+      navigate(`/category/${view}/${encodeURIComponent(subCategory.trim())}`);
+    } else {
+      navigate(view === 'home' ? '/' : `/${view}`);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -334,6 +381,9 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
+            {/* WhatsApp Contact Button Near Top */}
+            <WhatsAppButton variant="header" className="shrink-0" />
+
             {/* Wishlist Button */}
             <button
               type="button"
@@ -341,7 +391,7 @@ export const Header: React.FC<HeaderProps> = ({
                 if (onOpenWishlist) {
                   onOpenWishlist();
                 } else {
-                  window.location.href = '/wishlist';
+                  navigate('/wishlist');
                 }
               }}
               className="relative p-1.5 sm:px-2.5 sm:py-1.5 rounded-full hover:bg-[#FAF6EE] text-[#111113] hover:text-[#B8860B] transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
@@ -409,9 +459,11 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Department Navigation */}
               <div className="py-2 divide-y divide-gray-100">
-                {MOBILE_DEPARTMENTS.map((department) => {
-                  const isExpanded =
-                    expandedMobileDept === department.id;
+                {mobileDepartments.map((department) => {
+                  const hasSubs =
+                    Array.isArray(department.subcategories) &&
+                    department.subcategories.length > 0;
+                  const isExpanded = expandedMobileDept === department.id;
                   const isActive = currentView === department.view;
 
                   return (
@@ -419,61 +471,46 @@ export const Header: React.FC<HeaderProps> = ({
                       <div className="flex items-center justify-between">
                         <button
                           type="button"
-                          onClick={() =>
-                            handleMobileNav(department.view)
-                          }
-                          className={`flex-1 py-3 px-3 text-left text-xs font-bold tracking-wider uppercase flex items-center gap-2 cursor-pointer ${
+                          onClick={() => {
+                            if (hasSubs) {
+                              setExpandedMobileDept(isExpanded ? null : department.id);
+                            } else {
+                              handleMobileNav(department.view);
+                            }
+                          }}
+                          className={`flex-1 py-3 px-3 text-left text-xs font-bold tracking-wider uppercase flex items-center justify-between cursor-pointer ${
                             isActive
                               ? 'text-[#B8860B]'
                               : 'text-[#1F1E22] hover:text-[#B8860B]'
                           }`}
                         >
                           <span>{department.label}</span>
-                        </button>
-
-                        {department.subcategories && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setExpandedMobileDept(
-                                isExpanded ? null : department.id
-                              )
-                            }
-                            className="p-2 text-gray-400 hover:text-black cursor-pointer"
-                            aria-label={`Toggle ${department.label} subcategories`}
-                          >
+                          {hasSubs && (
                             <ChevronDown
-                              className={`w-4 h-4 transition-transform ${
-                                isExpanded
-                                  ? 'rotate-180 text-[#B8860B]'
-                                  : ''
+                              className={`w-4 h-4 transition-transform duration-200 text-[#8C8274] ${
+                                isExpanded ? 'rotate-180 text-[#B8860B]' : ''
                               }`}
                             />
-                          </button>
-                        )}
+                          )}
+                        </button>
                       </div>
 
                       {/* Subcategory Accordion */}
-                      {department.subcategories && isExpanded && (
-                        <div className="bg-[#FAF8F5] rounded-xl p-2.5 mb-2 space-y-1 pl-4">
-                          {department.subcategories.map(
-                            (subcategory, index) => (
-                              <button
-                                key={`${department.id}-${index}`}
-                                type="button"
-                                onClick={() =>
-                                  handleMobileNav(
-                                    department.view,
-                                    subcategory.sub
-                                  )
-                                }
-                                className="w-full py-1.5 text-left text-[11px] text-[#4A4033] hover:text-[#B8860B] flex items-center justify-between cursor-pointer"
-                              >
-                                <span>{subcategory.label}</span>
-                                <ChevronRight className="w-3 h-3 text-gray-300" />
-                              </button>
-                            )
-                          )}
+                      {hasSubs && isExpanded && (
+                        <div className="bg-[#FAF8F5] rounded-xl p-2.5 mb-2 space-y-1 pl-4 border border-[#E8DEC8]">
+                          {department.subcategories.map((subcategory, index) => (
+                            <button
+                              key={`${department.id}-${index}`}
+                              type="button"
+                              onClick={() =>
+                                handleMobileNav(department.view, subcategory.sub)
+                              }
+                              className="w-full py-1.5 px-2 rounded-md text-left text-xs text-[#3D3327] hover:text-[#B8860B] hover:bg-white flex items-center justify-between cursor-pointer transition-colors"
+                            >
+                              <span>{subcategory.label}</span>
+                              <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -484,9 +521,14 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Mobile Menu Footer */}
             <div className="p-4 border-t border-[#E8DEC8] bg-[#FAF8F5] space-y-3">
+              {/* WhatsApp direct mobile chat */}
+              <div className="pt-1">
+                <WhatsAppButton variant="header" className="w-full justify-center py-2" />
+              </div>
+
               <div className="text-xs space-y-1">
-                <p className="text-[#111113]">
-                  Mahbubnagar Flagship Store
+                <p className="text-[#111113] font-semibold">
+                  Mahbubnagar Boutique Store
                 </p>
                 <p className="text-[11px] text-[#7A6C58]">
                   D/6, Kota Complex, Telangana Chowrasta, 509001

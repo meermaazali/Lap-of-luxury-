@@ -98,7 +98,7 @@ export const PolicyPage: React.FC<PolicyPageProps> = ({ policyType: propType }) 
                 3. Refund Processing
               </h2>
               <p>
-                Approved refunds are credited directly back to the original PhonePe / UPI / Bank account within 5 to 7 business days following receipt and quality inspection at our Mahbubnagar flagship store.
+                Approved refunds are credited directly back to the original PhonePe / UPI / Bank account within 5 to 7 business days following receipt and quality inspection at our Mahbubnagar boutique store.
               </p>
             </div>
           )}

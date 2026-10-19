@@ -39,7 +39,7 @@ export const BrandStorySection: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 text-white">
                 <span className="font-sans uppercase tracking-[0.16em] text-xs text-[#D4AF37] font-semibold">
-                  Flagship Store
+                  Our Boutique
                 </span>
                 <p className="font-bodoni text-xl sm:text-2xl font-normal sm:font-medium tracking-wider mt-1">
                   VISIT OUR STORE

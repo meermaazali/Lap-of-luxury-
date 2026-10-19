@@ -55,6 +55,9 @@ const RootRoutes: React.FC = () => {
         <Route path="/bags" element={<DepartmentPage department="bags" />} />
         <Route path="/footwear" element={<DepartmentPage department="footwear" />} />
         <Route path="/shoes" element={<Navigate to="/footwear" replace />} />
+        <Route path="/perfumes" element={<DepartmentPage department="perfumes" />} />
+        <Route path="/watches" element={<DepartmentPage department="watches" />} />
+        <Route path="/jeans" element={<DepartmentPage department="jeans" />} />
         <Route path="/accessories" element={<DepartmentPage department="accessories" />} />
         <Route path="/collections" element={<DepartmentPage department="collections" />} />
         <Route path="/bestsellers" element={<DepartmentPage department="bestsellers" />} />

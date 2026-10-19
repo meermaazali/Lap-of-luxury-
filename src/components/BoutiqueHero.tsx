@@ -11,48 +11,43 @@ interface CategoryTile {
 
 const CATEGORY_TILES: CategoryTile[] = [
   {
-    name: "Men's Fashion (Shirts & Pants)",
+    name: "Men's Sartorial Fashion",
     slug: 'Men',
     image: '/images/category_mens_fashion_1791290148102.jpg',
   },
   {
-    name: "Women's Fashion",
-    slug: 'Women',
-    image: '/images/cat_womens_dress.jpg',
+    name: 'Footwear & Loafers',
+    slug: 'Footwear',
+    image: '/images/cat_shoes_white.jpg',
   },
   {
-    name: 'Bags & Handbags',
+    name: 'Bags & Luggage',
     slug: 'Bags',
     image: '/images/cat_bag_cream.jpg',
   },
   {
-    name: 'Watches',
-    slug: 'Watches',
-    image: '/images/cat_watch_gold.jpg',
-  },
-  {
-    name: 'Perfumes',
+    name: 'Royal Perfumes & Scents',
     slug: 'Perfumes',
     image: '/images/cat_perfume_amber.jpg',
   },
   {
-    name: 'Shoes & Footwear',
-    slug: 'Shoes',
-    image: '/images/cat_shoes_white.jpg',
+    name: 'Luxury Watches',
+    slug: 'Watches',
+    image: '/images/cat_watch_gold.jpg',
   },
   {
-    name: 'Accessories',
-    slug: 'Accessories',
-    image: '/images/cat_glasses_gold.jpg',
-  },
-  {
-    name: 'Jeans & Denim',
+    name: 'Jeans & Raw Denim',
     slug: 'Jeans',
     image: '/images/category_jeans_luxury_1791290260306.jpg',
   },
+  {
+    name: 'Lifestyle Accessories',
+    slug: 'Accessories',
+    image: '/images/cat_glasses_gold.jpg',
+  },
 ];
 
-export const FlagshipBoutiqueHero: React.FC = () => {
+export const BoutiqueHero: React.FC = () => {
   const { triggerTransition, selectedCategory, boutiqueHeroConfig } = useStore();
   const sliderRef = useRef<HTMLDivElement>(null);
 

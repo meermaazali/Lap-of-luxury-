@@ -492,7 +492,9 @@ export default defineConfig(() => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 1500,
+      outDir: 'dist',
+      emptyOutDir: true,
+      chunkSizeWarningLimit: 2000,
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
