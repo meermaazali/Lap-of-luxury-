@@ -200,7 +200,7 @@ export const ProductDetailPage: React.FC = () => {
               ref={imageContainerRef}
               onMouseMove={handleMouseMove}
               onClick={() => setZoomScale((prev) => (prev >= 2.5 ? 1 : prev + 0.75))}
-              className="relative aspect-square sm:aspect-4/3 w-full rounded-2xl overflow-hidden bg-white border border-[#E8DEC8] cursor-crosshair shadow-sm select-none"
+              className="relative aspect-square w-full max-w-[520px] mx-auto rounded-2xl overflow-hidden bg-white border border-[#E8DEC8] cursor-crosshair shadow-sm select-none"
             >
               <img
                 src={activeImage}
@@ -209,7 +209,7 @@ export const ProductDetailPage: React.FC = () => {
                   (e.target as HTMLImageElement).src =
                     FALLBACK_CATEGORY_IMAGES[product.category] || FALLBACK_LUXURY_IMAGE;
                 }}
-                className="w-full h-full object-cover transition-transform duration-150"
+                className="absolute inset-0 w-full h-full object-contain transition-transform duration-150"
                 style={{
                   transform: `scale(${zoomScale})`,
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
@@ -280,7 +280,7 @@ export const ProductDetailPage: React.FC = () => {
                         : 'border-[#E8DEC8] opacity-75 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt={`${product.name} view ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img src={img} alt={`${product.name} view ${idx + 1}`} className="w-[82%] h-[82%] m-auto object-contain bg-white" />
                   </button>
                 ))}
               </div>
@@ -510,14 +510,14 @@ export const ProductDetailPage: React.FC = () => {
                   rel="noopener noreferrer"
                   className="group bg-white rounded-2xl overflow-hidden border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                 >
-                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#F3EFE9]">
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-white">
                     <img
                       src={normalizeImageUrl(rel.image, rel.category)}
                       alt={rel.name}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
                       }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
                     />
                   </div>
                   <div className="p-3.5 space-y-1">

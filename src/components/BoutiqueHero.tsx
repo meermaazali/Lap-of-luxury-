@@ -3,53 +3,8 @@ import { ArrowRight, Gem, Truck, Headphones } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../utils/imageUtils';
 
-interface CategoryTile {
-  name: string;
-  slug: string;
-  image: string;
-}
-
-const CATEGORY_TILES: CategoryTile[] = [
-  {
-    name: "Men's Sartorial Fashion",
-    slug: 'Men',
-    image: '/images/category_mens_fashion_1791290148102.jpg',
-  },
-  {
-    name: 'Footwear & Loafers',
-    slug: 'Footwear',
-    image: '/images/cat_shoes_white.jpg',
-  },
-  {
-    name: 'Bags & Luggage',
-    slug: 'Bags',
-    image: '/images/cat_bag_cream.jpg',
-  },
-  {
-    name: 'Royal Perfumes & Scents',
-    slug: 'Perfumes',
-    image: '/images/cat_perfume_amber.jpg',
-  },
-  {
-    name: 'Luxury Watches',
-    slug: 'Watches',
-    image: '/images/cat_watch_gold.jpg',
-  },
-  {
-    name: 'Jeans & Raw Denim',
-    slug: 'Jeans',
-    image: '/images/category_jeans_luxury_1791290260306.jpg',
-  },
-  {
-    name: 'Lifestyle Accessories',
-    slug: 'Accessories',
-    image: '/images/cat_glasses_gold.jpg',
-  },
-];
-
 export const BoutiqueHero: React.FC = () => {
-  const { triggerTransition, selectedCategory, boutiqueHeroConfig } = useStore();
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const { boutiqueHeroConfig } = useStore();
 
   // Directly use the exact uploaded banner asset maintaining 16:9 proportions
   const heroImage = boutiqueHeroConfig?.image || '/images/banner_shirts_pants.jpg';
@@ -62,12 +17,6 @@ export const BoutiqueHero: React.FC = () => {
   const heroCtaText = boutiqueHeroConfig?.ctaText || 'Shop Collection';
 
   const handleShopNow = () => {
-    const el = document.getElementById('catalog-section');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleCategorySelect = (tile: CategoryTile) => {
-    triggerTransition(tile.slug, tile.name);
     const el = document.getElementById('catalog-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -136,58 +85,8 @@ export const BoutiqueHero: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. SHOP BY CATEGORY BAR */}
-      <div
-        id="shop-by-category"
-        className="order-2 py-5 sm:py-8 md:py-9 px-2.5 sm:px-6 md:px-8 bg-[#FCFBF8] border-b border-[#F0E6D2] relative"
-      >
-        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-7">
-          <span className="w-8 sm:w-24 h-[1.5px] bg-[#D4AF37]/60" />
-          <h2 className="font-serif font-medium text-sm sm:text-xl md:text-2xl text-[#111113] tracking-wider uppercase">
-            Shop By Category
-          </h2>
-          <span className="w-8 sm:w-24 h-[1.5px] bg-[#D4AF37]/60" />
-        </div>
-
-        <div
-          ref={sliderRef}
-          className="max-w-7xl mx-auto grid grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4 md:gap-5"
-        >
-          {CATEGORY_TILES.map((tile) => {
-            const isSelected = selectedCategory === tile.slug;
-            return (
-              <div
-                key={tile.name}
-                onClick={() => handleCategorySelect(tile)}
-                className={`flex flex-col items-center justify-between p-1.5 sm:p-3 rounded-xl sm:rounded-2xl cursor-pointer group transition-all duration-300 ${
-                  isSelected
-                    ? 'bg-[#FAF5E8] border-2 border-[#D4AF37] shadow-md ring-1 ring-[#D4AF37]'
-                    : 'bg-white hover:bg-[#FAF6EE] border border-[#EBE3D3] hover:border-[#D4AF37] shadow-2xs hover:shadow-sm'
-                }`}
-              >
-                <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-[#F8F6F0] mb-1.5 sm:mb-2 p-1 sm:p-1.5 flex items-center justify-center">
-                  <img
-                    src={normalizeImageUrl(tile.image, tile.slug)}
-                    alt={tile.name}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = FALLBACK_LUXURY_IMAGE;
-                    }}
-                    className="w-full h-full object-cover object-center rounded-md sm:rounded-lg group-hover:scale-108 transition-transform duration-500"
-                  />
-                </div>
-
-                <p className="font-sans text-[9px] xs:text-[10px] sm:text-xs font-semibold text-[#111113] group-hover:text-[#B8860B] transition-colors text-center leading-[1.15] break-words line-clamp-2 px-0.5">
-                  {tile.name}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 3. GOLDEN TRUST BAR */}
-      <div className="order-3 relative bg-gradient-to-r from-[#D8B456] via-[#F8E7AB] via-[#E8CB79] to-[#C99C3E] text-[#1E1604] border-t border-[#D4AF37]/50 shadow-inner py-3 sm:py-5 px-3 sm:px-8 overflow-hidden">
+      {/* 2. GOLDEN TRUST BAR */}
+      <div className="order-2 relative bg-gradient-to-r from-[#D8B456] via-[#F8E7AB] via-[#E8CB79] to-[#C99C3E] text-[#1E1604] border-t border-[#D4AF37]/50 shadow-inner py-3 sm:py-5 px-3 sm:px-8 overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-around gap-2.5 sm:gap-4 md:gap-6 text-xs sm:text-sm font-semibold tracking-wider">
           <div className="flex items-center gap-2">
             <Gem className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#241A04] shrink-0" />

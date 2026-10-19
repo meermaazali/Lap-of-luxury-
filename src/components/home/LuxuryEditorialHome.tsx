@@ -204,51 +204,7 @@ export const LuxuryEditorialHome: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. SHOP BY CATEGORY (Live Cloud Firestore Categories) */}
-      {categories && categories.length > 0 && (
-        <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
-            <div>
-              <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase block">
-                CURATED ATELIERS
-              </span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
-                SHOP BY CATEGORY
-              </h2>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setCurrentView(cat.slug?.toLowerCase() || cat.name.toLowerCase())}
-                className="group flex flex-col text-left rounded-2xl overflow-hidden bg-white border border-[#E8DEC8] hover:border-[#D4AF37] shadow-xs hover:shadow-md transition-all cursor-pointer"
-              >
-                <div className="relative aspect-square w-full overflow-hidden bg-[#F7F4EE]">
-                  <img
-                    src={normalizeImageUrl(cat.image)}
-                    alt={cat.name}
-                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/images/category_mens_fashion_1791290148102.jpg';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                  <span className="absolute bottom-2 left-2 text-white font-serif font-bold text-xs uppercase tracking-wider drop-shadow-sm">
-                    {cat.name}
-                  </span>
-                </div>
-                <div className="p-2.5 bg-[#FAF8F5] flex items-center justify-between text-[11px] text-[#7A6C58]">
-                  <span className="font-semibold">{cat.itemCount || 12} Designs</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#B89758] group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
       <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
           <div>

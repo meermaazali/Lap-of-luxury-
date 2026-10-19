@@ -114,22 +114,13 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: "Men's Sartorial Categories",
+            heading: 'Subcategories',
             items: [
-              { label: "All Men's Collection", subCategory: '' },
+              { label: 'All Men', subCategory: '' },
               ...defaultData.men.subcategories.map((sub) => ({
                 label: sub,
                 subCategory: sub,
               })),
-            ],
-          },
-          {
-            heading: 'Tailoring Styles & Fits',
-            items: [
-              { label: 'Egyptian Cotton Shirts', subCategory: 'Shirts' },
-              { label: 'Oversized & Luxury Hoodies', subCategory: 'Hoodies' },
-              { label: 'Long Sleeve Luxury Tees', subCategory: 'Full-sleeve T-shirts' },
-              { label: 'Raw Selvedge Denim', subCategory: 'Jeans' },
             ],
           },
         ] as ColumnGroup[],
@@ -141,22 +132,13 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Footwear Styles',
+            heading: 'Subcategories',
             items: [
-              { label: 'All Footwear Collection', subCategory: '' },
+              { label: 'All Footwear', subCategory: '' },
               ...defaultData.footwear.subcategories.map((sub) => ({
                 label: sub,
                 subCategory: sub,
               })),
-            ],
-          },
-          {
-            heading: 'Craftsmanship & Occasions',
-            items: [
-              { label: 'Italian Leather Loafers', subCategory: 'Loafers' },
-              { label: 'Minimalist Luxury Sneakers', subCategory: 'Sneakers' },
-              { label: 'Handcrafted Sandals & Mules', subCategory: 'Sandals' },
-              { label: 'Comfort Crocs & Slides', subCategory: 'Crocs' },
             ],
           },
         ] as ColumnGroup[],
@@ -168,22 +150,15 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Designer Brands',
+            heading: 'Brands',
             items: [
-              { label: 'All Luxury Brands', subCategory: '' },
+              { label: 'All Bags', subCategory: '' },
               ...defaultData.bags.brands.map((brand) => ({
                 label: brand,
                 subCategory: brand,
                 isBrand: true,
               })),
             ],
-          },
-          {
-            heading: 'Bags & Leathercraft',
-            items: defaultData.bags.subcategories.map((sub) => ({
-              label: sub,
-              subCategory: sub,
-            })),
           },
         ] as ColumnGroup[],
       },
@@ -194,22 +169,15 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Perfume Maisons & Brands',
+            heading: 'Brands',
             items: [
-              { label: 'All Perfume Houses', subCategory: '' },
+              { label: 'All Perfumes', subCategory: '' },
               ...defaultData.perfumes.brands.map((brand) => ({
                 label: brand,
                 subCategory: brand,
                 isBrand: true,
               })),
             ],
-          },
-          {
-            heading: 'Scents & Concentrations',
-            items: defaultData.perfumes.subcategories.map((sub) => ({
-              label: sub,
-              subCategory: sub,
-            })),
           },
         ] as ColumnGroup[],
       },
@@ -220,22 +188,15 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Horology Brands',
+            heading: 'Brands',
             items: [
-              { label: 'All Watchmakers', subCategory: '' },
+              { label: 'All Watches', subCategory: '' },
               ...defaultData.watches.brands.map((brand) => ({
                 label: brand,
                 subCategory: brand,
                 isBrand: true,
               })),
             ],
-          },
-          {
-            heading: 'Movements & Styles',
-            items: defaultData.watches.subcategories.map((sub) => ({
-              label: sub,
-              subCategory: sub,
-            })),
           },
         ] as ColumnGroup[],
       },
@@ -246,22 +207,14 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Denim Fits & Cuts',
+            heading: 'Fits & Styles',
             items: [
-              { label: 'All Jeans & Denim', subCategory: '' },
+              { label: 'All Jeans', subCategory: '' },
               ...defaultData.jeans.subcategories.map((sub) => ({
                 label: sub,
                 subCategory: sub,
               })),
             ],
-          },
-          {
-            heading: 'Premium Brands',
-            items: defaultData.jeans.brands.map((brand) => ({
-              label: brand,
-              subCategory: brand,
-              isBrand: true,
-            })),
           },
         ] as ColumnGroup[],
       },
@@ -386,8 +339,8 @@ export const LuxuryMegaNav: React.FC = () => {
                     {/* Invisible hover bridge prevents gaps */}
                     <div className="absolute -top-3 left-0 right-0 h-4 bg-transparent" />
 
-                    <div className="min-w-[420px] max-w-[560px] bg-white border border-[#E8DEC8] shadow-2xl rounded-2xl p-5 lg:p-6 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <div className="grid grid-cols-2 gap-6">
+                    <div className="min-w-[260px] max-w-[300px] bg-white border border-[#E8DEC8] shadow-2xl rounded-2xl p-4 sm:p-5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <div className="grid grid-cols-1 gap-3">
                         {tab.columns.map((col, colIdx) => (
                           <div key={colIdx} className="space-y-2.5">
                             <h4 className="text-[11px] font-bold tracking-[0.16em] uppercase text-[#8A671A] border-b border-[#F0EAE1] pb-1.5 flex items-center justify-between">
