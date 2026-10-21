@@ -55,16 +55,16 @@ export const Header: React.FC<HeaderProps> = ({
     null
   );
 
-  // Dynamic Mobile Departments without Women
+  // Dynamic Mobile Departments (Clean luxury selection)
   const mobileDepartments = useMemo(() => {
     const list = [
       { id: 'home', label: 'Home', view: 'home', subcategories: [] },
       {
         id: 'men',
-        label: "Men's Fashion",
+        label: "Men's Collection",
         view: 'men',
         subcategories: [
-          { label: 'All Men Fashion', sub: '' },
+          { label: "Men's Collection", sub: '' },
           { label: 'Shirts', sub: 'Shirts' },
           { label: 'T-shirts', sub: 'T-shirts' },
           { label: 'Hoodies', sub: 'Hoodies' },
@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
         label: 'Footwear Collection',
         view: 'footwear',
         subcategories: [
-          { label: 'All Footwear', sub: '' },
+          { label: 'Footwear Collection', sub: '' },
           { label: 'Sneakers', sub: 'Sneakers' },
           { label: 'Crocs', sub: 'Crocs' },
           { label: 'Formal Shoes', sub: 'Formal Shoes' },
@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
         label: 'Bags & Luggage',
         view: 'bags',
         subcategories: [
-          { label: 'All Bags', sub: '' },
+          { label: 'Bags & Luggage', sub: '' },
           { label: 'Gucci', sub: 'Gucci' },
           { label: 'Louis Vuitton', sub: 'Louis Vuitton' },
           { label: 'Prada', sub: 'Prada' },
@@ -102,29 +102,26 @@ export const Header: React.FC<HeaderProps> = ({
       },
       {
         id: 'perfumes',
-        label: 'Perfumes',
+        label: 'Perfumes & Scents',
         view: 'perfumes',
         subcategories: [
-          { label: 'All Perfumes', sub: '' },
-          { label: 'Dior', sub: 'Dior' },
-          { label: 'Chanel', sub: 'Chanel' },
-          { label: 'Gucci', sub: 'Gucci' },
-          { label: 'Tom Ford', sub: 'Tom Ford' },
+          { label: 'Perfumes Collection', sub: '' },
           { label: 'Oud & Extrait', sub: 'Oud & Extrait' },
+          { label: 'Eau de Parfum', sub: 'Eau de Parfum' },
+          { label: 'Parfum', sub: 'Parfum' },
+          { label: 'Attar & Oils', sub: 'Attar & Oils' },
         ],
       },
       {
         id: 'watches',
-        label: 'Watches',
+        label: 'Watches & Timepieces',
         view: 'watches',
         subcategories: [
-          { label: 'All Watches', sub: '' },
-          { label: 'Rado', sub: 'Rado' },
-          { label: 'Tissot', sub: 'Tissot' },
-          { label: 'Rolex', sub: 'Rolex' },
-          { label: 'Omega', sub: 'Omega' },
+          { label: 'Watches Collection', sub: '' },
           { label: 'Chronograph', sub: 'Chronograph' },
           { label: 'Automatic', sub: 'Automatic' },
+          { label: 'Dress Watches', sub: 'Dress Watches' },
+          { label: 'Gold Editions', sub: 'Gold Editions' },
         ],
       },
       {
@@ -132,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
         label: 'Jeans & Denim',
         view: 'jeans',
         subcategories: [
-          { label: 'All Jeans', sub: '' },
+          { label: 'Jeans & Denim', sub: '' },
           { label: 'Slim Fit', sub: 'Slim Fit' },
           { label: 'Regular Fit', sub: 'Regular Fit' },
           { label: 'Baggy Fit', sub: 'Baggy Fit' },
@@ -145,7 +142,9 @@ export const Header: React.FC<HeaderProps> = ({
     if (categories && categories.length > 0) {
       categories.forEach((cat) => {
         const slugLower = (cat.slug || cat.name || '').toLowerCase();
-        if (slugLower === 'women' || cat.active === false) return;
+        if (slugLower.includes('women') || cat.active === false) {
+          return;
+        }
 
         const existing = list.find((d) => d.view.toLowerCase() === slugLower);
         if (existing) {
@@ -528,7 +527,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               <div className="text-xs space-y-1">
                 <p className="text-[#111113] font-semibold">
-                  Mahbubnagar Boutique Store
+                  Mahbubnagar Store
                 </p>
                 <p className="text-[11px] text-[#7A6C58]">
                   D/6, Kota Complex, Telangana Chowrasta, 509001
@@ -553,17 +552,6 @@ export const Header: React.FC<HeaderProps> = ({
                   className="text-[11px] font-semibold text-[#111113] hover:text-[#B8860B] uppercase tracking-wider"
                 >
                   Our Story
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setIsAdminMode(true);
-                  }}
-                  className="text-[11px] font-semibold text-[#8A671A] hover:underline uppercase tracking-wider"
-                >
-                  Admin Login
                 </button>
               </div>
             </div>

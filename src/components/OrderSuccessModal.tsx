@@ -111,7 +111,7 @@ export const OrderSuccessModal: React.FC = () => {
           {lastPlacedOrder.paymentStatus === 'Paid' || lastPlacedOrder.paymentStatus === 'Verified' ? (
             <>Thank you, <strong>{lastPlacedOrder.customerName}</strong>. Your payment is verified and your luxury order is being prepared for dispatch.</>
           ) : (
-            <>Thank you, <strong>{lastPlacedOrder.customerName}</strong>. Your luxury order has been recorded. Payment status is currently <strong>Payment Pending</strong> and will be marked as Paid once confirmed by PhonePe / bank settlement.</>
+            <>Thank you, <strong>{lastPlacedOrder.customerName}</strong>. Your luxury order has been recorded. Payment status is currently <strong>Payment Pending</strong> and will be marked as Paid once confirmed by UPI / bank settlement.</>
           )}
         </p>
 

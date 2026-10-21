@@ -204,7 +204,7 @@ export const CartPage: React.FC = () => {
               <div className="pt-2 text-[11px] text-[#7A6C58] space-y-1.5">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#B8860B]" />
-                  <span>PhonePe Verified Secure Payment</span>
+                  <span>Verified 256-Bit Secure Payment</span>
                 </div>
                 <p>Delivery in 2-4 business days. Official GST invoice provided.</p>
               </div>

@@ -250,7 +250,7 @@ export const LuxuryEditorialHome: React.FC = () => {
             onClick={() => setCurrentView('bags')}
             className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
           >
-            <span>Explore All Bags</span>
+            <span>Explore Bags</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -280,7 +280,7 @@ export const LuxuryEditorialHome: React.FC = () => {
             onClick={() => setCurrentView('footwear')}
             className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
           >
-            <span>Explore All Footwear</span>
+            <span>Explore Footwear</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -313,7 +313,7 @@ const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
         href={`/product/${product.id}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="relative aspect-[3/4] w-full overflow-hidden bg-[#F3EFE9] cursor-pointer block"
+        className="relative aspect-[3/4] w-full overflow-hidden bg-[#FAF8F5] cursor-pointer block"
       >
         <img
           src={normalizeImageUrl(product.image, product.category)}
@@ -322,7 +322,7 @@ const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
             const target = e.target as HTMLImageElement;
             target.src = FALLBACK_LUXURY_IMAGE;
           }}
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
             product.secondaryImage ? 'group-hover:opacity-0' : ''
           }`}
         />
@@ -330,7 +330,7 @@ const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
           <img
             src={normalizeImageUrl(product.secondaryImage, product.category)}
             alt={`${product.name} alternate`}
-            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105"
           />
         )}
 

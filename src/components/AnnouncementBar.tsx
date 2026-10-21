@@ -9,7 +9,7 @@ const MESSAGES = [
   'Complimentary Express Delivery Across India on Orders ₹2,999+',
   'The Festive Couture Edit is Now Live · Handcrafted Luxury',
   'Authentic Artisan Craftsmanship · 100% Genuine Guaranteed',
-  'Boutique Concierge & Styling Assistance: +91 9848263939',
+  'Client Concierge & Styling Assistance: +91 7578887888',
 ];
 
 export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact }) => {
@@ -24,7 +24,7 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact 
 
   return (
     <div className="bg-[#111113] text-[#E8DFC8] border-b border-[#D4AF37]/20 text-[11px] py-2 px-3 sm:px-6 flex items-center justify-between select-none">
-      {/* Left: Country / Currency & Boutique Location */}
+      {/* Left: Country / Currency & Store Location */}
       <div className="hidden md:flex items-center gap-3 text-[#A89F91]">
         <span className="flex items-center gap-1.5 font-medium tracking-wider">
           <span className="text-xs">🇮🇳</span>
@@ -32,7 +32,7 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact 
         </span>
         <span className="text-[#3A352E]">|</span>
         <span className="text-[10px] tracking-wide text-[#8C8274]">
-          Luxury Boutique · Mahbubnagar
+          Luxury Store · Mahbubnagar
         </span>
       </div>
 

@@ -292,27 +292,27 @@ export const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Payment Method Notice: PhonePe Only */}
+            {/* Payment Method Notice */}
             <div className="pt-4 border-t border-[#E8DEC8] space-y-3">
               <h2 className="text-sm uppercase tracking-wider text-[#111113]">
                 2. Payment Method
               </h2>
-              <div className="p-4 rounded-xl border-2 border-[#5f259f] bg-[#FAF6FF] flex items-center justify-between">
+              <div className="p-4 rounded-xl border-2 border-[#D4AF37] bg-[#FAF8F5] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#5f259f] text-white flex items-center justify-center text-sm font-black">
-                    पे
+                  <div className="w-8 h-8 rounded-lg bg-[#111113] text-[#D4AF37] flex items-center justify-center text-xs font-bold">
+                    UPI
                   </div>
                   <div>
-                    <span className="text-xs text-[#111113] block">
-                      PhonePe Payment Gateway
+                    <span className="text-xs text-[#111113] font-bold block">
+                      Instant UPI &amp; Online Payment
                     </span>
                     <span className="text-[10px] text-[#554D42]">
-                      UPI, Cards, NetBanking, and PhonePe Wallet. No Cash on Delivery.
+                      UPI (GPay, Paytm, PhonePe, BHIM), Cards &amp; NetBanking.
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] px-2.5 py-1 bg-[#5f259f] text-white rounded-md uppercase tracking-wider">
-                  Verified Only
+                <span className="text-[10px] px-2.5 py-1 bg-[#111113] text-[#D4AF37] rounded-md uppercase tracking-wider font-bold">
+                  Verified Secure
                 </span>
               </div>
             </div>
@@ -369,8 +369,8 @@ export const CheckoutPage: React.FC = () => {
               <ShieldCheck className="w-4 h-4 text-[#111113]" />
               <span>
                 {isSubmitting
-                  ? 'Connecting to PhonePe...'
-                  : `Pay ₹${orderTotal.toLocaleString('en-IN')} via PhonePe`}
+                  ? 'Connecting to Secure Gateway...'
+                  : `Pay ₹${orderTotal.toLocaleString('en-IN')} Securely`}
               </span>
             </button>
 

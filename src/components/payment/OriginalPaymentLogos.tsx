@@ -50,33 +50,28 @@ export const GooglePayLogo: React.FC<{ className?: string }> = ({ className = 'h
   </svg>
 );
 
-// Official PhonePe Logo (Purple rounded container with authentic Devanagari Pe + wordmark)
+// UPI Fast Pay Logo
 export const PhonePeLogo: React.FC<{ className?: string }> = ({ className = 'h-7' }) => (
   <svg
     viewBox="0 0 170 56"
     className={className}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    aria-label="PhonePe"
+    aria-label="Instant UPI"
   >
-    {/* PhonePe Purple Icon */}
-    <rect x="4" y="6" width="44" height="44" rx="22" fill="#5F259F" />
-    <g fill="#FFFFFF">
-      {/* Devanagari 'पे' ligature */}
-      <path d="M26.2 16.5h-9c-1.1 0-2 .9-2 2v21.5c0 1.1.9 2 2 2s2-.9 2-2v-9h7c6.8 0 11.8-4.8 11.8-11.8 0-4.8-4.8-8.7-11.8-8.7zm0 15.2H21.2v-11.4h5c4.3 0 7.8 2.4 7.8 6s-3.5 5.4-7.8 5.4z" />
-      <path d="M34.8 28.2l-10.4 12.8c-.7.9-.5 2.1.4 2.7.9.6 2.1.4 2.7-.4l10.4-12.8c.6-.9.4-2.1-.4-2.7-.9-.6-2.1-.4-2.7.4z" />
-    </g>
-    {/* "PhonePe" Brand Wordmark */}
+    <rect x="4" y="6" width="44" height="44" rx="12" fill="#111113" stroke="#D4AF37" strokeWidth="2" />
+    <path d="M16 34L26 18H20L12 34h4z" fill="#D4AF37" />
+    <path d="M24 34L34 18H28L18 34h6z" fill="#F3E5AB" />
     <text
       x="56"
       y="35"
       fontFamily="Inter, Arial, sans-serif"
       fontWeight="800"
-      fontSize="22"
-      fill="#5F259F"
-      letterSpacing="-0.5"
+      fontSize="20"
+      fill="#111113"
+      letterSpacing="0.5"
     >
-      PhonePe
+      UPI PAY
     </text>
   </svg>
 );

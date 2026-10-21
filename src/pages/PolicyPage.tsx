@@ -51,7 +51,7 @@ export const PolicyPage: React.FC<PolicyPageProps> = ({ policyType: propType }) 
                 1. Processing & Dispatch Timeline
               </h2>
               <p>
-                All orders placed on our website undergo immediate payment verification via PhonePe and are processed within 24 business hours. Each item is inspected for quality and packaged in our signature luxury presentation box.
+                All orders placed on our website undergo immediate payment verification via our secure payment gateway and are processed within 24 business hours. Each item is inspected for quality and packaged in our signature luxury presentation box.
               </p>
               <h2 className="text-sm uppercase tracking-wider text-[#111113] pt-2">
                 2. Delivery Schedules
@@ -98,7 +98,7 @@ export const PolicyPage: React.FC<PolicyPageProps> = ({ policyType: propType }) 
                 3. Refund Processing
               </h2>
               <p>
-                Approved refunds are credited directly back to the original PhonePe / UPI / Bank account within 5 to 7 business days following receipt and quality inspection at our Mahbubnagar boutique store.
+                Approved refunds are credited directly back to the original UPI / Bank account within 5 to 7 business days following receipt and quality inspection at our Mahbubnagar store.
               </p>
             </div>
           )}
@@ -121,7 +121,7 @@ export const PolicyPage: React.FC<PolicyPageProps> = ({ policyType: propType }) 
                 2. Secure Payment Processing
               </h2>
               <p>
-                All financial payments are handled exclusively by PhonePe’s RBI-regulated PCI-DSS compliant payment gateway. LAP OF LUXURY never stores your credit card numbers, debit card PINs, or UPI security credentials on our servers.
+                All financial payments are handled securely by RBI-regulated PCI-DSS compliant payment gateways and UPI protocols. LAP OF LUXURY never stores your credit card numbers, debit card PINs, or UPI security credentials on our servers.
               </p>
               <h2 className="text-sm uppercase tracking-wider text-[#111113] pt-2">
                 3. Non-Disclosure Commitment
@@ -150,7 +150,7 @@ export const PolicyPage: React.FC<PolicyPageProps> = ({ policyType: propType }) 
                 2. Order Acceptance & Inventory
               </h2>
               <p>
-                Orders placed through our website constitute an offer to purchase, subject to verified payment clearance via PhonePe and inventory confirmation.
+                Orders placed through our website constitute an offer to purchase, subject to verified payment clearance and inventory confirmation.
               </p>
               <h2 className="text-sm uppercase tracking-wider text-[#111113] pt-2">
                 3. Governing Law & Jurisdiction

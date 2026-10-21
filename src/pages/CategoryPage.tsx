@@ -164,7 +164,7 @@ export const CategoryPage: React.FC = () => {
                     href={`/product/${product.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative aspect-[3/4] w-full overflow-hidden bg-[#F3EFE9] cursor-pointer block"
+                    className="relative aspect-[3/4] w-full overflow-hidden bg-[#FAF8F5] cursor-pointer block"
                   >
                     <img
                       src={normalizeImageUrl(product.image, product.category)}
@@ -172,7 +172,7 @@ export const CategoryPage: React.FC = () => {
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
                       }}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
 
                     {discountPercent && (

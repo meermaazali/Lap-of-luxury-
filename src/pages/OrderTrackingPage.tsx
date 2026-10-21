@@ -90,7 +90,7 @@ export const OrderTrackingPage: React.FC = () => {
                       <div className="w-3.5 h-3.5 bg-emerald-600 rounded-full absolute -left-[31px] top-0.5 border-2 border-white ring-2 ring-emerald-600/30" />
                       <p className="text-xs text-[#111113]">Order Confirmed & Payment Verified</p>
                       <p className="text-[11px] text-[#7A6C58]">
-                        Processed via PhonePe secure gateway
+                        Processed via secure encrypted payment
                       </p>
                     </div>
 

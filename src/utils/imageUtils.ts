@@ -64,34 +64,59 @@ export const FALLBACK_DETAIL_ANGLES: Record<string, string[]> = {
   ],
 };
 
-/**
- * Returns an authentic array of gallery images for any product view,
- * guaranteeing at least 2-3 angles and never returning empty thumbnails.
- */
-export function getProductGallery(product: {
+export function getProductGallery(product?: {
   image?: string;
   secondaryImage?: string;
+  images?: string[];
   category?: string;
 }): string[] {
-  const primary = normalizeImageUrl(product.image, product.category);
-  const images = [primary];
-
-  if (product.secondaryImage && product.secondaryImage.trim()) {
-    const sec = normalizeImageUrl(product.secondaryImage, product.category);
-    if (sec !== primary) images.push(sec);
+  if (!product) {
+    return [FALLBACK_LUXURY_IMAGE];
   }
 
-  // If only 1 image provided, augment with matching luxury craftsmanship detail angles
-  const categoryAngles = product.category ? FALLBACK_DETAIL_ANGLES[product.category] : undefined;
-  if (categoryAngles) {
-    for (const angle of categoryAngles) {
-      if (!images.includes(angle) && images.length < 3) {
-        images.push(angle);
-      }
+  const result: string[] = [];
+
+  // 1. Primary product image (if provided)
+  const hasPrimary = Boolean(
+    product.image && typeof product.image === 'string' && product.image.trim()
+  );
+  if (hasPrimary) {
+    result.push(normalizeImageUrl(product.image));
+  }
+
+  // 2. Secondary product image (only if explicitly uploaded/saved and distinct)
+  const hasSecondary = Boolean(
+    product.secondaryImage &&
+      typeof product.secondaryImage === 'string' &&
+      product.secondaryImage.trim()
+  );
+  if (hasSecondary) {
+    const sec = normalizeImageUrl(product.secondaryImage);
+    if (!result.includes(sec)) {
+      result.push(sec);
     }
   }
 
-  return images.length > 0 ? images : [FALLBACK_LUXURY_IMAGE];
+  // 3. Fallback to explicit images array ONLY if neither primary nor secondary was saved
+  if (!hasPrimary && !hasSecondary && Array.isArray(product.images) && product.images.length > 0) {
+    product.images.forEach((img) => {
+      if (img && typeof img === 'string' && img.trim()) {
+        const norm = normalizeImageUrl(img);
+        if (!result.includes(norm)) {
+          result.push(norm);
+        }
+      }
+    });
+  }
+
+  // 4. Strict check: If product has 2 saved images, return ONLY those 2 images.
+  // If product has 1 saved image, return ONLY that 1 image.
+  // If no image is available at all, return neutral placeholder.
+  if (result.length === 0) {
+    return [FALLBACK_LUXURY_IMAGE];
+  }
+
+  return result;
 }
 
 /**

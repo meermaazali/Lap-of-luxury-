@@ -86,24 +86,30 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom copyright */}
+        {/* Bottom copyright & Crafted Signature */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#7A6C58] gap-3">
           <p>© {new Date().getFullYear()} LAP OF LUXURY. All rights reserved.</p>
-          <p>
-            Developed by{' '}
+
+          {/* Stylish, professional "Designed by maaz_ali_36" label */}
+          <div className="flex items-center my-1 sm:my-0">
             <a
               href="https://www.instagram.com/maaz_ali_36/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#8A671A] hover:text-[#B8860B] hover:underline transition-colors"
-              aria-label="Instagram profile @maaz_ali_36"
+              className="group inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-[#FAF6EE] via-[#FDFBF7] to-[#FAF6EE] border border-[#D4AF37]/50 hover:border-[#D4AF37] hover:shadow-[0_4px_16px_rgba(212,175,55,0.22)] hover:-translate-y-0.5 transition-all duration-300 text-[11px] font-sans text-[#6B572B] hover:text-[#111113] cursor-pointer"
+              aria-label="Designed by maaz_ali_36"
             >
-              @maaz_ali_36
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] group-hover:scale-125 transition-transform duration-300" />
+              <span className="tracking-wide">Designed by</span>
+              <span className="font-semibold text-[#111113] tracking-wider group-hover:text-[#B8860B] transition-colors border-b border-[#D4AF37]/60 group-hover:border-[#B8860B]">
+                maaz_ali_36
+              </span>
             </a>
-          </p>
-          <div className="flex items-center gap-2 text-xs">
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-[#5E5244]">
             <ShieldCheck className="w-3.5 h-3.5 text-[#B8860B]" />
-            <span>Official PhonePe Verified Payment Gateway</span>
+            <span>Verified 256-Bit Encrypted Payments</span>
           </div>
         </div>
       </div>

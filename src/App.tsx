@@ -25,6 +25,7 @@ import { ContactUsPage } from './pages/ContactUsPage';
 import { FaqsPage } from './pages/FaqsPage';
 import { PolicyPage } from './pages/PolicyPage';
 import { AdminPortal } from './components/admin/AdminPortal';
+import { ShoppingAssistantChatbot } from './components/common/ShoppingAssistantChatbot';
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -36,8 +37,9 @@ const ScrollToTop: React.FC = () => {
 
 const RootRoutes: React.FC = () => {
   const { isAdminMode } = useStore();
+  const { pathname } = useLocation();
 
-  if (isAdminMode) {
+  if (isAdminMode || pathname.startsWith('/admin')) {
     return <AdminPortal />;
   }
 
@@ -120,6 +122,7 @@ const RootRoutes: React.FC = () => {
         {/* Catch-all fallback */}
         <Route path="*" element={<HomePage />} />
       </Routes>
+      <ShoppingAssistantChatbot />
     </>
   );
 };

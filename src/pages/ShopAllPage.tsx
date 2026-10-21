@@ -141,7 +141,7 @@ export const ShopAllPage: React.FC = () => {
                     href={`/product/${product.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative aspect-[3/4] w-full overflow-hidden bg-[#F3EFE9] cursor-pointer block"
+                    className="relative aspect-[3/4] w-full overflow-hidden bg-white cursor-pointer flex items-center justify-center p-2.5 sm:p-3"
                   >
                     <img
                       src={normalizeImageUrl(product.image, product.category)}
@@ -149,7 +149,7 @@ export const ShopAllPage: React.FC = () => {
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
                       }}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="w-[88%] h-[88%] object-contain m-auto transition-transform duration-500 group-hover:scale-102"
                     />
 
                     {/* Discount badge */}

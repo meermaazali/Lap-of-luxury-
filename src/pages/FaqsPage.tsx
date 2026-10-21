@@ -13,11 +13,11 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     q: 'How do I place an order with LAP OF LUXURY?',
-    a: 'Browse our collections across Men, Women, Bags, and Footwear. Click on any product to view its dedicated details page. Select your size and click "Add to Bag" or "Buy Now". You will be guided through our secure PhonePe checkout flow.',
+    a: 'Browse our collections across Men\'s, Footwear, Bags, Perfumes, Watches, and Jeans. Click on any product to view its dedicated details page. Select your size and click "Add to Bag" or "Buy Now". You will be guided through our secure encrypted checkout flow.',
   },
   {
     q: 'What payment methods do you accept?',
-    a: 'We accept payments exclusively through our official PhonePe Payment Gateway. You can pay seamlessly via PhonePe App, Google Pay, Paytm, any UPI ID, Debit Card, Credit Card, or NetBanking. We do not offer Cash on Delivery to guarantee authenticity and contactless handling.',
+    a: 'We accept payments through secure Instant UPI and Online Banking. You can pay seamlessly via Google Pay, PhonePe, Paytm, any UPI ID, Debit Card, Credit Card, or NetBanking. We do not offer Cash on Delivery to guarantee authenticity and contactless handling.',
   },
   {
     q: 'How long does delivery take?',
@@ -32,8 +32,8 @@ const FAQS: FaqItem[] = [
     a: 'Yes, 100% of the products featured on LAP OF LUXURY are guaranteed genuine and crafted from authentic high-grade materials, including double-ply Egyptian cotton, raw selvedge denim, genuine calfskin leathers, and precision movements.',
   },
   {
-    q: 'Where is your physical boutique store located?',
-    a: 'Our boutique store is located at D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001. We are open daily from 9:30 AM to 10:00 PM.',
+    q: 'Where is your physical store located?',
+    a: 'Our store is located at D/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001. We are open daily from 9:30 AM to 10:00 PM.',
   },
 ];
 

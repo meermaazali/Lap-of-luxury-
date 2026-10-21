@@ -171,7 +171,7 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
   const subcategoryList: SubcategoryItem[] = (() => {
     if (isWatchesDept) {
       return [
-        { id: 'all-watches', name: 'All Watches', iconType: 'all' },
+        { id: 'watches-collection', name: 'Watches', iconType: 'all' },
         { id: 'rolex', name: 'Rolex', isBrand: true, brandLogo: BrandLogos.rolex },
         { id: 'rado', name: 'Rado', isBrand: true, brandLogo: BrandLogos.rado },
         { id: 'omega', name: 'Omega', isBrand: true, brandLogo: BrandLogos.omega },
@@ -185,7 +185,7 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
 
     if (isSunglassesDept) {
       return [
-        { id: 'all-sunglasses', name: 'All Sunglasses', iconType: 'all' },
+        { id: 'sunglasses-collection', name: 'Sunglasses', iconType: 'all' },
         { id: 'ray-ban', name: 'Ray-Ban', isBrand: true, brandLogo: BrandLogos.rayban },
         { id: 'oakley', name: 'Oakley', isBrand: true, brandLogo: BrandLogos.oakley },
         { id: 'gucci', name: 'Gucci', isBrand: true, brandLogo: BrandLogos.gucci },
@@ -196,7 +196,7 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
 
     if (normDept === 'men') {
       return [
-        { id: 'all-men', name: 'All Men', iconType: 'all' },
+        { id: 'men-collection', name: "Men's Collection", iconType: 'all' },
         { id: 'shirts', name: 'Shirts', iconType: 'shirts' },
         { id: 't-shirts', name: 'T-Shirts', iconType: 't-shirts' },
         { id: 'hoodies', name: 'Hoodies', iconType: 'hoodies' },
@@ -205,15 +205,14 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
         { id: 'sneakers', name: 'Sneakers', iconType: 'sneakers' },
         { id: 'loafers', name: 'Loafers', iconType: 'loafers' },
         { id: 'watches', name: 'Watches', iconType: 'watches' },
-        { id: 'sunglasses', name: 'Sunglasses', iconType: 'sunglasses' },
         { id: 'perfumes', name: 'Perfumes', iconType: 'perfumes' },
+        { id: 'sunglasses', name: 'Sunglasses', iconType: 'sunglasses' },
         { id: 'belts', name: 'Belts & Wallets', iconType: 'belts' },
       ];
     }
 
     if (normDept === 'women') {
       return [
-        { id: 'all-women', name: 'All Women', iconType: 'all' },
         { id: 'sarees', name: 'Banarasi Sarees', iconType: 'sarees' },
         { id: 'dresses', name: 'Dresses & Gowns', iconType: 'dresses' },
         { id: 'tops', name: 'Tops & Shirts', iconType: 'tops' },
@@ -228,7 +227,7 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
 
     if (normDept === 'bags') {
       return [
-        { id: 'all-bags', name: 'All Bags', iconType: 'all' },
+        { id: 'bags-collection', name: 'Bags & Luggage', iconType: 'all' },
         { id: 'handbags', name: 'Handbags', iconType: 'handbags' },
         { id: 'shoulder-bags', name: 'Shoulder Bags', iconType: 'handbags' },
         { id: 'sling-bags', name: 'Sling Bags', iconType: 'handbags' },
@@ -241,7 +240,7 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
 
     if (normDept === 'footwear') {
       return [
-        { id: 'all-footwear', name: 'All Footwear', iconType: 'all' },
+        { id: 'footwear-collection', name: 'Footwear Collection', iconType: 'all' },
         { id: 'sneakers', name: 'Luxury Sneakers', iconType: 'sneakers' },
         { id: 'loafers', name: 'Loafers', iconType: 'loafers' },
         { id: 'formal-shoes', name: 'Formal Shoes', iconType: 'formal-shoes' },
@@ -253,7 +252,7 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
 
     if (normDept === 'perfumes') {
       return [
-        { id: 'all-perfumes', name: 'All Perfumes', iconType: 'all' },
+        { id: 'perfumes-collection', name: 'Perfumes Collection', iconType: 'all' },
         { id: 'oud', name: 'Royal Oud', iconType: 'perfumes' },
         { id: 'amber', name: 'Amber Bourbon', iconType: 'perfumes' },
         { id: 'floral', name: 'French Floral', iconType: 'perfumes' },
@@ -262,11 +261,10 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
     }
 
     return [
-      { id: 'all', name: `All ${departmentKey}`, iconType: 'all' },
-      { id: 'watches', name: 'Watches', iconType: 'watches' },
-      { id: 'belts', name: 'Belts', iconType: 'belts' },
+      { id: 'all', name: `${departmentKey.toUpperCase()}`, iconType: 'all' },
+      { id: 'belts', name: 'Belts & Buckles', iconType: 'belts' },
       { id: 'sunglasses', name: 'Sunglasses', iconType: 'sunglasses' },
-      { id: 'perfumes', name: 'Perfumes', iconType: 'perfumes' },
+      { id: 'accessories', name: 'Luxury Accessories', iconType: 'all' },
     ];
   })();
 

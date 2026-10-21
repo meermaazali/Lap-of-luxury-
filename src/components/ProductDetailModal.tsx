@@ -134,8 +134,8 @@ export const ProductDetailModal: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 max-h-[82vh] overflow-y-auto">
-          {/* Left Column: Customer-Controlled Product Zoom & Gallery (lg: 7 cols) */}
-          <div className="lg:col-span-7 bg-[#F9F7F2] p-4 sm:p-6 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#EAE0CD]">
+          {/* Left Column: Customer-Controlled Product Zoom & Gallery (lg: 6 cols) */}
+          <div className="lg:col-span-6 bg-[#F9F7F2] p-4 sm:p-5 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#EAE0CD]">
             {/* Customer Zoom Controls Bar */}
             <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-[#E2D5BE] mb-3 shadow-xs">
               <div className="flex items-center gap-1 sm:gap-2">
@@ -176,21 +176,16 @@ export const ProductDetailModal: React.FC = () => {
               onMouseMove={handleMouseMove}
               onTouchMove={handleTouchMove}
               onClick={() => setZoomScale((prev) => (prev >= 2.5 ? 1 : prev + 0.75))}
-              className="relative aspect-square sm:aspect-4/3 w-full rounded-xl overflow-hidden bg-white border border-[#E2D5BE] cursor-crosshair shadow-xs select-none"
+              className="relative aspect-square w-full max-w-[320px] sm:max-w-[360px] max-h-[320px] sm:max-h-[360px] mx-auto rounded-xl overflow-hidden bg-white border border-[#E2D5BE] cursor-crosshair shadow-xs select-none flex items-center justify-center p-2"
             >
               <img
                 src={activeImage}
                 alt={quickViewProduct.name}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  const fallback =
-                    FALLBACK_CATEGORY_IMAGES[quickViewProduct.category] ||
-                    FALLBACK_LUXURY_IMAGE;
-                  if (target.src !== fallback) {
-                    target.src = fallback;
-                  }
+                  target.src = FALLBACK_LUXURY_IMAGE;
                 }}
-                className="w-full h-full object-cover transition-transform duration-150"
+                className="max-w-full max-h-full object-contain transition-transform duration-150"
                 style={{
                   transform: `scale(${zoomScale})`,
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
@@ -248,8 +243,8 @@ export const ProductDetailModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Full Specifications & Purchase Module (lg: 5 cols) */}
-          <div className="lg:col-span-5 p-5 sm:p-7 flex flex-col justify-between bg-white">
+          {/* Right Column: Full Specifications & Purchase Module (lg: 6 cols) */}
+          <div className="lg:col-span-6 p-4 sm:p-6 flex flex-col justify-between bg-white">
             <div className="space-y-4">
               {/* Category & Rating */}
               <div className="flex items-center justify-between">

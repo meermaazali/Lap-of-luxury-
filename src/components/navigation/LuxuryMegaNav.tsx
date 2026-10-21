@@ -109,19 +109,27 @@ export const LuxuryMegaNav: React.FC = () => {
       },
       {
         id: 'men',
-        label: 'Men',
+        label: "Men's",
         view: 'men',
         hasDropdown: true,
         columns: [
           {
             heading: 'Subcategories',
             items: [
-              { label: 'All Men', subCategory: '' },
+              { label: "Men's Collection", subCategory: '' },
               ...defaultData.men.subcategories.map((sub) => ({
                 label: sub,
                 subCategory: sub,
               })),
             ],
+          },
+          {
+            heading: 'Luxury Labels',
+            items: defaultData.men.brands.map((brand) => ({
+              label: brand,
+              subCategory: brand,
+              isBrand: true,
+            })),
           },
         ] as ColumnGroup[],
       },
@@ -132,14 +140,22 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Subcategories',
+            heading: 'Styles',
             items: [
-              { label: 'All Footwear', subCategory: '' },
+              { label: 'Footwear Collection', subCategory: '' },
               ...defaultData.footwear.subcategories.map((sub) => ({
                 label: sub,
                 subCategory: sub,
               })),
             ],
+          },
+          {
+            heading: 'Top Brands',
+            items: defaultData.footwear.brands.map((brand) => ({
+              label: brand,
+              subCategory: brand,
+              isBrand: true,
+            })),
           },
         ] as ColumnGroup[],
       },
@@ -150,15 +166,22 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Brands',
+            heading: 'Categories',
             items: [
-              { label: 'All Bags', subCategory: '' },
-              ...defaultData.bags.brands.map((brand) => ({
-                label: brand,
-                subCategory: brand,
-                isBrand: true,
+              { label: 'Bags & Luggage', subCategory: '' },
+              ...defaultData.bags.subcategories.map((sub) => ({
+                label: sub,
+                subCategory: sub,
               })),
             ],
+          },
+          {
+            heading: 'Brands',
+            items: defaultData.bags.brands.map((brand) => ({
+              label: brand,
+              subCategory: brand,
+              isBrand: true,
+            })),
           },
         ] as ColumnGroup[],
       },
@@ -169,15 +192,22 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Brands',
+            heading: 'Scents & Concentrations',
             items: [
-              { label: 'All Perfumes', subCategory: '' },
-              ...defaultData.perfumes.brands.map((brand) => ({
-                label: brand,
-                subCategory: brand,
-                isBrand: true,
+              { label: 'Perfumes Collection', subCategory: '' },
+              ...defaultData.perfumes.subcategories.map((sub) => ({
+                label: sub,
+                subCategory: sub,
               })),
             ],
+          },
+          {
+            heading: 'Parfum Houses',
+            items: defaultData.perfumes.brands.map((brand) => ({
+              label: brand,
+              subCategory: brand,
+              isBrand: true,
+            })),
           },
         ] as ColumnGroup[],
       },
@@ -188,15 +218,22 @@ export const LuxuryMegaNav: React.FC = () => {
         hasDropdown: true,
         columns: [
           {
-            heading: 'Brands',
+            heading: 'Horology Movements',
             items: [
-              { label: 'All Watches', subCategory: '' },
-              ...defaultData.watches.brands.map((brand) => ({
-                label: brand,
-                subCategory: brand,
-                isBrand: true,
+              { label: 'Watches Collection', subCategory: '' },
+              ...defaultData.watches.subcategories.map((sub) => ({
+                label: sub,
+                subCategory: sub,
               })),
             ],
+          },
+          {
+            heading: 'Swiss & Global Brands',
+            items: defaultData.watches.brands.map((brand) => ({
+              label: brand,
+              subCategory: brand,
+              isBrand: true,
+            })),
           },
         ] as ColumnGroup[],
       },
@@ -209,12 +246,20 @@ export const LuxuryMegaNav: React.FC = () => {
           {
             heading: 'Fits & Styles',
             items: [
-              { label: 'All Jeans', subCategory: '' },
+              { label: 'Jeans & Denim', subCategory: '' },
               ...defaultData.jeans.subcategories.map((sub) => ({
                 label: sub,
                 subCategory: sub,
               })),
             ],
+          },
+          {
+            heading: 'Denim Labels',
+            items: defaultData.jeans.brands.map((brand) => ({
+              label: brand,
+              subCategory: brand,
+              isBrand: true,
+            })),
           },
         ] as ColumnGroup[],
       },

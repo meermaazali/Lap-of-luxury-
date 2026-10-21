@@ -9,8 +9,8 @@ export const BrandStorySection: React.FC = () => {
   const [isStoryOpen, setIsStoryOpen] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
 
-  const handleGoToWatches = () => {
-    setSelectedCategory('Watches');
+  const handleGoToFootwear = () => {
+    setSelectedCategory('Footwear');
     const el = document.getElementById('catalog-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -39,7 +39,7 @@ export const BrandStorySection: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 text-white">
                 <span className="font-sans uppercase tracking-[0.16em] text-xs text-[#D4AF37] font-semibold">
-                  Our Boutique
+                  Our Store
                 </span>
                 <p className="font-bodoni text-xl sm:text-2xl font-normal sm:font-medium tracking-wider mt-1">
                   VISIT OUR STORE
@@ -94,17 +94,17 @@ export const BrandStorySection: React.FC = () => {
 
             {/* Right Column: Two Luxury Still-Life Cards */}
             <div className="lg:col-span-4 flex flex-col gap-4">
-              {/* Card 1: Precision Watches */}
+              {/* Card 1: Artisanal Footwear */}
               <div
-                onClick={handleGoToWatches}
+                onClick={handleGoToFootwear}
                 className="flex-1 relative rounded-2xl overflow-hidden bg-[#111111] text-white p-5 flex flex-col justify-between group cursor-pointer shadow-md hover:shadow-lg border border-[#333339] transition-all min-h-[140px]"
               >
                 <div className="absolute inset-0 opacity-40 group-hover:opacity-55 transition-opacity">
                   <img
-                    src="/images/luxury_gold_watch_1791098572108.jpg"
-                    alt="Precision Watches"
+                    src="/images/category_shoes_luxury_1791290241545.jpg"
+                    alt="Artisanal Footwear"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop';
+                      (e.target as HTMLImageElement).src = '/images/cat_shoes_white.jpg';
                     }}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
@@ -114,15 +114,15 @@ export const BrandStorySection: React.FC = () => {
 
                 <div className="relative z-10">
                   <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#D4AF37]">
-                    Precision Timepieces
+                    Handcrafted Footwear
                   </span>
                   <h3 className="font-bodoni text-base sm:text-lg font-bold tracking-wider mt-0.5 text-white">
-                    Timeless Accessories for Every Moment
+                    Artisanal Shoes for Every Step
                   </h3>
                 </div>
 
                 <div className="relative z-10 pt-3 flex items-center gap-1.5 text-xs text-[#D4AF37] font-bold tracking-wider uppercase group-hover:translate-x-1 transition-transform">
-                  <span>Explore Watches</span>
+                  <span>Explore Footwear</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>

@@ -36,14 +36,13 @@ export const BestSellersGrid: React.FC = () => {
   const categoriesTab = [
     { label: 'All Collection', value: 'All' },
     { label: 'Festive Edit', value: 'Festive' },
-    { label: "Men's Shirts", value: 'Men' },
-    { label: "Women's Collection", value: 'Women' },
-    { label: 'Jeans & Denim', value: 'Jeans' },
-    { label: 'Watches', value: 'Watches' },
-    { label: 'Handbags', value: 'Bags' },
+    { label: "Men's", value: 'Men' },
     { label: 'Footwear', value: 'Shoes' },
-    { label: 'Accessories', value: 'Accessories' },
+    { label: 'Bags', value: 'Bags' },
     { label: 'Perfumes', value: 'Perfumes' },
+    { label: 'Watches', value: 'Watches' },
+    { label: 'Jeans', value: 'Jeans' },
+    { label: 'Accessories', value: 'Accessories' },
   ];
 
   const handleAdd = (
@@ -164,7 +163,7 @@ export const BestSellersGrid: React.FC = () => {
                     className="h-full group bg-white rounded-2xl border border-[#D4AF37]/30 overflow-hidden flex flex-col justify-between hover:border-[#D4AF37] hover:shadow-[0_12px_32px_rgba(212,175,55,0.18)] transition-all duration-300 cursor-pointer"
                   >
                     {/* Product Image */}
-                    <div className="relative aspect-square w-full overflow-hidden bg-[#FAF8F5] p-2 flex items-center justify-center">
+                    <div className="relative aspect-square w-full overflow-hidden bg-[#FAF8F5]">
                       <img
                         src={normalizeImageUrl(
                           product.image,
@@ -174,15 +173,9 @@ export const BestSellersGrid: React.FC = () => {
                         loading="lazy"
                         onError={(event) => {
                           const target = event.currentTarget;
-                          const fallback =
-                            FALLBACK_CATEGORY_IMAGES[product.category] ||
-                            FALLBACK_LUXURY_IMAGE;
-
-                          if (target.src !== fallback) {
-                            target.src = fallback;
-                          }
+                          target.src = FALLBACK_LUXURY_IMAGE;
                         }}
-                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 rounded-xl"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
 
                       {/* Stock Badge */}

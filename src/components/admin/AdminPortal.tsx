@@ -3,6 +3,7 @@ import {
   Bell,
   Package,
   Layers,
+  FolderTree,
   ShoppingBag,
   Sliders,
   Cloud,
@@ -20,6 +21,7 @@ import { InventoryManager } from './InventoryManager';
 import { ProductsManager } from './ProductsManager';
 import { BannerManager } from './BannerManager';
 import { CategoryManager } from './CategoryManager';
+import { SubcategoryManager } from './SubcategoryManager';
 import { MediaStorageManager } from './MediaStorageManager';
 import { PaymentSetupManager } from './PaymentSetupManager';
 import { ClientPhotoGuide } from './ClientPhotoGuide';
@@ -30,6 +32,7 @@ type AdminTab =
   | 'products'
   | 'banners'
   | 'categories'
+  | 'subcategories'
   | 'media'
   | 'payments'
   | 'guide';
@@ -226,6 +229,15 @@ export const AdminPortal: React.FC = () => {
 
             <button
               type="button"
+              onClick={() => setActiveTab('subcategories')}
+              className={tabClass('subcategories')}
+            >
+              <FolderTree className="w-3.5 h-3.5" />
+              <span>Edit Subcategories</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveTab('media')}
               className={tabClass('media')}
             >
@@ -317,6 +329,7 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'products' && <ProductsManager />}
         {activeTab === 'banners' && <BannerManager />}
         {activeTab === 'categories' && <CategoryManager />}
+        {activeTab === 'subcategories' && <SubcategoryManager />}
         {activeTab === 'media' && <MediaStorageManager />}
         {activeTab === 'payments' && <PaymentSetupManager />}
         {activeTab === 'guide' && <ClientPhotoGuide />}

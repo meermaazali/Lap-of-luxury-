@@ -34,7 +34,7 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     tagline: 'Impeccable tailoring, double-ply cotton shirts, luxury polos, raw denim and handcrafted footwear.',
     bannerImage: '/images/category_mens_fashion_1791290148102.jpg',
     subcategories: [
-      'All Men',
+      "Men's Collection",
       'Shirts',
       'T-Shirts & Polos',
       'Trousers',
@@ -43,7 +43,8 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
       'Sneakers',
       'Loafers',
       'Belts',
-      'Watches and Accessories',
+      'Watches',
+      'Perfumes',
     ],
   },
   women: {
@@ -51,7 +52,7 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     tagline: 'Pure Banarasi silks, hand-embroidered evening dresses, fluid co-ord sets, handbags and heels.',
     bannerImage: '/images/cat_womens_dress.jpg',
     subcategories: [
-      'All Women',
+      "Women's Collection",
       'Sarees',
       'Dresses',
       'Tops and Shirts',
@@ -67,7 +68,7 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     tagline: 'Architectural top-handle bags, quilted clutches, saddle slings, executive briefcases and weekender totes.',
     bannerImage: '/images/cat_bag_cream.jpg',
     subcategories: [
-      'All Bags',
+      'Bags & Luggage',
       'Handbags',
       'Shoulder Bags',
       'Sling Bags',
@@ -82,7 +83,7 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     tagline: 'Minimalist Italian sneakers, Goodyear-welted penny loafers, formal brogues and crystal stiletto heels.',
     bannerImage: '/images/cat_shoes_white.jpg',
     subcategories: [
-      'All Footwear',
+      'Footwear Collection',
       'Sneakers',
       'Loafers',
       'Formal Shoes',
@@ -96,54 +97,54 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     tagline: 'Automatic chronographs, 24k gold aviator frames, aged Cambodian amber oud and reversible leather belts.',
     bannerImage: '/images/cat_watch_gold.jpg',
     subcategories: [
-      'All Accessories',
-      'Watches and Accessories',
+      'Accessories Collection',
+      'Watches',
       'Belts',
       'Sunglasses',
-      'Perfumes',
+      'Fine Leather Accessories',
     ],
   },
   collections: {
     title: 'THE FESTIVE & OCCASION ATELIER',
     tagline: 'Curated royal wedding and festive couture featuring hand-embroidered zardozi and heirloom handlooms.',
     bannerImage: '/images/festive_edit_luxury_1791098550195.jpg',
-    subcategories: ['All Collections', 'Festive', 'Occasion', 'Wedding', 'Heritage'],
+    subcategories: ['Collections', 'Festive', 'Occasion', 'Wedding', 'Heritage'],
   },
   bestsellers: {
     title: 'BESTSELLERS & CLIENT FAVORITES',
     tagline: 'The most requested couture pieces and mastercrafted accessories of the season.',
     bannerImage: '/images/luxury_products_hero_1791099185940.jpg',
-    subcategories: ['All Bestsellers', 'Shirts', 'Jeans', 'Watches', 'Bags', 'Shoes'],
+    subcategories: ['Bestsellers', 'Shirts', 'Jeans', 'Watches', 'Bags', 'Shoes'],
   },
   sale: {
     title: 'EXCLUSIVE ARCHIVE & OFFERS',
     tagline: 'Limited-edition privileged offerings on select festive couture, fine denim and leather accessories.',
     bannerImage: '/images/banner_shirts_pants.jpg',
-    subcategories: ['All Offers', 'Festive', 'Shirts', 'Jeans', 'Bags'],
+    subcategories: ['Offers', 'Festive', 'Shirts', 'Jeans', 'Bags'],
   },
   perfumes: {
     title: 'ROYAL PERFUMES & PRIVATE BLENDS',
     tagline: 'Rare Cambodian oud, pure French parfun, extracted ambroxan and artisanal extrait de parfum.',
     bannerImage: '/images/cat_perfume_amber.jpg',
-    subcategories: ['All Perfumes', 'Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils', 'Dior', 'Chanel', 'Gucci', 'Tom Ford'],
+    subcategories: ['Perfumes Collection', 'Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils', 'Dior', 'Chanel', 'Gucci', 'Tom Ford'],
   },
   watches: {
     title: 'TIMEPIECES & CHRONOGRAPHS',
     tagline: 'Master Swiss automatic movements, sapphire bezels, fine chronographs and heirloom horology.',
     bannerImage: '/images/cat_watch_gold.jpg',
-    subcategories: ['All Watches', 'Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions', 'Rado', 'Tissot', 'Rolex', 'Omega'],
+    subcategories: ['Watches Collection', 'Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions', 'Rado', 'Tissot', 'Rolex', 'Omega'],
   },
   jeans: {
     title: 'LUXURY JEANS & RAW DENIM',
     tagline: 'Japanese selvedge, tailored slim fit, relaxed regular and contemporary streetwear baggy cuts.',
     bannerImage: '/images/category_jeans_luxury_1791290260306.jpg',
-    subcategories: ['All Jeans', 'Slim Fit', 'Regular Fit', 'Baggy Fit', 'Raw Denim', 'Relaxed Fit'],
+    subcategories: ['Jeans & Denim', 'Slim Fit', 'Regular Fit', 'Baggy Fit', 'Raw Denim', 'Relaxed Fit'],
   },
   'new-arrivals': {
     title: 'NEW ARRIVALS · SEASON DROPS',
-    tagline: 'Fresh arrivals direct from our Mahbubnagar boutique atelier and bespoke tailoring line.',
+    tagline: 'Fresh arrivals direct from our Mahbubnagar store atelier and bespoke tailoring line.',
     bannerImage: '/images/hero_luxury_fashion_1791098539165.jpg',
-    subcategories: ['All New Arrivals', 'Men', 'Footwear', 'Bags', 'Perfumes', 'Watches', 'Jeans'],
+    subcategories: ['New Arrivals', 'Footwear', 'Bags', 'Jeans', 'Outfits'],
   },
 };
 
@@ -735,7 +736,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                         href={`/product/${product.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="relative aspect-[3/4] w-full overflow-hidden bg-[#F3EFE9] cursor-pointer block"
+                        className="relative aspect-[3/4] w-full overflow-hidden bg-[#FAF8F5] cursor-pointer block"
                       >
                         <img
                           src={normalizeImageUrl(product.image, product.category)}
@@ -744,7 +745,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                             const target = e.target as HTMLImageElement;
                             target.src = FALLBACK_LUXURY_IMAGE;
                           }}
-                          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+                          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
                             product.secondaryImage ? 'group-hover:opacity-0' : ''
                           }`}
                         />
@@ -752,7 +753,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                           <img
                             src={normalizeImageUrl(product.secondaryImage, product.category)}
                             alt={`${product.name} alternate`}
-                            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700 group-hover:scale-105"
+                            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105"
                           />
                         )}
 

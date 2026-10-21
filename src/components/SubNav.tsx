@@ -23,7 +23,7 @@ const DEFAULT_NAV_ITEMS: NavCategory[] = [
   { name: 'LUXURY ACCESSORIES', slug: 'Accessories' },
 ];
 
-const isPromotionalCategory = (name: string, slug: string): boolean => {
+const isUnwantedOrPromo = (name: string, slug: string): boolean => {
   const value = `${name} ${slug}`
     .toLowerCase()
     .replace(/[_-]+/g, ' ')
@@ -54,17 +54,17 @@ export const SubNav: React.FC = () => {
     hasMoved: false,
   });
 
-  // Keep fashion navigation items and exclude promotional categories.
+  // Keep valid fashion navigation items and exclude unwanted / promotional categories.
   const navItems = React.useMemo(() => {
     const list = DEFAULT_NAV_ITEMS.filter(
-      (item) => !isPromotionalCategory(item.name, item.slug)
+      (item) => !isUnwantedOrPromo(item.name, item.slug)
     );
 
     if (categories && categories.length > 0) {
       categories.forEach((category) => {
         if (
-          isPromotionalCategory(category.name, category.slug) ||
-          category.slug.toLowerCase() === 'women'
+          isUnwantedOrPromo(category.name, category.slug) ||
+          category.active === false
         ) {
           return;
         }

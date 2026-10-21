@@ -661,20 +661,18 @@ export const CheckoutModal: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Prominent Direct PhonePe Launch Button */}
+                  {/* Prominent Direct UPI Launch Button */}
                   <button
                     type="button"
-                    onClick={() => handleOpenMobileUPI('PhonePe')}
+                    onClick={() => handleOpenMobileUPI(selectedMobileApp || 'Other UPI Apps')}
                     disabled={isSubmitting}
                     className="w-full py-3.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-98"
                   >
                     <ShieldCheck className="w-4 h-4 text-[#111113]" />
                     <span>
                       {isSubmitting
-                        ? 'Opening PhonePe...'
-                        : paymentConfig?.phonepeEnabled && paymentConfig?.phonepeMerchantId
-                        ? `Pay ₹${orderTotal.toLocaleString('en-IN')} via PhonePe Gateway`
-                        : `Pay ₹${orderTotal.toLocaleString('en-IN')} with PhonePe (${MERCHANT_PHONE})`}
+                        ? 'Opening UPI App...'
+                        : `Pay ₹${orderTotal.toLocaleString('en-IN')} via ${selectedMobileApp || 'UPI'}`}
                     </span>
                   </button>
 
@@ -722,12 +720,12 @@ export const CheckoutModal: React.FC = () => {
                       className="w-full py-2 px-3 border border-dashed border-[#B8860B]/60 bg-[#FAF6EE] hover:bg-[#F5EEDC] text-[#8A671A] font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
                     >
                       <QrCode className="w-3.5 h-3.5" />
-                      <span>{showMobileQR ? 'Hide Payment QR' : 'PhonePe app didn’t open? Tap to Show QR / Scan'}</span>
+                      <span>{showMobileQR ? 'Hide Payment QR' : 'UPI app didn’t open? Tap to Show QR / Scan'}</span>
                     </button>
 
                     {showMobileQR && (
                       <div className="mt-3 p-4 bg-white rounded-2xl border border-[#D5C7B0] shadow-sm flex flex-col items-center text-center space-y-2 animate-fade-in">
-                        <p className="text-xs font-bold text-[#111113]">Scan with PhonePe / Any UPI App</p>
+                        <p className="text-xs font-bold text-[#111113]">Scan with Any UPI App</p>
                         <p className="text-[10px] text-[#7A6C58]">Take a screenshot or scan with your family member's phone</p>
                         {qrCodeDataUrl ? (
                           <div className="p-2.5 bg-white border border-[#E0D5C3] rounded-xl shadow-xs">

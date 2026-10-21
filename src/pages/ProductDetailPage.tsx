@@ -193,23 +193,22 @@ export const ProductDetailPage: React.FC = () => {
 
         {/* Product Showcase: Two Columns */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          {/* Left Column: Image Gallery with Zoom */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
+          {/* Left Column: Image Gallery with Zoom (6 cols) */}
+          <div className="lg:col-span-6 flex flex-col gap-4">
             {/* Main Interactive Zoom Box */}
             <div
               ref={imageContainerRef}
               onMouseMove={handleMouseMove}
               onClick={() => setZoomScale((prev) => (prev >= 2.5 ? 1 : prev + 0.75))}
-              className="relative aspect-square w-full max-w-[520px] mx-auto rounded-2xl overflow-hidden bg-white border border-[#E8DEC8] cursor-crosshair shadow-sm select-none"
+              className="relative aspect-square w-full max-w-[360px] sm:max-w-[400px] max-h-[360px] sm:max-h-[400px] mx-auto rounded-2xl overflow-hidden bg-white border border-[#E8DEC8] cursor-crosshair shadow-sm select-none flex items-center justify-center p-2"
             >
               <img
                 src={activeImage}
                 alt={product.name}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    FALLBACK_CATEGORY_IMAGES[product.category] || FALLBACK_LUXURY_IMAGE;
+                  (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
                 }}
-                className="absolute inset-0 w-full h-full object-contain transition-transform duration-150"
+                className="max-w-full max-h-full object-contain transition-transform duration-150"
                 style={{
                   transform: `scale(${zoomScale})`,
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
@@ -287,8 +286,8 @@ export const ProductDetailPage: React.FC = () => {
             )}
           </div>
 
-          {/* Right Column: Product Information & Purchase Flow */}
-          <div className="lg:col-span-5 flex flex-col space-y-6">
+          {/* Right Column: Product Information & Purchase Flow (6 cols) */}
+          <div className="lg:col-span-6 flex flex-col space-y-6">
             <div className="space-y-2 border-b border-[#E8DEC8] pb-5">
               <span className="text-[10px] uppercase tracking-[0.2em] text-[#8A671A] block">
                 {product.brand || 'LAP OF LUXURY'} · {product.category}
