@@ -1,48 +1,131 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowLeft, CheckCircle2, QrCode, Copy } from 'lucide-react';
+import {
+  ShieldCheck,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  Truck,
+  ShoppingBag,
+  Sparkles,
+  Lock,
+  Phone,
+  Edit2,
+} from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Header } from '../components/Header';
 import { LuxuryMegaNav } from '../components/navigation/LuxuryMegaNav';
 import { Footer } from '../components/Footer';
 import { WishlistDrawer } from '../components/WishlistDrawer';
+import { normalizeImageUrl } from '../utils/imageUtils';
 
 export const CheckoutPage: React.FC = () => {
-  const { cart, cartTotal, placeOrder, paymentConfig } = useStore();
+  const { cart, cartTotal, placeOrder } = useStore();
   const navigate = useNavigate();
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
 
+  const [currentStep, setCurrentStep] = useState<'address' | 'review'>('address');
+
+  // Customer Delivery Details per requirement 3
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    email: '',
-    address: '',
+    houseNo: '',
+    street: '',
     city: 'Mahbubnagar',
-    pincode: '509001',
     state: 'Telangana',
+    pincode: '509001',
+    email: '',
   });
 
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderComplete, setOrderComplete] = useState<boolean>(false);
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
 
   const shippingCost = cartTotal >= 2999 ? 0 : 150;
   const orderTotal = Math.max(0, cartTotal + shippingCost);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+    setErrorMessage(null);
   };
 
-  const handlePayWithPhonePe = async (e: React.FormEvent) => {
+  const validateAddress = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      errors.name = 'Please enter your full name.';
+    }
+
+    const cleanPhone = formData.phone.trim().replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      errors.phone = 'Please enter a valid 10-digit mobile number.';
+    }
+
+    if (!formData.houseNo.trim()) {
+      errors.houseNo = 'House / Flat / Building number is required.';
+    }
+
+    if (!formData.street.trim() || formData.street.trim().length < 3) {
+      errors.street = 'Street or locality name is required.';
+    }
+
+    if (!formData.city.trim()) {
+      errors.city = 'City / Town name is required.';
+    }
+
+    if (!formData.state.trim()) {
+      errors.state = 'State is required.';
+    }
+
+    const cleanPincode = formData.pincode.trim().replace(/\D/g, '');
+    if (!cleanPincode || cleanPincode.length !== 6) {
+      errors.pincode = 'Please enter a valid 6-digit PIN code.';
+    }
+
+    if (formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
+      errors.email = 'Please enter a valid email address or leave blank.';
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      setErrorMessage('Please fill in all required delivery address fields correctly.');
+      return false;
+    }
+
+    setErrorMessage(null);
+    return true;
+  };
+
+  const handleProceedToReview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim() || !formData.address.trim()) {
-      setErrorMessage('Please fill in your name, delivery phone number, and complete address.');
+    if (validateAddress()) {
+      setCurrentStep('review');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePlaceOrderCOD = async () => {
+    if (!validateAddress()) {
+      setCurrentStep('address');
       return;
     }
 
-    if (!/^\d{10}$/.test(formData.phone.trim().replace(/\D/g, ''))) {
-      setErrorMessage('Please enter a valid 10-digit mobile number.');
+    if (cart.length === 0) {
+      setErrorMessage('Your bag is empty.');
       return;
     }
 
@@ -50,48 +133,32 @@ export const CheckoutPage: React.FC = () => {
     setErrorMessage(null);
 
     const generatedOrderId = `LOL-${Date.now().toString().slice(-6)}`;
+    const fullFormattedAddress = `${formData.houseNo.trim()}, ${formData.street.trim()}, ${formData.city.trim()}, ${formData.state.trim()} - ${formData.pincode.trim()}`;
 
     try {
-      // 1. Create order in store state & persistent backend
       placeOrder(
         {
           name: formData.name.trim(),
-          phone: formData.phone.trim(),
+          phone: formData.phone.trim().replace(/\D/g, ''),
           email: formData.email.trim() || undefined,
-          address: `${formData.address.trim()}, ${formData.city.trim()}, ${formData.state} - ${formData.pincode.trim()}`,
+          houseNo: formData.houseNo.trim(),
+          street: formData.street.trim(),
           city: formData.city.trim(),
+          state: formData.state.trim(),
           pincode: formData.pincode.trim(),
-          paymentMethod: 'PhonePe',
-          transactionRef: `TXN-${generatedOrderId}`,
+          address: fullFormattedAddress,
+          paymentMethod: 'Cash on Delivery',
+          transactionRef: `COD-${generatedOrderId}`,
         },
         shippingCost
       );
 
-      // 2. Initiate PhonePe Payment Gateway session
-      const response = await fetch('/api/phonepe/initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: orderTotal,
-          orderId: generatedOrderId,
-          customerPhone: formData.phone.trim(),
-          customerName: formData.name.trim(),
-        }),
-      });
-
-      const data = await response.json();
-      if (data && data.success && data.redirectUrl) {
-        window.location.href = data.redirectUrl;
-        return;
-      }
-
-      // If PhonePe merchant credentials are in test or pending mode
       setPlacedOrderId(generatedOrderId);
       setOrderComplete(true);
-    } catch (err: any) {
-      console.warn('PhonePe order error:', err);
-      setPlacedOrderId(generatedOrderId);
-      setOrderComplete(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error('Failed to place order:', err);
+      setErrorMessage('Failed to place order. Please try again or contact concierge.');
     } finally {
       setIsSubmitting(false);
     }
@@ -103,41 +170,49 @@ export const CheckoutPage: React.FC = () => {
         <Header onOpenWishlist={() => setIsWishlistOpen(true)} />
         <LuxuryMegaNav />
 
-        <main className="flex-1 w-full max-w-xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
-            <CheckCircle2 className="w-10 h-10" />
+        <main className="flex-1 w-full max-w-xl mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-[#FAF3E6] border-2 border-[#D4AF37] flex items-center justify-center text-[#B8860B] shadow-md animate-in zoom-in-95">
+            <CheckCircle2 className="w-9 h-9" />
           </div>
 
-          <div className="space-y-2">
-            <span className="text-[10px] uppercase tracking-[0.24em] text-[#8A671A] block">
-              Order Confirmed
+          <div className="space-y-1.5">
+            <span className="text-[10px] uppercase tracking-[0.24em] font-extrabold text-[#8C6D1F] block">
+              ORDER RECEIVED & RESERVED
             </span>
-            <h1 className="text-2xl sm:text-3xl text-[#111113] uppercase tracking-wider">
+            <h1 className="text-2xl sm:text-3xl text-[#111113] uppercase tracking-wider font-semibold font-serif">
               Thank You for Your Order
             </h1>
             <p className="text-xs text-[#7A6C58]">
-              Order ID: <strong className="font-mono text-[#111113]">{placedOrderId}</strong>
+              Order Reference: <strong className="font-mono text-[#111113]">{placedOrderId}</strong>
             </p>
           </div>
 
-          <div className="p-5 bg-white rounded-2xl border border-[#E8DEC8] text-xs text-[#554D42] text-left space-y-2 w-full">
+          <div className="p-5 bg-white rounded-2xl border border-[#E8DEC8] text-xs text-[#554D42] text-left space-y-2.5 w-full shadow-xs">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+              <span className="font-bold text-[#111113] uppercase tracking-wider">Payment Status</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px] uppercase">
+                Payment Pending · Pay on Delivery
+              </span>
+            </div>
             <p><strong>Customer:</strong> {formData.name}</p>
-            <p><strong>Phone:</strong> {formData.phone}</p>
-            <p><strong>Delivery Address:</strong> {formData.address}, {formData.city} - {formData.pincode}</p>
-            <p><strong>Total Amount:</strong> ₹{orderTotal.toLocaleString('en-IN')}</p>
-            <p><strong>Payment Method:</strong> PhonePe Gateway</p>
+            <p><strong>Mobile:</strong> +91 {formData.phone}</p>
+            <p><strong>Delivery Address:</strong> {formData.houseNo}, {formData.street}, {formData.city}, {formData.state} - {formData.pincode}</p>
+            <p><strong>Total Amount to Pay:</strong> ₹{orderTotal.toLocaleString('en-IN')}</p>
+            <p className="text-[11px] text-[#7A6C58] pt-1 border-t border-gray-100">
+              Our Mahbubnagar store concierge (+91 75 7888 7888) will verify dispatch with you. You will pay cash or UPI upon delivery.
+            </p>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <Link
               to="/orders"
-              className="px-6 py-2.5 bg-[#111113] text-[#D4AF37] text-xs uppercase tracking-wider rounded-xl hover:bg-black transition-colors"
+              className="px-6 py-3 bg-[#111113] text-[#D4AF37] text-xs uppercase tracking-wider rounded-xl hover:bg-black transition-colors font-bold text-center"
             >
               View Order History
             </Link>
             <Link
               to="/shop"
-              className="px-6 py-2.5 bg-white border border-[#D5C7B0] text-[#111113] text-xs uppercase tracking-wider rounded-xl hover:bg-[#FAF8F5] transition-colors"
+              className="px-6 py-3 bg-white border border-[#D5C7B0] text-[#111113] text-xs uppercase tracking-wider rounded-xl hover:bg-[#FAF8F5] transition-colors font-bold text-center"
             >
               Continue Shopping
             </Link>
@@ -145,6 +220,7 @@ export const CheckoutPage: React.FC = () => {
         </main>
 
         <Footer />
+        <WishlistDrawer isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
       </div>
     );
   }
@@ -155,18 +231,24 @@ export const CheckoutPage: React.FC = () => {
         <Header onOpenWishlist={() => setIsWishlistOpen(true)} />
         <LuxuryMegaNav />
         <div className="flex-1 max-w-md mx-auto px-4 py-20 text-center space-y-4">
-          <h1 className="text-xl text-[#111113]">Your Bag is Empty</h1>
+          <div className="w-16 h-16 rounded-full bg-white border border-[#D5C7B0] flex items-center justify-center mx-auto text-[#8C8274]">
+            <ShoppingBag className="w-8 h-8" />
+          </div>
+          <h1 className="text-xl text-[#111113] uppercase tracking-wider font-semibold font-serif">
+            Your Bag is Empty
+          </h1>
           <p className="text-xs text-[#7A6C58]">
             Please add items to your shopping bag before proceeding to checkout.
           </p>
           <Link
             to="/shop"
-            className="inline-block px-6 py-2.5 bg-[#111113] text-[#D4AF37] text-xs uppercase tracking-wider rounded-xl"
+            className="inline-block px-6 py-2.5 bg-[#111113] text-[#D4AF37] text-xs uppercase tracking-wider rounded-xl hover:bg-black transition-colors"
           >
             Explore Collections
           </Link>
         </div>
         <Footer />
+        <WishlistDrawer isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
       </div>
     );
   }
@@ -176,210 +258,411 @@ export const CheckoutPage: React.FC = () => {
       <Header onOpenWishlist={() => setIsWishlistOpen(true)} />
       <LuxuryMegaNav />
 
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <div className="border-b border-[#E8DEC8] pb-4 flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl text-[#111113] uppercase tracking-wider">
-            Checkout & Payment
-          </h1>
-          <Link
-            to="/cart"
-            className="text-xs text-[#8A671A] hover:text-[#111113] flex items-center gap-1 transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Bag</span>
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-6">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-xs text-[#7A6C58]">
+          <Link to="/cart" className="hover:text-[#111113] flex items-center gap-1">
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Bag
           </Link>
+          <span>/</span>
+          <span className="text-[#111113] font-semibold">Checkout</span>
+        </div>
+
+        {/* Step Indicator */}
+        <div className="flex items-center justify-between pb-4 border-b border-[#E8DEC8]">
+          <div>
+            <span className="text-[10px] uppercase tracking-[0.24em] font-extrabold text-[#8C6D1F] block">
+              LAP OF LUXURY · SECURE CHECKOUT
+            </span>
+            <h1 className="text-xl sm:text-2xl text-[#111113] uppercase tracking-wider font-serif font-semibold">
+              {currentStep === 'address' ? '1. Delivery Information' : '2. Review & Payment'}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                currentStep === 'address'
+                  ? 'bg-[#111113] text-[#D4AF37]'
+                  : 'bg-white border border-[#D5C7B0] text-[#7A6C58]'
+              }`}
+            >
+              1. Address
+            </span>
+            <span className="text-gray-300">→</span>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                currentStep === 'review'
+                  ? 'bg-[#111113] text-[#D4AF37]'
+                  : 'bg-white border border-[#D5C7B0] text-[#7A6C58]'
+              }`}
+            >
+              2. Review & Payment
+            </span>
+          </div>
         </div>
 
         {errorMessage && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
-            {errorMessage}
+          <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2 animate-in fade-in">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMessage}</span>
           </div>
         )}
 
-        <form onSubmit={handlePayWithPhonePe} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Delivery Address Form */}
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-[#E8DEC8] p-6 space-y-5 shadow-sm">
-            <h2 className="text-sm uppercase tracking-wider text-[#111113] border-b border-[#E8DEC8] pb-3">
-              1. Delivery & Contact Information
-            </h2>
+        {/* STEP 1: ADDRESS ENTRY */}
+        {currentStep === 'address' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Form Column */}
+            <div className="lg:col-span-8 bg-white p-5 sm:p-7 rounded-2xl border border-[#E8DEC8] shadow-xs space-y-5">
+              <form onSubmit={handleProceedToReview} className="space-y-4">
+                <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8DEC8] flex items-center justify-between text-xs">
+                  <span className="text-[#554D42] flex items-center gap-1.5">
+                    <Truck className="w-4 h-4 text-[#B8860B]" />
+                    <span>Dispatched from Mahbubnagar Store</span>
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {cartTotal >= 2999 ? 'FREE Shipping' : 'Standard Shipping (₹150)'}
+                  </span>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-[#4A4033] mb-1">Full Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="e.g. Rahul Sharma"
-                  className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-[#4A4033] mb-1">Mobile Number (for Order Updates) *</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  required
-                  maxLength={10}
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="10-digit Mobile Number"
-                  className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs text-[#4A4033] mb-1">Email Address (for Invoice & Tracking)</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="name@example.com"
-                className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-[#4A4033] mb-1">Complete Street Address *</label>
-              <textarea
-                name="address"
-                required
-                rows={3}
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="House/Flat number, Building name, Street, Landmark"
-                className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs text-[#4A4033] mb-1">City</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[#4A4033] mb-1">State</label>
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[#4A4033] mb-1">Pincode *</label>
-                <input
-                  type="text"
-                  name="pincode"
-                  maxLength={6}
-                  required
-                  value={formData.pincode}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
-                />
-              </div>
-            </div>
-
-            {/* Payment Method Notice */}
-            <div className="pt-4 border-t border-[#E8DEC8] space-y-3">
-              <h2 className="text-sm uppercase tracking-wider text-[#111113]">
-                2. Payment Method
-              </h2>
-              <div className="p-4 rounded-xl border-2 border-[#D4AF37] bg-[#FAF8F5] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#111113] text-[#D4AF37] flex items-center justify-center text-xs font-bold">
-                    UPI
-                  </div>
+                {/* Name & Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-xs text-[#111113] font-bold block">
-                      Instant UPI &amp; Online Payment
-                    </span>
-                    <span className="text-[10px] text-[#554D42]">
-                      UPI (GPay, Paytm, PhonePe, BHIM), Cards &amp; NetBanking.
-                    </span>
+                    <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Rahul Sharma"
+                      className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                        fieldErrors.name
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                      }`}
+                    />
+                    {fieldErrors.name && (
+                      <p className="text-[10px] text-red-600 mt-1">{fieldErrors.name}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                      Mobile Number (10 Digits) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#7A6C58] font-bold">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        name="phone"
+                        maxLength={10}
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="9876543210"
+                        className={`w-full pl-12 pr-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                          fieldErrors.phone
+                            ? 'border-red-400 focus:border-red-500'
+                            : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                        }`}
+                      />
+                    </div>
+                    {fieldErrors.phone && (
+                      <p className="text-[10px] text-red-600 mt-1">{fieldErrors.phone}</p>
+                    )}
                   </div>
                 </div>
-                <span className="text-[10px] px-2.5 py-1 bg-[#111113] text-[#D4AF37] rounded-md uppercase tracking-wider font-bold">
-                  Verified Secure
-                </span>
-              </div>
-            </div>
-          </div>
 
-          {/* Right Column: Order Summary & Pay Button */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-[#E8DEC8] p-6 space-y-5 shadow-sm">
-            <h2 className="text-sm uppercase tracking-wider text-[#111113] border-b border-[#E8DEC8] pb-3">
-              Order Summary ({cart.length} items)
-            </h2>
+                {/* House/Flat & Street */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                      House / Flat / Apartment No. <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="houseNo"
+                      value={formData.houseNo}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Flat 402, Royal Residency"
+                      className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                        fieldErrors.houseNo
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                      }`}
+                    />
+                    {fieldErrors.houseNo && (
+                      <p className="text-[10px] text-red-600 mt-1">{fieldErrors.houseNo}</p>
+                    )}
+                  </div>
 
-            <div className="max-h-60 overflow-y-auto space-y-3 divide-y divide-[#F0EAE1] pr-1">
-              {cart.map((item) => {
-                const itemSize = item.selectedSize || item.size || 'Standard';
-                return (
-                  <div
-                    key={`${item.product.id}-${itemSize}`}
-                    className="pt-2.5 first:pt-0 flex items-center justify-between gap-3 text-xs"
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                      Street / Locality / Landmark <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="street"
+                      value={formData.street}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Near Clock Tower, Station Road"
+                      className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                        fieldErrors.street
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                      }`}
+                    />
+                    {fieldErrors.street && (
+                      <p className="text-[10px] text-red-600 mt-1">{fieldErrors.street}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* City, State & PIN code */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                      City / Town <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      placeholder="Mahbubnagar"
+                      className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                        fieldErrors.city
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                      }`}
+                    />
+                    {fieldErrors.city && (
+                      <p className="text-[10px] text-red-600 mt-1">{fieldErrors.city}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                      State <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      placeholder="Telangana"
+                      className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                        fieldErrors.state
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                      }`}
+                    />
+                    {fieldErrors.state && (
+                      <p className="text-[10px] text-red-600 mt-1">{fieldErrors.state}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                      PIN Code (6 Digits) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="pincode"
+                      maxLength={6}
+                      value={formData.pincode}
+                      onChange={handleInputChange}
+                      placeholder="509001"
+                      className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                        fieldErrors.pincode
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                      }`}
+                    />
+                    {fieldErrors.pincode && (
+                      <p className="text-[10px] text-red-600 mt-1">{fieldErrors.pincode}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Optional Email */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    Email Address <span className="text-gray-400 font-normal">(Optional, for dispatch tracking)</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="client@example.com"
+                    className="w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl focus:outline-none focus:bg-white focus:border-[#B8860B] text-[#111113] transition-colors"
+                  />
+                  {fieldErrors.email && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.email}</p>
+                  )}
+                </div>
+
+                <div className="pt-3">
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-xs sm:text-sm font-extrabold uppercase tracking-[0.16em] rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <div className="truncate">
-                      <span className="text-[#111113] block truncate">{item.product.name}</span>
-                      <span className="text-[10px] text-[#7A6C58]">
-                        Qty: {item.quantity} · Size: {itemSize}
-                      </span>
+                    <span>Proceed to Review & Payment →</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Cart Summary Side Column */}
+            <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-[#E8DEC8] shadow-xs space-y-4 h-fit">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#111113] border-b border-gray-100 pb-2 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-[#B8860B]" />
+                <span>Bag Summary ({cart.length} item{cart.length === 1 ? '' : 's'})</span>
+              </h3>
+
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                {cart.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between gap-2.5 text-xs">
+                    <img
+                      src={normalizeImageUrl(item.product.image, item.product.category)}
+                      alt={item.product.name}
+                      className="w-10 h-10 object-cover rounded-lg border border-gray-200 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-[#111113] truncate">{item.product.name}</p>
+                      <p className="text-[10.5px] text-[#7A6C58]">
+                        Size: {item.selectedSize || item.size || 'Standard'} · Qty: {item.quantity}
+                      </p>
                     </div>
-                    <span className="tabular-nums text-[#111113]">
+                    <span className="font-bold text-[#111113] tabular-nums">
                       ₹{(item.product.price * item.quantity).toLocaleString('en-IN')}
                     </span>
                   </div>
-                );
-              })}
-            </div>
-
-            <div className="border-t border-[#E8DEC8] pt-4 space-y-2.5 text-xs text-[#554D42]">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span className="tabular-nums">₹{cartTotal.toLocaleString('en-IN')}</span>
+                ))}
               </div>
-              <div className="flex justify-between">
-                <span>Delivery Charges</span>
-                <span>{shippingCost === 0 ? <span className="text-emerald-700">FREE</span> : `₹${shippingCost}`}</span>
-              </div>
-              <div className="border-t border-[#E8DEC8] pt-3 flex justify-between text-sm text-[#111113]">
-                <span>Total Amount</span>
-                <span className="tabular-nums">₹{orderTotal.toLocaleString('en-IN')}</span>
-              </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#111113]" />
-              <span>
-                {isSubmitting
-                  ? 'Connecting to Secure Gateway...'
-                  : `Pay ₹${orderTotal.toLocaleString('en-IN')} Securely`}
-              </span>
-            </button>
-
-            <div className="pt-2 text-[11px] text-[#7A6C58] space-y-1 text-center">
-              <p>Safe and encrypted 256-bit SSL transaction.</p>
-              <p>Delivery dispatched within 24 hours of payment verification.</p>
+              <div className="pt-3 border-t border-gray-100 space-y-1.5 text-xs text-[#554D42]">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="tabular-nums">₹{cartTotal.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Charges</span>
+                  <span>{shippingCost === 0 ? <strong className="text-emerald-700">FREE</strong> : `₹${shippingCost}`}</span>
+                </div>
+                <div className="flex justify-between text-sm font-bold text-[#111113] pt-1 border-t border-gray-100">
+                  <span>Total Amount</span>
+                  <span className="text-[#8C6D1F] tabular-nums">₹{orderTotal.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </form>
+        )}
+
+        {/* STEP 2: REVIEW & PAYMENT GATEWAY COMING SOON */}
+        {currentStep === 'review' && (
+          <div className="space-y-6">
+            {/* Review Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Delivery Address Card */}
+              <div className="bg-white p-5 rounded-2xl border border-[#E8DEC8] shadow-xs space-y-2">
+                <div className="flex items-center justify-between pb-2 border-b border-[#E8DEC8]">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#111113] flex items-center gap-1.5">
+                    <Truck className="w-4 h-4 text-[#B8860B]" />
+                    <span>Delivery Address</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep('address')}
+                    className="text-[11px] text-[#B8860B] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit2 className="w-3 h-3" /> Edit Address
+                  </button>
+                </div>
+                <p className="font-bold text-sm text-[#111113]">{formData.name}</p>
+                <p className="text-xs text-[#554D42] leading-relaxed">
+                  {formData.houseNo}, {formData.street}, {formData.city}, {formData.state} - {formData.pincode}
+                </p>
+                <p className="text-xs text-[#554D42]">Mobile: +91 {formData.phone}</p>
+                {formData.email && <p className="text-xs text-[#7A6C58]">Email: {formData.email}</p>}
+              </div>
+
+              {/* Order Total Breakdown */}
+              <div className="bg-white p-5 rounded-2xl border border-[#E8DEC8] shadow-xs space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#111113] block pb-2 border-b border-[#E8DEC8]">
+                  Order Total Breakdown
+                </span>
+                <div className="space-y-1.5 text-xs text-[#554D42]">
+                  <div className="flex justify-between">
+                    <span>Items Total ({cart.length} product{cart.length === 1 ? '' : 's'})</span>
+                    <span className="tabular-nums">₹{cartTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Shipping Charges</span>
+                    <span>{shippingCost === 0 ? <strong className="text-emerald-700">FREE</strong> : `₹${shippingCost}`}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-bold text-[#111113] pt-2 border-t border-gray-100">
+                    <span>Payable on Delivery</span>
+                    <span className="text-[#8C6D1F] tabular-nums">₹{orderTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* MANDATORY PAYMENT GATEWAY COMING SOON SECTION (Pure Coming Soon Mode) */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FAF8F5] via-[#FFFDF9] to-[#FAF6EE] border-2 border-[#D4AF37] p-6 sm:p-8 shadow-sm text-center space-y-3 animate-in fade-in">
+              <div className="flex items-center justify-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-ping" />
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.26em] text-[#8C6D1F]">
+                  PAYMENT GATEWAY · COMING SOON
+                </span>
+              </div>
+
+              {/* EXACT REQUIRED MESSAGE VERBATIM */}
+              <p className="font-serif text-base sm:text-lg md:text-xl text-[#111113] leading-relaxed font-semibold italic max-w-2xl mx-auto">
+                “We’re crafting a smoother, better, and more seamless shopping experience for you. Online payments are coming soon — stay tuned!”
+              </p>
+
+              <p className="text-xs text-[#7A6C58] max-w-lg mx-auto leading-relaxed">
+                Online order placement and payments are temporarily on hold while we integrate our seamless gateway. To purchase or reserve items in your bag today, please connect directly with our personal shopping concierge.
+              </p>
+            </div>
+
+            {/* Actions: Inquire via WhatsApp / Edit Address */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep('address')}
+                className="px-5 py-3.5 rounded-xl border border-[#D5C7B0] bg-white hover:bg-[#FAF8F5] text-[#33333A] font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer text-center order-2 sm:order-1"
+              >
+                ← Back to Address
+              </button>
+
+              <a
+                href={`https://wa.me/917578887888?text=${encodeURIComponent(
+                  `Hello Lap of Luxury Concierge, I have ${cart.length} item(s) in my bag (Total: ₹${orderTotal.toLocaleString('en-IN')}) for delivery to ${formData.name}, ${formData.city}, ${formData.state} (${formData.pincode}). Please assist with my order reservation.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-4 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111113] font-black text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2"
+              >
+                <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.075-.3-.15-1.27-.468-2.42-1.492-.895-.798-1.5-1.785-1.675-2.086-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.677-1.631-.928-2.233-.244-.587-.493-.507-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.23 3.111c.15.2 2.123 3.242 5.143 4.547.719.31 1.28.496 1.718.636.721.23 1.378.197 1.897.12.578-.087 1.78-.727 2.031-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zm-5.467 7.618c-2.07 0-4.015-.558-5.71-1.53l-.409-.236-4.249 1.114 1.134-4.141-.267-.424C1.61 14.996 1 12.981 1 10.875 1 5.43 5.43 1 10.875 1S20.75 5.43 20.75 10.875 16.32 20.75 10.875 20.75zm0-20.75C4.879 0 0 4.879 0 10.875c0 2.14.61 4.14 1.667 5.845L0 24l7.464-1.636c1.644.975 3.565 1.511 5.541 1.511 5.996 0 10.875-4.879 10.875-10.875S16.871 0 10.875 0z" />
+                </svg>
+                <span>Inquire via WhatsApp Concierge</span>
+              </a>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-[#7A6C58] pt-1">
+              <Phone className="w-4 h-4 text-[#B8860B]" />
+              <span>For phone assistance or bespoke alterations, contact Mahbubnagar Concierge: +91 75 7888 7888</span>
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

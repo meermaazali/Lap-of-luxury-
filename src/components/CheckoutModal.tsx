@@ -1,894 +1,565 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   X,
   ArrowLeft,
-  Clock,
   ShieldCheck,
-  RefreshCw,
-  Upload,
   CheckCircle2,
   AlertCircle,
-  FileText,
-  Copy,
-  QrCode,
+  Truck,
+  ShoppingBag,
+  Sparkles,
+  Lock,
+  Phone,
+  Edit2,
 } from 'lucide-react';
-import QRCode from 'qrcode';
 import { useStore } from '../context/StoreContext';
-import { compressImage } from '../utils/imageUtils';
+import { normalizeImageUrl } from '../utils/imageUtils';
 
 export const CheckoutModal: React.FC = () => {
   const {
     isCheckoutOpen,
     setIsCheckoutOpen,
+    cart,
     cartTotal,
     placeOrder,
     setIsCartOpen,
-    paymentConfig,
   } = useStore();
 
-  const [currentStep, setCurrentStep] = useState<'address' | 'payment'>('address');
+  const [currentStep, setCurrentStep] = useState<'address' | 'review'>('address');
 
-  // Customer Delivery Details
+  // Customer Delivery Details per requirement 3:
+  // Full Name, Mobile Number, House/Flat Number, Street or Locality, City, State, and PIN code.
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    email: '',
-    address: '',
+    houseNo: '',
+    street: '',
     city: 'Mahbubnagar',
+    state: 'Telangana',
     pincode: '509001',
+    email: '',
   });
 
-  // Automatic Device Detection (Mobile Phone vs PC / Laptop / Large Screen)
-  // Automatically determined without manual switch toggle per prompt requirement
-  const [isMobileDevice, setIsMobileDevice] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return (
-      /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      ) || window.innerWidth < 768
-    );
-  });
-
-  const [selectedMobileApp, setSelectedMobileApp] = useState<string>('PhonePe');
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
-  
-  // 5-Minute Countdown Timer for PC/Laptop QR Code per prompt requirement
-  const [timeLeft, setTimeLeft] = useState<number>(300); // 5 minutes (300s)
-  const [isTimerExpired, setIsTimerExpired] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Desktop/Laptop Screenshot Upload State
-  const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null);
-  const [screenshotFileName, setScreenshotFileName] = useState<string | null>(null);
-  const [isUploadingScreenshot, setIsUploadingScreenshot] = useState<boolean>(false);
-
-  // Merchant Details
-  const MERCHANT_PHONE = paymentConfig?.upiNumber || '9848263939';
-  const MERCHANT_VPA = paymentConfig?.upiId || '9848263939@ybl';
-  const MERCHANT_NAME = paymentConfig?.payeeName || 'KODIGANTI DINESH';
+  if (!isCheckoutOpen) return null;
 
   const shippingCost = cartTotal >= 2999 ? 0 : 150;
   const orderTotal = Math.max(0, cartTotal + shippingCost);
 
-  // Stable order reference
-  const orderRef = useRef<string>(`LOL-${Math.floor(1000 + Math.random() * 9000)}`);
-
-  // Auto-detect device on resize
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileDevice(
-        /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        ) || window.innerWidth < 768
-      );
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Mobile fallback controls
-  const [showMobileQR, setShowMobileQR] = useState<boolean>(false);
-  const [copiedUpi, setCopiedUpi] = useState<boolean>(false);
-
-  // Generate QR code for order (available for Desktop and Mobile fallback)
-  useEffect(() => {
-    if (isCheckoutOpen && currentStep === 'payment' && orderTotal > 0) {
-      const upiUri = `upi://pay?pa=${MERCHANT_VPA}&pn=${encodeURIComponent(
-        MERCHANT_NAME
-      )}&am=${orderTotal}&cu=INR&tn=${encodeURIComponent(
-        `Lap of Luxury Order ${orderRef.current}`
-      )}`;
-
-      QRCode.toDataURL(upiUri, {
-        width: 340,
-        margin: 2,
-        color: {
-          dark: '#111113',
-          light: '#FFFFFF',
-        },
-      })
-        .then((url) => setQrCodeDataUrl(url))
-        .catch((err) => console.error('Failed to generate QR code:', err));
-
-      // Reset 5-min timer
-      setTimeLeft(300);
-      setIsTimerExpired(false);
-    }
-  }, [isCheckoutOpen, currentStep, orderTotal, MERCHANT_VPA, MERCHANT_NAME]);
-
-  // 5-minute countdown timer on Desktop/Laptop QR
-  useEffect(() => {
-    if (currentStep !== 'payment' || isMobileDevice || isTimerExpired) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setIsTimerExpired(true);
-          return 0;
-        }
-        return prev - 1;
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error for field
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
       });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [currentStep, isMobileDevice, isTimerExpired]);
-
-  if (!isCheckoutOpen) return null;
-
-  const handleRestartTimer = () => {
-    setTimeLeft(300);
-    setIsTimerExpired(false);
+    }
+    setErrorMessage(null);
   };
 
-  const handleBackToCart = () => {
-    setIsCheckoutOpen(false);
-    setIsCartOpen(true);
-  };
+  const validateAddress = (): boolean => {
+    const errors: Record<string, string> = {};
 
-  const validateAddress = () => {
-    if (!formData.name.trim()) {
-      setErrorMessage('Please enter your full recipient name.');
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      errors.name = 'Please enter your full name.';
+    }
+
+    const cleanPhone = formData.phone.trim().replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      errors.phone = 'Please enter a valid 10-digit mobile number.';
+    }
+
+    if (!formData.houseNo.trim()) {
+      errors.houseNo = 'House / Flat / Building number is required.';
+    }
+
+    if (!formData.street.trim() || formData.street.trim().length < 3) {
+      errors.street = 'Street or locality name is required.';
+    }
+
+    if (!formData.city.trim()) {
+      errors.city = 'City / Town name is required.';
+    }
+
+    if (!formData.state.trim()) {
+      errors.state = 'State is required.';
+    }
+
+    const cleanPincode = formData.pincode.trim().replace(/\D/g, '');
+    if (!cleanPincode || cleanPincode.length !== 6) {
+      errors.pincode = 'Please enter a valid 6-digit PIN code.';
+    }
+
+    if (formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
+      errors.email = 'Please enter a valid email address or leave blank.';
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      setErrorMessage('Please fill in all required delivery address fields correctly.');
       return false;
     }
-    if (!formData.phone.trim() || formData.phone.trim().length < 10) {
-      setErrorMessage('Please enter a valid 10-digit mobile number.');
-      return false;
-    }
-    if (!formData.address.trim()) {
-      setErrorMessage('Please enter complete delivery address.');
-      return false;
-    }
-    if (!formData.pincode.trim() || formData.pincode.trim().length < 6) {
-      setErrorMessage('Please enter a valid 6-digit postal pincode.');
-      return false;
-    }
+
     setErrorMessage(null);
     return true;
   };
 
-  const handleProceedToPayment = (e: React.FormEvent) => {
+  const handleProceedToReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateAddress()) {
-      setCurrentStep('payment');
+      setCurrentStep('review');
     }
   };
 
-  // Mobile: Trigger native UPI app or PhonePe Gateway with prefilled amount & merchant details
-  const handleOpenMobileUPI = async (appName: string) => {
-    setSelectedMobileApp(appName);
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    // Place the order in "Payment Pending" state so order details are securely preserved
-    try {
-      placeOrder(
-        {
-          name: formData.name.trim(),
-          phone: formData.phone.trim(),
-          email: formData.email.trim() || undefined,
-          address: formData.address.trim(),
-          city: formData.city.trim() || 'Mahbubnagar',
-          pincode: formData.pincode.trim() || '509001',
-          paymentMethod: appName,
-          transactionRef: `TXN-${orderRef.current}`,
-        },
-        shippingCost
-      );
-    } catch (err) {
-      console.warn('Order place error:', err);
+  const handlePlaceOrderCOD = async () => {
+    if (!validateAddress()) {
+      setCurrentStep('address');
+      return;
     }
 
-    // 1. If PhonePe Gateway is configured, initiate secure server-to-server PhonePe checkout
-    if (appName === 'PhonePe') {
-      try {
-        const response = await fetch('/api/phonepe/initiate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: orderTotal,
-            orderId: `order-${orderRef.current}`,
-            customerPhone: formData.phone.trim() || MERCHANT_PHONE,
-            customerName: formData.name.trim() || 'Guest Customer',
-          }),
-        });
-
-        const data = await response.json();
-        if (data && data.success && data.redirectUrl) {
-          window.location.href = data.redirectUrl;
-          return;
-        }
-      } catch (err) {
-        console.warn('PhonePe gateway error, using UPI intent fallback:', err);
-      }
-    }
-
-    // 2. Standard UPI intent fallback
-    const baseUpi = `pa=${MERCHANT_VPA}&pn=${encodeURIComponent(
-      MERCHANT_NAME
-    )}&am=${orderTotal}&cu=INR&tn=${encodeURIComponent(
-      `Lap of Luxury Order ${orderRef.current}`
-    )}`;
-
-    let targetUri = `upi://pay?${baseUpi}`;
-
-    if (appName === 'PhonePe') {
-      targetUri = `phonepe://pay?${baseUpi}`;
-    } else if (appName === 'Google Pay') {
-      targetUri = `tez://upi/pay?${baseUpi}`;
-    } else if (appName === 'Paytm') {
-      targetUri = `paytmmp://pay?${baseUpi}`;
-    }
-
-    // Launch UPI intent
-    try {
-      window.location.href = targetUri;
-    } catch {
-      window.location.href = `upi://pay?${baseUpi}`;
-    }
-
-    // Close checkout so return view displays the order confirmation modal with pending status
-    setTimeout(() => {
-      setIsCheckoutOpen(false);
-      setIsSubmitting(false);
-    }, 1200);
-  };
-
-  // Desktop Screenshot Upload Handler (Optional verification aid)
-  const handleScreenshotChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingScreenshot(true);
-    try {
-      const compressed = await compressImage(file, 1200, 0.85);
-      setScreenshotDataUrl(compressed);
-      setScreenshotFileName(file.name);
-      setErrorMessage(null);
-    } catch (err) {
-      console.error('Screenshot compression error:', err);
-      const reader = new FileReader();
-      reader.onload = () => {
-        setScreenshotDataUrl(reader.result as string);
-        setScreenshotFileName(file.name);
-      };
-      reader.readAsDataURL(file);
-    } finally {
-      setIsUploadingScreenshot(false);
-    }
-  };
-
-  // Desktop/Laptop "I Have Paid / Continue" Handler: Places order and checks server verification
-  const handleDesktopContinue = async () => {
-    if (isTimerExpired) {
-      setErrorMessage('Payment session has timed out. Please restart the timer to complete.');
+    if (cart.length === 0) {
+      setErrorMessage('Your bag is empty. Please add items before placing an order.');
       return;
     }
 
     setIsSubmitting(true);
     setErrorMessage(null);
 
-    try {
-      // 1. Submit payment verification request to backend
-      fetch('/api/payments/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderRef: orderRef.current,
-          amount: orderTotal,
-          utrNumber: '',
-        }),
-      }).catch(() => null);
+    const fullFormattedAddress = `${formData.houseNo.trim()}, ${formData.street.trim()}, ${formData.city.trim()}, ${formData.state.trim()} - ${formData.pincode.trim()}`;
 
-      // 2. Place order with paymentStatus: "Payment Pending"
+    try {
       placeOrder(
         {
           name: formData.name.trim(),
-          phone: formData.phone.trim(),
+          phone: formData.phone.trim().replace(/\D/g, ''),
           email: formData.email.trim() || undefined,
-          address: formData.address.trim(),
-          city: formData.city.trim() || 'Mahbubnagar',
-          pincode: formData.pincode.trim() || '509001',
-          paymentMethod: 'UPI QR (Desktop)',
-          transactionRef: `TXN-${orderRef.current}`,
-          paymentScreenshot: screenshotDataUrl || undefined,
+          houseNo: formData.houseNo.trim(),
+          street: formData.street.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          pincode: formData.pincode.trim(),
+          address: fullFormattedAddress,
+          paymentMethod: 'Cash on Delivery',
+          transactionRef: `COD-${Date.now().toString().slice(-6)}`,
         },
         shippingCost
       );
+
+      // Close modal; the OrderSuccessModal will now trigger from StoreContext
       setIsCheckoutOpen(false);
+      setIsCartOpen(false);
+    } catch (err) {
+      console.error('Failed to place order:', err);
+      setErrorMessage('Failed to place order. Please try again or contact concierge.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Format time remaining MM:SS
-  const formatTimer = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-none">
-      <div className="bg-[#FAF8F5] w-full max-w-xl rounded-2xl border border-[#D5C2A5] shadow-2xl overflow-hidden my-4 sm:my-8 relative text-[#1E1E22]">
-        {/* Header Bar */}
-        <div className="px-4 sm:px-6 py-3.5 bg-white border-b border-[#E8DEC8] flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={currentStep === 'payment' ? () => setCurrentStep('address') : handleBackToCart}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF8F5] hover:bg-[#F2ECE1] border border-[#D5C7B0] text-[#111111] text-xs font-semibold uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-2xs"
-              title="Back"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 text-[#B8860B]" />
-              <span>{currentStep === 'payment' ? 'Back' : 'Back to Bag'}</span>
-            </button>
-
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-2 xs:p-3 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-2xl border-2 border-[#D4AF37]/50 shadow-2xl overflow-hidden my-4 relative flex flex-col max-h-[92vh]">
+        {/* Modal Header */}
+        <div className="px-4 py-3.5 bg-[#FAF8F5] border-b border-[#E8DEC8] flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2">
+            {currentStep === 'review' && (
+              <button
+                type="button"
+                onClick={() => setCurrentStep('address')}
+                className="w-8 h-8 rounded-full border border-[#D5C7B0] hover:bg-white flex items-center justify-center text-[#111113] transition-colors cursor-pointer mr-1"
+                title="Back to delivery address"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#B8860B]" />
+              </button>
+            )}
             <div>
-              <h2 className="font-serif text-sm sm:text-base font-semibold tracking-wider uppercase text-[#111113]">
-                {currentStep === 'address' ? 'Delivery Address' : 'Payment'}
-              </h2>
-              <span className="text-[10px] text-[#7A6C58] block">
-                LAP OF LUXURY · {currentStep === 'address' ? 'Step 1 of 2' : 'Step 2 of 2'}
+              <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-extrabold text-[#8C6D1F] block">
+                LAP OF LUXURY · CHECKOUT
               </span>
+              <h2 className="font-serif text-base sm:text-lg text-[#111113] uppercase tracking-wider font-semibold">
+                {currentStep === 'address' ? 'Delivery Address' : 'Review & Payment Staging'}
+              </h2>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsCheckoutOpen(false)}
-            className="w-8 h-8 rounded-full border border-[#D5C7B0] hover:border-[#1E1E22] flex items-center justify-center text-[#1E1E22] hover:bg-[#F2ECE1] transition-all cursor-pointer shrink-0"
-            aria-label="Close Checkout"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Step Indicator Progress Bar */}
-        <div className="bg-[#F2EDE2] px-4 sm:px-6 py-2 border-b border-[#E8DEC8] flex items-center justify-between text-xs font-medium text-[#5E5142]">
-          <button
-            type="button"
-            onClick={() => setCurrentStep('address')}
-            className={`flex items-center gap-1.5 cursor-pointer ${
-              currentStep === 'address' ? 'text-[#111113] font-bold' : 'text-[#7A6C58]'
-            }`}
-          >
-            <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border ${
-                currentStep === 'address'
-                  ? 'bg-[#111113] text-white border-[#111113]'
-                  : 'bg-emerald-600 text-white border-emerald-600'
-              }`}
-            >
-              1
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-[#7A6C58] hidden xs:inline">
+              Step {currentStep === 'address' ? '1 of 2' : '2 of 2'}
             </span>
-            <span>1. Delivery Address</span>
-          </button>
-
-          <span className="text-[#B89758]">→</span>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (validateAddress()) setCurrentStep('payment');
-            }}
-            className={`flex items-center gap-1.5 cursor-pointer ${
-              currentStep === 'payment' ? 'text-[#111113] font-bold' : 'text-[#7A6C58]'
-            }`}
-          >
-            <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border ${
-                currentStep === 'payment'
-                  ? 'bg-[#B8860B] text-white border-[#B8860B]'
-                  : 'bg-white text-[#7A6C58] border-[#D5C7B0]'
-              }`}
+            <button
+              type="button"
+              onClick={() => setIsCheckoutOpen(false)}
+              className="w-8 h-8 rounded-full border border-[#D5C7B0] hover:bg-[#F2ECE1] flex items-center justify-center text-[#111113] transition-all cursor-pointer"
+              aria-label="Close checkout"
             >
-              2
-            </span>
-            <span>2. Payment</span>
-          </button>
-        </div>
-
-        {/* Error Alert */}
-        {errorMessage && (
-          <div className="mx-4 sm:mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-            <span>{errorMessage}</span>
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        )}
+        </div>
 
-        <div className="p-4 sm:p-6 space-y-4">
-          {/* STEP 1: Address Details Form */}
+        {/* Step Progress Bar */}
+        <div className="w-full bg-[#FAF6EE] h-1.5 flex shrink-0">
+          <div
+            className={`h-full bg-gradient-to-r from-[#D4AF37] to-[#B8860B] transition-all duration-300 ${
+              currentStep === 'address' ? 'w-1/2' : 'w-full'
+            }`}
+          />
+        </div>
+
+        {/* Scrollable Form Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
+          {errorMessage && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {/* STEP 1: DELIVERY ADDRESS */}
           {currentStep === 'address' && (
-            <form onSubmit={handleProceedToPayment} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5A4F41] mb-1 uppercase tracking-wider">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Recipient Full Name"
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#D5C7B0] rounded-xl text-xs focus:outline-none focus:border-[#B8860B] text-[#111113]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5A4F41] mb-1 uppercase tracking-wider">
-                    Mobile Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    maxLength={10}
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="10-digit mobile number"
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#D5C7B0] rounded-xl text-xs focus:outline-none focus:border-[#B8860B] text-[#111113]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-[#5A4F41] mb-1 uppercase tracking-wider">
-                  Email Address (Optional)
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="For order receipt & delivery updates"
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#D5C7B0] rounded-xl text-xs focus:outline-none focus:border-[#B8860B] text-[#111113]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-[#5A4F41] mb-1 uppercase tracking-wider">
-                  Complete Delivery Address *
-                </label>
-                <textarea
-                  required
-                  rows={2}
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Flat/House No, Building, Street, Landmark..."
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#D5C7B0] rounded-xl text-xs focus:outline-none focus:border-[#B8860B] text-[#111113] resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5A4F41] mb-1 uppercase tracking-wider">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#D5C7B0] rounded-xl text-xs focus:outline-none focus:border-[#B8860B] text-[#111113]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5A4F41] mb-1 uppercase tracking-wider">
-                    Pincode *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={formData.pincode}
-                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#D5C7B0] rounded-xl text-xs focus:outline-none focus:border-[#B8860B] text-[#111113]"
-                  />
-                </div>
-              </div>
-
-              {/* Order Amount Preview */}
-              <div className="p-3 bg-white rounded-xl border border-[#E8DFC8] flex items-center justify-between text-xs">
-                <span className="text-[#5A4F41]">Total Order Amount:</span>
-                <span className="font-bold text-sm text-[#111113]">
-                  ₹{orderTotal.toLocaleString('en-IN')}
+            <form onSubmit={handleProceedToReview} className="space-y-4">
+              <div className="bg-[#FAF8F5] p-3.5 rounded-xl border border-[#E8DEC8] flex items-center justify-between text-xs">
+                <span className="text-[#554D42] flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-[#B8860B]" />
+                  <span>Express Dispatch from Mahbubnagar Store</span>
+                </span>
+                <span className="font-bold text-emerald-700">
+                  {cartTotal >= 2999 ? 'FREE Shipping' : 'Standard Shipping (₹150)'}
                 </span>
               </div>
 
-              {/* Bottom Buttons */}
-              <div className="pt-2 flex items-center gap-3">
+              {/* Full Name & Phone Number */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Rahul Sharma"
+                    className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                      fieldErrors.name
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                    }`}
+                  />
+                  {fieldErrors.name && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    Mobile Number (10 Digits) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#7A6C58] font-bold">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      name="phone"
+                      maxLength={10}
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="9876543210"
+                      className={`w-full pl-12 pr-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                        fieldErrors.phone
+                          ? 'border-red-400 focus:border-red-500'
+                          : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                      }`}
+                    />
+                  </div>
+                  {fieldErrors.phone && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.phone}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* House/Flat No & Street/Locality */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    House / Flat / Apartment No. <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="houseNo"
+                    value={formData.houseNo}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Flat 402, Royal Residency"
+                    className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                      fieldErrors.houseNo
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                    }`}
+                  />
+                  {fieldErrors.houseNo && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.houseNo}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    Street / Locality / Landmark <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="street"
+                    value={formData.street}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Near Clock Tower, Station Road"
+                    className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                      fieldErrors.street
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                    }`}
+                  />
+                  {fieldErrors.street && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.street}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* City, State & PIN code */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    City / Town <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    placeholder="Mahbubnagar"
+                    className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                      fieldErrors.city
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                    }`}
+                  />
+                  {fieldErrors.city && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.city}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    State <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    placeholder="Telangana"
+                    className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                      fieldErrors.state
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                    }`}
+                  />
+                  {fieldErrors.state && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.state}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                    PIN Code (6 Digits) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="pincode"
+                    maxLength={6}
+                    value={formData.pincode}
+                    onChange={handleInputChange}
+                    placeholder="509001"
+                    className={`w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border rounded-xl focus:outline-none focus:bg-white text-[#111113] transition-colors ${
+                      fieldErrors.pincode
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-[#D5C7B0] focus:border-[#B8860B]'
+                    }`}
+                  />
+                  {fieldErrors.pincode && (
+                    <p className="text-[10px] text-red-600 mt-1">{fieldErrors.pincode}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Optional Email Address */}
+              <div>
+                <label className="block text-[11px] font-bold text-[#3D3327] uppercase tracking-wider mb-1">
+                  Email Address <span className="text-gray-400 font-normal">(Optional, for dispatch notifications)</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="client@example.com"
+                  className="w-full px-3.5 py-2.5 text-xs bg-[#FAF8F5] border border-[#D5C7B0] rounded-xl focus:outline-none focus:bg-white focus:border-[#B8860B] text-[#111113] transition-colors"
+                />
+                {fieldErrors.email && (
+                  <p className="text-[10px] text-red-600 mt-1">{fieldErrors.email}</p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 flex items-center justify-between gap-3 border-t border-[#E8DEC8]">
                 <button
                   type="button"
-                  onClick={handleBackToCart}
-                  className="px-4 py-3 border border-[#D5C7B0] bg-white hover:bg-[#FAF8F5] text-[#111113] font-medium text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer shrink-0"
+                  onClick={() => setIsCheckoutOpen(false)}
+                  className="px-4 py-2.5 text-xs font-bold text-[#554D42] hover:text-[#111113] uppercase tracking-wider cursor-pointer"
                 >
-                  ← Back
+                  Cancel
                 </button>
+
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm tracking-wider uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
+                  className="flex-1 py-3 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-xs sm:text-sm font-extrabold uppercase tracking-[0.16em] rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <span>Continue to Payment →</span>
+                  <span>Review Order & Payment →</span>
                 </button>
               </div>
             </form>
           )}
 
-          {/* STEP 2: PAYMENT SECTION (AUTOMATICALLY ADAPTS TO MOBILE OR PC/LAPTOP) */}
-          {currentStep === 'payment' && (
+          {/* STEP 2: REVIEW ORDER & PAYMENT COMING SOON NOTICE */}
+          {currentStep === 'review' && (
             <div className="space-y-4">
-              {/* Deliver To Summary */}
-              <div className="p-3 bg-white rounded-xl border border-[#E8DFC8] flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-[10px] text-[#7A6C58] uppercase font-semibold block">
-                    Deliver To:
+              {/* Delivery Address Summary Card */}
+              <div className="bg-[#FAF8F5] p-4 rounded-xl border border-[#E8DEC8] space-y-1 text-xs">
+                <div className="flex items-center justify-between pb-1.5 border-b border-[#E8DEC8]">
+                  <span className="font-bold text-[#111113] uppercase tracking-wider flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-[#B8860B]" />
+                    <span>Delivery Details</span>
                   </span>
-                  <p className="font-semibold text-[#111113]">
-                    {formData.name} · {formData.phone}
-                  </p>
-                  <p className="text-[11px] text-[#554D42] truncate max-w-sm">
-                    {formData.address}, {formData.city} - {formData.pincode}
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep('address')}
+                    className="text-[11px] text-[#B8860B] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit2 className="w-3 h-3" /> Edit Address
+                  </button>
                 </div>
+                <p className="font-semibold text-[#111113] pt-1">{formData.name} · +91 {formData.phone}</p>
+                <p className="text-[#554D42]">
+                  {formData.houseNo}, {formData.street}, {formData.city}, {formData.state} - {formData.pincode}
+                </p>
+                {formData.email && (
+                  <p className="text-[11px] text-[#7A6C58]">Email: {formData.email}</p>
+                )}
+              </div>
+
+              {/* Items in Cart Summary */}
+              <div className="bg-white rounded-xl border border-[#E8DEC8] p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-[#111113] border-b border-gray-100 pb-2">
+                  <span className="flex items-center gap-1.5 uppercase tracking-wider">
+                    <ShoppingBag className="w-3.5 h-3.5 text-[#B8860B]" />
+                    <span>Your Bag ({cart.length} item{cart.length === 1 ? '' : 's'})</span>
+                  </span>
+                  <span className="text-[11px] text-[#7A6C58]">
+                    Subtotal: ₹{cartTotal.toLocaleString('en-IN')}
+                  </span>
+                </div>
+
+                <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                  {cart.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <img
+                          src={normalizeImageUrl(item.product.image, item.product.category)}
+                          alt={item.product.name}
+                          className="w-10 h-10 object-cover rounded-lg border border-gray-200 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[#111113] truncate">{item.product.name}</p>
+                          <p className="text-[10.5px] text-[#7A6C58]">
+                            Size: {item.selectedSize || item.size || 'Standard'} · Qty: {item.quantity}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-[#111113] tabular-nums shrink-0">
+                        ₹{(item.product.price * item.quantity).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 border-t border-gray-100 text-xs space-y-1">
+                  <div className="flex justify-between text-[#7A6C58]">
+                    <span>Shipping Charges</span>
+                    <span>{shippingCost === 0 ? <strong className="text-emerald-700">FREE</strong> : `₹${shippingCost}`}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold text-[#111113] pt-1">
+                    <span>Total Amount Payable</span>
+                    <span className="text-[#8C6D1F] tabular-nums">₹{orderTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* PAYMENT GATEWAY — COMING SOON MESSAGE (Pure Coming Soon Mode per User Instruction) */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FAF8F5] via-[#FFFDF9] to-[#FAF6EE] border-2 border-[#D4AF37] p-5 sm:p-6 shadow-sm text-center space-y-3 animate-in fade-in">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-ping" />
+                  <span className="text-[10.5px] font-extrabold uppercase tracking-[0.24em] text-[#8C6D1F]">
+                    PAYMENT GATEWAY · COMING SOON
+                  </span>
+                </div>
+
+                {/* EXACT REQUIRED MESSAGE */}
+                <p className="font-serif text-sm sm:text-base md:text-lg text-[#111113] leading-relaxed font-semibold italic max-w-lg mx-auto">
+                  “We’re crafting a smoother, better, and more seamless shopping experience for you. Online payments are coming soon — stay tuned!”
+                </p>
+
+                <p className="text-[11px] text-[#7A6C58] max-w-md mx-auto leading-relaxed">
+                  Online order placement and payments are temporarily on hold while we integrate our seamless gateway. To purchase or reserve items in your bag today, please connect with our personal shopping concierge.
+                </p>
+              </div>
+
+              {/* Actions: Inquire via WhatsApp / Edit Address / Return to Store */}
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                 <button
                   type="button"
                   onClick={() => setCurrentStep('address')}
-                  className="px-2.5 py-1 text-[11px] font-semibold text-[#B8860B] hover:text-[#111113] border border-[#D5C7B0] rounded-lg hover:bg-[#FAF8F5] cursor-pointer shrink-0"
+                  className="px-4 py-3 rounded-xl border border-[#D5C7B0] bg-white hover:bg-[#FAF8F5] text-[#33333A] font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer text-center order-2 sm:order-1"
                 >
-                  Edit
+                  ← Edit Address
                 </button>
+
+                <a
+                  href={`https://wa.me/917578887888?text=${encodeURIComponent(
+                    `Hello Lap of Luxury Concierge, I have ${cart.length} item(s) in my bag (Total: ₹${orderTotal.toLocaleString('en-IN')}) for delivery to ${formData.name}, ${formData.city}, ${formData.state} (${formData.pincode}). Please assist with my order reservation.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3.5 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111113] font-black text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2"
+                >
+                  <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.075-.3-.15-1.27-.468-2.42-1.492-.895-.798-1.5-1.785-1.675-2.086-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.677-1.631-.928-2.233-.244-.587-.493-.507-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.23 3.111c.15.2 2.123 3.242 5.143 4.547.719.31 1.28.496 1.718.636.721.23 1.378.197 1.897.12.578-.087 1.78-.727 2.031-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zm-5.467 7.618c-2.07 0-4.015-.558-5.71-1.53l-.409-.236-4.249 1.114 1.134-4.141-.267-.424C1.61 14.996 1 12.981 1 10.875 1 5.43 5.43 1 10.875 1S20.75 5.43 20.75 10.875 16.32 20.75 10.875 20.75zm0-20.75C4.879 0 0 4.879 0 10.875c0 2.14.61 4.14 1.667 5.845L0 24l7.464-1.636c1.644.975 3.565 1.511 5.541 1.511 5.996 0 10.875-4.879 10.875-10.875S16.871 0 10.875 0z" />
+                  </svg>
+                  <span>Inquire via WhatsApp Concierge</span>
+                </a>
               </div>
 
-              {/* Order Amount Banner */}
-              <div className="p-3.5 bg-gradient-to-r from-[#FAF6EE] to-[#F3E7BE] rounded-xl border border-[#D4AF37] flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold text-[#8A671A] uppercase tracking-wider block">
-                    Total Order Amount
-                  </span>
-                  <span className="text-xl sm:text-2xl font-black text-[#111113] tabular-nums">
-                    ₹{orderTotal.toLocaleString('en-IN')}
-                  </span>
-                </div>
-                <div className="text-right text-[11px] text-[#554D42]">
-                  <span className="block font-semibold">Payee: {MERCHANT_NAME}</span>
-                  <span className="text-[10px] font-mono text-[#8A671A]">UPI: {MERCHANT_VPA}</span>
-                </div>
+              <div className="flex items-center justify-center gap-2 text-[11px] text-[#7A6C58] pt-1">
+                <Phone className="w-3.5 h-3.5 text-[#B8860B]" />
+                <span>Mahbubnagar Store Concierge: +91 75 7888 7888</span>
               </div>
-
-              {/* 1. MOBILE PAYMENT INTERFACE: TEXT ONLY, NO LOGOS, NO UTR REQUIRED */}
-              {isMobileDevice ? (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xs font-bold tracking-wider uppercase text-[#3D3327]">
-                      Choose UPI App (Text Only)
-                    </h3>
-                    <p className="text-[11px] text-[#7A6C58] mt-0.5">
-                      Click an option below to open your payment app with ₹{orderTotal.toLocaleString('en-IN')} prefilled to +919848263939:
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {/* Text Only: PhonePe */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenMobileUPI('PhonePe')}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        selectedMobileApp === 'PhonePe'
-                          ? 'bg-[#FAF6EE] border-[#B8860B] ring-1 ring-[#B8860B]'
-                          : 'bg-white border-[#D5C7B0] hover:border-[#B8860B]'
-                      }`}
-                    >
-                      <span className="block text-xs font-bold text-[#111113]">
-                        PhonePe
-                      </span>
-                      <span className="text-[10px] text-[#7A6C58] block mt-0.5">
-                        Open PhonePe App →
-                      </span>
-                    </button>
-
-                    {/* Text Only: Google Pay */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenMobileUPI('Google Pay')}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        selectedMobileApp === 'Google Pay'
-                          ? 'bg-[#FAF6EE] border-[#B8860B] ring-1 ring-[#B8860B]'
-                          : 'bg-white border-[#D5C7B0] hover:border-[#B8860B]'
-                      }`}
-                    >
-                      <span className="block text-xs font-bold text-[#111113]">
-                        Google Pay
-                      </span>
-                      <span className="text-[10px] text-[#7A6C58] block mt-0.5">
-                        Open GPay App →
-                      </span>
-                    </button>
-
-                    {/* Text Only: Paytm */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenMobileUPI('Paytm')}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        selectedMobileApp === 'Paytm'
-                          ? 'bg-[#FAF6EE] border-[#B8860B] ring-1 ring-[#B8860B]'
-                          : 'bg-white border-[#D5C7B0] hover:border-[#B8860B]'
-                      }`}
-                    >
-                      <span className="block text-xs font-bold text-[#111113]">
-                        Paytm
-                      </span>
-                      <span className="text-[10px] text-[#7A6C58] block mt-0.5">
-                        Open Paytm App →
-                      </span>
-                    </button>
-
-                    {/* Text Only: Other Available UPI Apps */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenMobileUPI('Other UPI Apps')}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        selectedMobileApp === 'Other UPI Apps'
-                          ? 'bg-[#FAF6EE] border-[#B8860B] ring-1 ring-[#B8860B]'
-                          : 'bg-white border-[#D5C7B0] hover:border-[#B8860B]'
-                      }`}
-                    >
-                      <span className="block text-xs font-bold text-[#111113]">
-                        Other UPI Apps
-                      </span>
-                      <span className="text-[10px] text-[#7A6C58] block mt-0.5">
-                        BHIM, CRED, Amazon Pay →
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Prominent Direct UPI Launch Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleOpenMobileUPI(selectedMobileApp || 'Other UPI Apps')}
-                    disabled={isSubmitting}
-                    className="w-full py-3.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-98"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-[#111113]" />
-                    <span>
-                      {isSubmitting
-                        ? 'Opening UPI App...'
-                        : `Pay ₹${orderTotal.toLocaleString('en-IN')} via ${selectedMobileApp || 'UPI'}`}
-                    </span>
-                  </button>
-
-                  {/* Merchant UPI Details with 1-Tap Copy */}
-                  <div className="p-3 bg-[#F3EFE6] rounded-xl text-xs text-[#5A4F41] space-y-2 border border-[#E0D5C3]">
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] text-[#7A6C58] uppercase font-bold block">Merchant UPI ID</span>
-                        <span className="font-mono text-xs font-bold text-[#111113]">{MERCHANT_VPA}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (navigator.clipboard) {
-                            navigator.clipboard.writeText(MERCHANT_VPA);
-                            setCopiedUpi(true);
-                            setTimeout(() => setCopiedUpi(false), 2000);
-                          }
-                        }}
-                        className="px-2.5 py-1 bg-white hover:bg-[#FAF8F5] border border-[#D5C7B0] text-[#111113] rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
-                      >
-                        {copiedUpi ? (
-                          <>
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span className="text-emerald-700">Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3 text-[#7A6C58]" />
-                            <span>Copy UPI</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-[11px] text-[#7A6C58]">
-                      Authorized Payee: <strong>{MERCHANT_NAME}</strong> ({MERCHANT_PHONE}). Amount ₹{orderTotal.toLocaleString('en-IN')} is prefilled.
-                    </p>
-                  </div>
-
-                  {/* Mobile QR Fallback Toggle */}
-                  <div className="pt-0.5">
-                    <button
-                      type="button"
-                      onClick={() => setShowMobileQR(!showMobileQR)}
-                      className="w-full py-2 px-3 border border-dashed border-[#B8860B]/60 bg-[#FAF6EE] hover:bg-[#F5EEDC] text-[#8A671A] font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                    >
-                      <QrCode className="w-3.5 h-3.5" />
-                      <span>{showMobileQR ? 'Hide Payment QR' : 'UPI app didn’t open? Tap to Show QR / Scan'}</span>
-                    </button>
-
-                    {showMobileQR && (
-                      <div className="mt-3 p-4 bg-white rounded-2xl border border-[#D5C7B0] shadow-sm flex flex-col items-center text-center space-y-2 animate-fade-in">
-                        <p className="text-xs font-bold text-[#111113]">Scan with Any UPI App</p>
-                        <p className="text-[10px] text-[#7A6C58]">Take a screenshot or scan with your family member's phone</p>
-                        {qrCodeDataUrl ? (
-                          <div className="p-2.5 bg-white border border-[#E0D5C3] rounded-xl shadow-xs">
-                            <img src={qrCodeDataUrl} alt="UPI Payment QR" className="w-48 h-48 mx-auto" />
-                          </div>
-                        ) : (
-                          <div className="w-48 h-48 bg-gray-100 flex items-center justify-center text-xs text-gray-500 rounded-xl">
-                            Loading QR Code...
-                          </div>
-                        )}
-                        <p className="text-[11px] font-mono text-[#8A671A] font-bold">UPI ID: {MERCHANT_VPA}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-1 flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep('address')}
-                      className="w-full py-2.5 border border-[#D5C7B0] bg-white hover:bg-[#FAF8F5] text-[#111113] font-semibold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer text-center"
-                    >
-                      ← Back to Address Details
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* 2. DESKTOP, LAPTOP, AND TV PAYMENT QR WITH 5-MINUTE TIMER & SCREENSHOT UPLOAD */
-                <div className="space-y-4 flex flex-col items-center text-center">
-                  <div>
-                    <h3 className="text-xs font-bold tracking-wider uppercase text-[#3D3327]">
-                      Scan Payment QR Code
-                    </h3>
-                    <p className="text-[11px] text-[#7A6C58] mt-0.5">
-                      Scan with any mobile UPI app to pay ₹{orderTotal.toLocaleString('en-IN')} to {MERCHANT_NAME}
-                    </p>
-                  </div>
-
-                  {/* 5-Minute Countdown Timer Banner */}
-                  <div
-                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold ${
-                      isTimerExpired
-                        ? 'bg-red-100 text-red-800 border border-red-300'
-                        : timeLeft <= 60
-                        ? 'bg-amber-100 text-amber-900 border border-amber-300 animate-pulse'
-                        : 'bg-[#FAF6EE] text-[#8A671A] border border-[#D4AF37]'
-                    }`}
-                  >
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>
-                      {isTimerExpired
-                        ? 'Session Expired (00:00)'
-                        : `Time remaining: ${formatTimer(timeLeft)}`}
-                    </span>
-                  </div>
-
-                  {/* High-Resolution QR Display */}
-                  <div className="relative p-3 bg-white rounded-2xl border-2 border-[#D4AF37] shadow-sm flex flex-col items-center">
-                    {qrCodeDataUrl ? (
-                      <img
-                        src={qrCodeDataUrl}
-                        alt="UPI Payment QR Code"
-                        className={`w-52 h-52 sm:w-60 sm:h-60 object-contain transition-opacity ${
-                          isTimerExpired ? 'opacity-25 grayscale' : 'opacity-100'
-                        }`}
-                      />
-                    ) : (
-                      <div className="w-52 h-52 flex items-center justify-center text-xs text-gray-400">
-                        Generating QR Code...
-                      </div>
-                    )}
-
-                    {isTimerExpired && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-white/95 rounded-2xl">
-                        <AlertCircle className="w-8 h-8 text-red-600 mb-2" />
-                        <p className="text-xs font-bold text-red-800">Payment Session Expired</p>
-                        <p className="text-[11px] text-gray-600 mt-1 mb-3">
-                          Please restart the 5-minute timer to complete payment.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={handleRestartTimer}
-                          className="px-3.5 py-1.5 bg-[#111113] text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-black"
-                        >
-                          <RefreshCw className="w-3.5 h-3.5" />
-                          <span>Restart 5-Min Timer</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Note Below QR Code (Explicitly Required) */}
-                  <p className="text-xs text-[#5A4F41] max-w-sm leading-relaxed bg-[#F7F4EC] p-3 rounded-xl border border-[#E8DEC8]">
-                    Please complete the payment of <strong>₹{orderTotal.toLocaleString('en-IN')}</strong> using any UPI app on your phone, then upload the screenshot below and click <strong>“Continue”</strong> to complete your order.
-                  </p>
-
-                  {/* Desktop Payment Screenshot Upload Section */}
-                  <div className="w-full bg-white p-3.5 rounded-xl border border-[#D5C7B0] text-left space-y-2">
-                    <label className="block text-[11px] font-semibold text-[#3D3327] uppercase tracking-wider">
-                      Upload Payment Screenshot (Required for Desktop Verification)
-                    </label>
-
-                    <div className="flex items-center gap-3">
-                      <label className="flex-1 border-2 border-dashed border-[#D5C7B0] hover:border-[#B8860B] rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer bg-[#FAF8F5] hover:bg-[#F5EFE3] transition-colors">
-                        <Upload className="w-5 h-5 text-[#B8860B] mb-1" />
-                        <span className="text-xs font-semibold text-[#111113]">
-                          {screenshotFileName ? 'Change Screenshot' : 'Click to Upload Screenshot'}
-                        </span>
-                        <span className="text-[10px] text-[#7A6C58]">
-                          JPG, PNG or photo of payment screen
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleScreenshotChange}
-                          className="hidden"
-                        />
-                      </label>
-
-                      {/* Preview Thumbnail if selected */}
-                      {screenshotDataUrl && (
-                        <div className="relative w-16 h-16 rounded-xl border border-[#D4AF37] overflow-hidden shrink-0 shadow-2xs">
-                          <img
-                            src={screenshotDataUrl}
-                            alt="Payment Screenshot Preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute bottom-0 inset-x-0 bg-emerald-600 text-white text-[8px] font-bold text-center py-0.5">
-                            Attached
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {screenshotFileName && (
-                      <p className="text-[10.5px] text-emerald-700 flex items-center gap-1 font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Screenshot attached: {screenshotFileName}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Desktop Action Buttons */}
-                  <div className="w-full pt-2 flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep('address')}
-                      className="px-4 py-3 border border-[#D5C7B0] bg-white hover:bg-[#FAF8F5] text-[#111113] font-semibold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer shrink-0"
-                    >
-                      ← Back
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleDesktopContinue}
-                      disabled={isSubmitting || isTimerExpired}
-                      className="flex-1 py-3 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-bold text-xs sm:text-sm tracking-wider uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-[#111113]" />
-                      <span>{isSubmitting ? 'Confirming Order...' : 'I Have Paid / Continue'}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>

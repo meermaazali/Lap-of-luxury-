@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Heart,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
+import { INITIAL_PRODUCTS } from '../data/initialData';
 import {
   normalizeImageUrl,
   getProductGallery,
@@ -47,33 +48,62 @@ export const ProductDetailPage: React.FC = () => {
 
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Load product from context or backend
+  // Load product from context or fallback catalogue
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    // Find in context
-    const found = products.find(
-      (p) => p.id === id || p.slug === id || p.id.toLowerCase() === id.toLowerCase()
-    );
+
+    // Search both active store products and initial luxury catalogue safely
+    const allKnown: Product[] = Array.isArray(products) && products.length > 0
+      ? [...products, ...INITIAL_PRODUCTS]
+      : INITIAL_PRODUCTS;
+
+    const targetId = String(id).trim();
+    const found = allKnown.find((p) => {
+      if (!p) return false;
+      const pId = p.id ? String(p.id).trim() : '';
+      const pSlug = p.slug ? String(p.slug).trim() : '';
+      return (
+        pId === targetId ||
+        pId.toLowerCase() === targetId.toLowerCase() ||
+        (pSlug && pSlug.toLowerCase() === targetId.toLowerCase())
+      );
+    });
+
     if (found) {
       setProduct(found);
       setSelectedSize(found.sizes?.[0] || 'Standard');
       setSelectedColor(found.colors?.[0] || 'Default');
       setLoading(false);
     } else {
-      // Try to fetch single product from API
-      fetch(`/api/products?id=${encodeURIComponent(id)}`)
-        .then((res) => res.json())
+      // Try to fetch single product from API as extra safety
+      fetch(`/api/products?id=${encodeURIComponent(targetId)}`)
+        .then((res) => {
+          if (!res.ok) throw new Error('Network error');
+          return res.json();
+        })
         .then((data) => {
-          const item = Array.isArray(data) ? data.find((p: Product) => p.id === id) : data;
-          if (item) {
+          const item = Array.isArray(data) ? data.find((p: Product) => p && p.id === targetId) : data;
+          if (item && item.id) {
             setProduct(item);
             setSelectedSize(item.sizes?.[0] || 'Standard');
             setSelectedColor(item.colors?.[0] || 'Default');
           }
           setLoading(false);
         })
-        .catch(() => setLoading(false));
+        .catch(() => {
+          // Final fallback to first product if nothing matches
+          const fallback = INITIAL_PRODUCTS[0];
+          if (fallback) {
+            setProduct(fallback);
+            setSelectedSize(fallback.sizes?.[0] || 'Standard');
+            setSelectedColor(fallback.colors?.[0] || 'Default');
+          }
+          setLoading(false);
+        });
     }
   }, [id, products]);
 
@@ -131,10 +161,72 @@ export const ProductDetailPage: React.FC = () => {
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
       : null;
 
-  // Related products from same category
-  const relatedProducts = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  // Related products from same category/department (strictly adhering to Men filtering if Men's apparel)
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    const cat = (product.category || '').toLowerCase();
+    const dept = (product.department || '').toLowerCase();
+    const isMen = cat === 'men' || dept === 'men' || cat === 'jeans';
+
+    let list = products.filter((p) => {
+      if (p.id === product.id) return false;
+      const pCat = (p.category || '').toLowerCase();
+      const pDept = (p.department || '').toLowerCase();
+
+      // If viewing Men's collection, strictly exclude perfumes, watches, bags, shoes
+      if (isMen) {
+        if (
+          pCat === 'perfumes' ||
+          pDept === 'perfumes' ||
+          pCat === 'watches' ||
+          pDept === 'watches' ||
+          pCat === 'shoes' ||
+          pCat === 'footwear' ||
+          pDept === 'footwear' ||
+          pCat === 'bags' ||
+          pDept === 'bags' ||
+          pCat === 'accessories' ||
+          pDept === 'accessories'
+        ) {
+          return false;
+        }
+        return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
+      }
+
+      return pCat === cat || pDept === dept;
+    });
+
+    if (list.length < 4) {
+      // Add more items from the same collection if needed
+      const fillers = products.filter((p) => {
+        if (p.id === product.id || list.some((item) => item.id === p.id)) return false;
+        const pCat = (p.category || '').toLowerCase();
+        const pDept = (p.department || '').toLowerCase();
+        if (isMen) {
+          if (
+            pCat === 'perfumes' ||
+            pDept === 'perfumes' ||
+            pCat === 'watches' ||
+            pDept === 'watches' ||
+            pCat === 'shoes' ||
+            pCat === 'footwear' ||
+            pDept === 'footwear' ||
+            pCat === 'bags' ||
+            pDept === 'bags' ||
+            pCat === 'accessories' ||
+            pDept === 'accessories'
+          ) {
+            return false;
+          }
+          return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
+        }
+        return true;
+      });
+      list = [...list, ...fillers];
+    }
+
+    return list.slice(0, 4);
+  }, [product, products]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current) return;
@@ -184,8 +276,8 @@ export const ProductDetailPage: React.FC = () => {
             Home
           </Link>
           <ChevronRight className="w-3 h-3 text-gray-400" />
-          <Link to={`/category/${product.category.toLowerCase()}`} className="hover:text-[#B8860B] transition-colors">
-            {product.category}
+          <Link to={`/category/${(product.category || 'all').toLowerCase()}`} className="hover:text-[#B8860B] transition-colors">
+            {product.category || 'Collection'}
           </Link>
           <ChevronRight className="w-3 h-3 text-gray-400" />
           <span className="text-[#111113] truncate max-w-xs">{product.name}</span>
@@ -417,14 +509,14 @@ export const ProductDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Purchase Action Buttons */}
+            {/* Purchase Action Buttons: Add to Bag, Buy Now, Wishlist & WhatsApp */}
             <div className="space-y-2.5 pt-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
-                  className="w-full py-3 bg-white border border-[#111113] text-[#111113] hover:bg-[#FAF8F5] text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 bg-white border border-[#111113] text-[#111113] hover:bg-[#FAF8F5] text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <ShoppingBag className="w-4 h-4 text-[#B8860B]" />
                   <span>{isAdded ? 'Added to Bag ✓' : 'Add to Bag'}</span>
@@ -432,12 +524,44 @@ export const ProductDetailPage: React.FC = () => {
 
                 <button
                   type="button"
+                  onClick={() => toggleWishlist(product)}
+                  className={`p-3 border rounded-xl transition-all cursor-pointer shrink-0 ${
+                    inWish
+                      ? 'border-red-400 bg-red-50 text-red-600'
+                      : 'border-[#D5C7B0] bg-white text-[#111113] hover:border-[#111113]'
+                  }`}
+                  aria-label="Wishlist"
+                  title={inWish ? 'In your Wishlist' : 'Add to Wishlist'}
+                >
+                  <Heart className={`w-4 h-4 ${inWish ? 'fill-red-600' : ''}`} />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
                   onClick={handleBuyNow}
                   disabled={!product.inStock}
-                  className="w-full py-3 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
+                  className="flex-1 py-3 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-50 font-bold"
                 >
-                  <span>Buy Now</span>
+                  <span>Buy Now (Instant Checkout)</span>
                 </button>
+
+                <a
+                  href={`https://wa.me/917578887888?text=${encodeURIComponent(
+                    `Hello Lap of Luxury, I would like to inquire about ${product.name} (₹${product.price}).`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-3 bg-[#25D366] hover:bg-[#1faa53] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-xs flex items-center gap-1.5 shrink-0"
+                  title="Inquire on WhatsApp"
+                  aria-label="WhatsApp Inquiry"
+                >
+                  <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.075-.3-.15-1.27-.468-2.42-1.492-.895-.798-1.5-1.785-1.675-2.086-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.677-1.631-.928-2.233-.244-.587-.493-.507-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.23 3.111c.15.2 2.123 3.242 5.143 4.547.719.31 1.28.496 1.718.636.721.23 1.378.197 1.897.12.578-.087 1.78-.727 2.031-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zm-5.467 7.618c-2.07 0-4.015-.558-5.71-1.53l-.409-.236-4.249 1.114 1.134-4.141-.267-.424C1.61 14.996 1 12.981 1 10.875 1 5.43 5.43 1 10.875 1S20.75 5.43 20.75 10.875 16.32 20.75 10.875 20.75zm0-20.75C4.879 0 0 4.879 0 10.875c0 2.14.61 4.14 1.667 5.845L0 24l7.464-1.636c1.644.975 3.565 1.511 5.541 1.511 5.996 0 10.875-4.879 10.875-10.875S16.871 0 10.875 0z" />
+                  </svg>
+                  <span className="hidden xs:inline">WhatsApp</span>
+                </a>
               </div>
 
               {copiedLink && (
@@ -501,12 +625,11 @@ export const ProductDetailPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-              {relatedProducts.map((rel) => (
-                <a
+              {relatedProducts.map((rel: Product) => (
+                <Link
                   key={rel.id}
-                  href={`/product/${rel.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  to={`/product/${rel.id}`}
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                   className="group bg-white rounded-2xl overflow-hidden border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                 >
                   <div className="relative aspect-[3/4] w-full overflow-hidden bg-white">
@@ -530,7 +653,7 @@ export const ProductDetailPage: React.FC = () => {
                       ₹{rel.price.toLocaleString('en-IN')}
                     </p>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </section>

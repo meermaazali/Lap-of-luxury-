@@ -263,7 +263,7 @@ export const CartDrawer: React.FC = () => {
 
             <div className="flex items-center justify-center gap-2 text-[10px] text-[#7A6C58]">
               <ShieldCheck className="w-3.5 h-3.5 text-[#B8860B]" />
-              <span>Secure Direct Payment · UPI, Google Pay &amp; Cards</span>
+              <span>Express Dispatch · Doorstep Verification · Mahbubnagar Atelier</span>
             </div>
           </div>
         )}

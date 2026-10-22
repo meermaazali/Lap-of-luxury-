@@ -18,7 +18,7 @@ import { UploadedLogoMark } from '../UploadedLogoMark';
 
 interface PaymentComingSoon3DProps {
   onBackToCart: () => void;
-  onProceedCOD: () => void;
+  onProceedCOD?: () => void;
   orderTotal: number;
 }
 
@@ -65,6 +65,24 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         </span>
       </div>
 
+      {/* Prominent Mandatory Coming Soon Notice Card */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FAF8F5] via-[#FFFDF9] to-[#FAF6EE] border-2 border-[#D4AF37] p-5 sm:p-6 shadow-md text-center">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="w-2 h-2 rounded-full bg-[#B8860B] animate-ping" />
+          <span className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-[#8C6D1F]">
+            PAYMENT GATEWAY · COMING SOON
+          </span>
+        </div>
+        
+        <p className="font-serif text-sm sm:text-base md:text-lg text-[#111113] max-w-xl mx-auto leading-relaxed font-semibold italic">
+          “We’re crafting a smoother, better, and more seamless shopping experience for you. Online payments are coming soon — stay tuned!”
+        </p>
+
+        <p className="text-[11px] text-[#7A6C58] mt-2 max-w-md mx-auto">
+          LAP OF LUXURY is finalizing certified multi-bank 3D secure online processing. In the interim, please contact our Mahbubnagar concierge for personal styling and order inquiries.
+        </p>
+      </div>
+
       {/* Hero 3D Interactive Stage */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#232328] via-[#1B1B1F] to-[#121214] p-5 sm:p-6 text-white border-2 border-[#D4AF37]/60 shadow-xl">
         {/* Ambient Gold & Metallic Glow */}
@@ -76,40 +94,27 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('card')}
-            className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'card'
                 ? 'bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black shadow-md'
                 : 'bg-white/10 text-gray-300 hover:bg-white/15'
             }`}
           >
             <CreditCard className="w-3.5 h-3.5" />
-            <span>3D Metallic Card</span>
+            <span>3D Metallic Titanium Card</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('upi')}
-            className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'upi'
                 ? 'bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black shadow-md'
                 : 'bg-white/10 text-gray-300 hover:bg-white/15'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            <span>UPI Matrix</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('qr')}
-            className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'qr'
-                ? 'bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black shadow-md'
-                : 'bg-white/10 text-gray-300 hover:bg-white/15'
-            }`}
-          >
-            <QrCode className="w-3.5 h-3.5" />
-            <span>Laser QR Scan</span>
+            <span>Unified UPI Engine</span>
           </button>
         </div>
 
@@ -233,39 +238,14 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
                     className={`p-2 rounded-xl border bg-gradient-to-b ${item.color} backdrop-blur-xs text-center transition-transform hover:scale-105`}
                   >
                     <span className="text-[10px] font-bold text-white block truncate">{item.icon}</span>
-                    <span className="text-[8px] text-gray-400 block uppercase">Instant</span>
+                    <span className="text-[8px] text-gray-400 block uppercase">Staging</span>
                   </div>
                 ))}
               </div>
 
               <p className="text-xs text-gray-300 font-medium max-w-xs">
-                Zero-friction instant UPI intent & dynamic deep-linking engine in certification.
+                UPI intent & deep-linking gateway architecture in preparation.
               </p>
-            </div>
-          )}
-
-          {/* TAB 3: ANIMATED LASER SCAN QR GLASS TILE */}
-          {activeTab === 'qr' && (
-            <div className="w-full max-w-xs flex flex-col items-center justify-center text-center p-3 animate-in zoom-in-95 duration-200">
-              <div className="relative w-36 h-36 rounded-2xl bg-white p-3 shadow-2xl border-2 border-[#D4AF37] overflow-hidden">
-                {/* QR Symbol Matrix Placeholder */}
-                <div className="w-full h-full flex items-center justify-center text-black">
-                  <QrCode className="w-28 h-28 text-slate-900" />
-                </div>
-
-                {/* Sweeping Laser Scan Line */}
-                <div
-                  className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent shadow-[0_0_12px_#D4AF37]"
-                  style={{
-                    animation: 'scannerMove 2s ease-in-out infinite alternate',
-                  }}
-                />
-              </div>
-
-              <div className="mt-3 flex items-center gap-1.5 text-xs text-[#D4AF37] font-mono">
-                <ShieldCheck className="w-4 h-4" />
-                <span>DYNAMIC QR ENGINE READY</span>
-              </div>
             </div>
           )}
         </div>
@@ -285,18 +265,18 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         </div>
       </div>
 
-      {/* Immediate Order Reservation Module */}
+      {/* Concierge & Inquiries Module */}
       <div className="bg-white rounded-2xl p-5 border border-[#E0D5C3] shadow-xs space-y-3">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-full bg-[#FAF3E6] border border-[#D4AF37] flex items-center justify-center text-[#B8860B] shrink-0 mt-0.5">
-            <CheckCircle2 className="w-5 h-5" />
+            <Sparkles className="w-5 h-5" />
           </div>
           <div>
             <h4 className="font-bodoni font-bold text-sm text-[#111111] uppercase tracking-wider">
-              RESERVE YOUR ORDER NOW (CASH ON DELIVERY)
+              EXCLUSIVE CONCIERGE ASSISTANCE
             </h4>
             <p className="text-xs text-[#6E6152] mt-0.5 leading-relaxed">
-              While our automated online gateway is in final staging, you can instantly confirm your order with <strong>Cash on Delivery (Doorstep Payment)</strong> or direct phone concierge verification.
+              While online payments are in final preparation, our dedicated luxury concierge is at your service for product reservations, sizing, and custom orders.
             </p>
           </div>
         </div>
@@ -304,12 +284,12 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#EAE0D0] text-xs text-[#524637] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Phone className="w-3.5 h-3.5 text-[#B89758]" />
-            <span>Mahbubnagar Store Concierge: <strong>75 7888 7888</strong></span>
+            <span>Mahbubnagar Store Concierge: <strong>+91 75 7888 7888</strong></span>
           </div>
-          <span className="text-emerald-700 font-bold text-[11px]">FREE Delivery Active</span>
+          <span className="text-[#8C6D1F] font-bold text-[11px]">Personal Stylist</span>
         </div>
 
-        {/* Dual Actions: Proceed COD / Back Button */}
+        {/* Dual Actions: Return to Bag / WhatsApp Concierge */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
           <button
             type="button"
@@ -320,15 +300,19 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
             <span>← Return to Bag</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onProceedCOD}
+          <a
+            href={`https://wa.me/917578887888?text=${encodeURIComponent(
+              `Hello Lap of Luxury Concierge, I would like to inquire about reserving my bag items (Total: ₹${orderTotal.toLocaleString('en-IN')}).`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex-1 py-3.5 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] font-black text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2"
           >
-            <Lock className="w-4 h-4" />
-            <span>CONTINUE WITH CASH ON DELIVERY (₹{orderTotal.toLocaleString('en-IN')})</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+            <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.075-.3-.15-1.27-.468-2.42-1.492-.895-.798-1.5-1.785-1.675-2.086-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.677-1.631-.928-2.233-.244-.587-.493-.507-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.23 3.111c.15.2 2.123 3.242 5.143 4.547.719.31 1.28.496 1.718.636.721.23 1.378.197 1.897.12.578-.087 1.78-.727 2.031-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zm-5.467 7.618c-2.07 0-4.015-.558-5.71-1.53l-.409-.236-4.249 1.114 1.134-4.141-.267-.424C1.61 14.996 1 12.981 1 10.875 1 5.43 5.43 1 10.875 1S20.75 5.43 20.75 10.875 20.75zm0-20.75C4.879 0 0 4.879 0 10.875c0 2.14.61 4.14 1.667 5.845L0 24l7.464-1.636c1.644.975 3.565 1.511 5.541 1.511 5.996 0 10.875-4.879 10.875-10.875S16.871 0 10.875 0z" />
+            </svg>
+            <span>Inquire with Concierge</span>
+          </a>
         </div>
       </div>
 

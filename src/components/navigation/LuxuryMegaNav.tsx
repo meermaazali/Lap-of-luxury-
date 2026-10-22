@@ -35,7 +35,7 @@ export const LuxuryMegaNav: React.FC = () => {
       men: {
         label: 'Men',
         view: 'men',
-        subcategories: ['Shirts', 'T-shirts', 'Hoodies', 'Full-sleeve T-shirts', 'Jeans'],
+        subcategories: ['Shirts', 'T-shirts', 'Hoodies', 'Full-sleeve T-shirts', 'Polo T-shirts', 'Trousers'],
         brands: ['LAP OF LUXURY SARTORIAL', 'Ralph Lauren', 'Burberry', 'Hugo Boss'],
       },
       footwear: {
@@ -86,14 +86,10 @@ export const LuxuryMegaNav: React.FC = () => {
 
         if (defaultData[targetKey]) {
           if (Array.isArray(cat.subcategories) && cat.subcategories.length > 0) {
-            defaultData[targetKey].subcategories = Array.from(
-              new Set([...defaultData[targetKey].subcategories, ...cat.subcategories])
-            );
+            defaultData[targetKey].subcategories = cat.subcategories;
           }
           if (Array.isArray(cat.brands) && cat.brands.length > 0) {
-            defaultData[targetKey].brands = Array.from(
-              new Set([...defaultData[targetKey].brands, ...cat.brands])
-            );
+            defaultData[targetKey].brands = cat.brands;
           }
         }
       });

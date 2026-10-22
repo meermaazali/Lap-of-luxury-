@@ -148,14 +148,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         const existing = list.find((d) => d.view.toLowerCase() === slugLower);
         if (existing) {
-          if (Array.isArray(cat.subcategories)) {
-            cat.subcategories.forEach((sub) => {
-              if (!existing.subcategories.some((s) => s.sub.toLowerCase() === sub.toLowerCase())) {
-                existing.subcategories.push({ label: sub, sub: sub });
-              }
-            });
+          if (Array.isArray(cat.subcategories) && cat.subcategories.length > 0) {
+            existing.subcategories = [
+              { label: `${existing.label}`, sub: '' },
+              ...cat.subcategories.map((sub) => ({ label: sub, sub: sub })),
+            ];
           }
-          if (Array.isArray(cat.brands)) {
+          if (Array.isArray(cat.brands) && cat.brands.length > 0) {
             cat.brands.forEach((brand) => {
               if (!existing.subcategories.some((s) => s.sub.toLowerCase() === brand.toLowerCase())) {
                 existing.subcategories.push({ label: brand, sub: brand });
@@ -210,13 +209,13 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="bg-white border-b border-[#E8DEC8]/80 sticky top-0 z-40 backdrop-blur-md shadow-[0_2px_15px_rgba(184,134,11,0.06)] rounded-t-[16px] sm:rounded-t-[28px]">
-        <div className="max-w-[1540px] mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-3 sm:gap-6 min-h-[74px] sm:min-h-[82px]">
+        <div className="max-w-[1540px] mx-auto px-2 xs:px-3 sm:px-6 lg:px-8 py-2.5 sm:py-4 flex items-center justify-between gap-1 xs:gap-2 sm:gap-4 md:gap-6 min-h-[64px] sm:min-h-[82px]">
           {/* Mobile Menu Hamburger */}
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center md:hidden shrink-0">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="w-9 h-9 rounded-full border border-[#E8DEC8] flex items-center justify-center text-[#111113] hover:text-[#B8860B] hover:bg-[#FAF8F5] transition-colors cursor-pointer shrink-0"
+              className="w-8 h-8 xs:w-9 xs:h-9 rounded-full border border-[#E8DEC8] flex items-center justify-center text-[#111113] hover:text-[#B8860B] hover:bg-[#FAF8F5] transition-colors cursor-pointer shrink-0"
               aria-label={
                 isMobileMenuOpen ? 'Close Menu' : 'Open Navigation Menu'
               }
@@ -233,7 +232,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Brand Logo and Title */}
           <div
             onClick={handleHomeClick}
-            className="flex items-center gap-2.5 sm:gap-3.5 cursor-pointer select-none shrink-0"
+            className="flex items-center gap-1.5 xs:gap-2.5 sm:gap-3.5 cursor-pointer select-none shrink min-w-0"
             role="button"
             tabIndex={0}
             onKeyDown={(event) => {
@@ -243,18 +242,18 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             title="LAP OF LUXURY - Official Store"
           >
-            <div className="w-12 h-12 sm:w-15 sm:h-15 md:w-16 md:h-16 shrink-0 aspect-square flex items-center justify-center">
+            <div className="w-9 h-9 xs:w-11 xs:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0 aspect-square flex items-center justify-center">
               <UploadedLogoMark
                 className="w-full h-full"
                 color="#111113"
               />
             </div>
 
-            <div className="flex flex-col text-left justify-center">
-              <span className="font-serif tracking-[0.16em] font-normal uppercase text-base sm:text-xl md:text-2xl text-[#111113] leading-none whitespace-nowrap">
+            <div className="flex flex-col text-left justify-center min-w-0">
+              <span className="font-serif tracking-[0.1em] xs:tracking-[0.14em] sm:tracking-[0.16em] font-normal uppercase text-xs xs:text-sm sm:text-xl md:text-2xl text-[#111113] leading-none whitespace-nowrap">
                 LAP OF LUXURY
               </span>
-              <span className="font-sans font-normal tracking-[0.12em] text-[8.5px] xs:text-[9.5px] sm:text-[11px] text-[#554D42] uppercase whitespace-nowrap mt-1">
+              <span className="hidden sm:block font-sans font-normal tracking-[0.12em] text-[8.5px] xs:text-[9.5px] sm:text-[11px] text-[#554D42] uppercase whitespace-nowrap mt-1">
                 Experience Premium In Every Touch
               </span>
             </div>
@@ -339,11 +338,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Actions: Search, Wishlist and Shopping Bag */}
-          <div className="flex items-center gap-1 sm:gap-2 md:gap-3.5 justify-end shrink-0">
+          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-3.5 justify-end shrink-0">
             {/* Mobile and Tablet Search */}
-            <div className="lg:hidden relative">
+            <div className="lg:hidden relative shrink-0">
               {isSearchOpen ? (
-                <div className="flex items-center bg-[#FAF8F5] border border-[#B8860B] rounded-full px-2.5 py-1 shadow-inner animate-in fade-in duration-200">
+                <div className="flex items-center bg-[#FAF8F5] border border-[#B8860B] rounded-full px-2 py-0.5 xs:px-2.5 xs:py-1 shadow-inner animate-in fade-in duration-200">
                   <input
                     ref={searchInputRef}
                     type="text"
@@ -351,7 +350,7 @@ export const Header: React.FC<HeaderProps> = ({
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Search..."
-                    className="w-28 xs:w-36 text-xs bg-transparent focus:outline-none text-[#111113]"
+                    className="w-20 xs:w-28 sm:w-36 text-xs bg-transparent focus:outline-none text-[#111113]"
                     aria-label="Search products"
                   />
 
@@ -371,11 +370,11 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsSearchOpen(true)}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer"
+                  className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-[#2A241E] hover:text-[#B8860B] hover:bg-[#FAF6EE] transition-all cursor-pointer shrink-0"
                   aria-label="Search Collection"
                   title="Search"
                 >
-                  <Search className="w-4 h-4" />
+                  <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>
@@ -393,7 +392,7 @@ export const Header: React.FC<HeaderProps> = ({
                   navigate('/wishlist');
                 }
               }}
-              className="relative p-1.5 sm:px-2.5 sm:py-1.5 rounded-full hover:bg-[#FAF6EE] text-[#111113] hover:text-[#B8860B] transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
+              className="relative p-1 xs:p-1.5 sm:px-2.5 sm:py-1.5 rounded-full hover:bg-[#FAF6EE] text-[#111113] hover:text-[#B8860B] transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1 shrink-0"
               aria-label="Wishlist"
               title="My Wishlist"
             >
@@ -403,7 +402,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
 
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 sm:static sm:top-auto sm:right-auto bg-[#B8860B] text-white text-[9.5px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 sm:static sm:top-auto sm:right-auto bg-[#B8860B] text-white text-[8.5px] xs:text-[9.5px] font-bold w-3.5 h-3.5 xs:w-4 xs:h-4 rounded-full flex items-center justify-center shrink-0">
                   {wishlist.length}
                 </span>
               )}
@@ -413,12 +412,12 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className="relative bg-[#111113] hover:bg-[#28282D] text-white px-3 sm:px-4 py-2 rounded-full transition-all cursor-pointer shadow-sm flex items-center gap-2 active:scale-95"
+              className="relative bg-[#111113] hover:bg-[#28282D] text-white px-2.5 xs:px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all cursor-pointer shadow-xs flex items-center gap-1.5 sm:gap-2 shrink-0 active:scale-95"
               aria-label="Shopping Bag"
               title="View Shopping Bag"
             >
-              <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
-              <span className="text-xs font-bold tracking-wider">
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
+              <span className="text-[11px] sm:text-xs font-bold tracking-wider">
                 {cartCount}
               </span>
             </button>

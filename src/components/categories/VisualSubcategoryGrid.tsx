@@ -163,14 +163,31 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
   onSelectSubcategory,
   onViewAllCategories,
 }) => {
+  const { categories } = useStore();
   const normDept = departmentKey.toLowerCase();
   const isWatchesDept = normDept === 'watches' || (normDept === 'accessories' && activeSubcategory?.toLowerCase().includes('watch'));
   const isSunglassesDept = normDept === 'sunglasses' || normDept === 'eyewear';
 
   // Specific Subcategory & Brand Lists per department
   const subcategoryList: SubcategoryItem[] = (() => {
+    // 1. Check if Firestore categories has explicit dynamic subcategories for this department
+    const matchingCat = categories.find((c) => {
+      const slugLower = (c.slug || c.name || '').toLowerCase();
+      const catDept = (c.department || c.parentCategory || '').toLowerCase();
+      return (
+        slugLower === normDept ||
+        catDept === normDept ||
+        (normDept === 'footwear' && (slugLower === 'shoes' || slugLower === 'footwear')) ||
+        (normDept === 'men' && slugLower === 'men') ||
+        (normDept === 'jeans' && slugLower === 'jeans') ||
+        (normDept === 'bags' && slugLower === 'bags') ||
+        (normDept === 'perfumes' && slugLower === 'perfumes') ||
+        (normDept === 'watches' && slugLower === 'watches')
+      );
+    });
+
     if (isWatchesDept) {
-      return [
+      const base: SubcategoryItem[] = [
         { id: 'watches-collection', name: 'Watches', iconType: 'all' },
         { id: 'rolex', name: 'Rolex', isBrand: true, brandLogo: BrandLogos.rolex },
         { id: 'rado', name: 'Rado', isBrand: true, brandLogo: BrandLogos.rado },
@@ -181,6 +198,14 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
         { id: 'titan', name: 'Titan', isBrand: true, brandLogo: BrandLogos.titan },
         { id: 'fossil', name: 'Fossil', isBrand: true, brandLogo: BrandLogos.fossil },
       ];
+      if (matchingCat?.subcategories) {
+        matchingCat.subcategories.forEach((sub) => {
+          if (!base.some((b) => b.name.toLowerCase() === sub.toLowerCase())) {
+            base.push({ id: sub.toLowerCase().replace(/\s+/g, '-'), name: sub, iconType: 'watches' });
+          }
+        });
+      }
+      return base;
     }
 
     if (isSunglassesDept) {
@@ -195,34 +220,43 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
     }
 
     if (normDept === 'men') {
-      return [
+      const menList: SubcategoryItem[] = [
         { id: 'men-collection', name: "Men's Collection", iconType: 'all' },
         { id: 'shirts', name: 'Shirts', iconType: 'shirts' },
         { id: 't-shirts', name: 'T-Shirts', iconType: 't-shirts' },
         { id: 'hoodies', name: 'Hoodies', iconType: 'hoodies' },
-        { id: 'jeans', name: 'Denim Jeans', iconType: 'jeans' },
+        { id: 'full-sleeve-t-shirts', name: 'Full-sleeve T-shirts', iconType: 't-shirts' },
+        { id: 'polo-t-shirts', name: 'Polo T-shirts', iconType: 't-shirts' },
         { id: 'trousers', name: 'Trousers', iconType: 'trousers' },
-        { id: 'sneakers', name: 'Sneakers', iconType: 'sneakers' },
-        { id: 'loafers', name: 'Loafers', iconType: 'loafers' },
-        { id: 'watches', name: 'Watches', iconType: 'watches' },
-        { id: 'perfumes', name: 'Perfumes', iconType: 'perfumes' },
-        { id: 'sunglasses', name: 'Sunglasses', iconType: 'sunglasses' },
-        { id: 'belts', name: 'Belts & Wallets', iconType: 'belts' },
+        { id: 'kurta-sets', name: 'Kurta Sets', iconType: 'sarees' },
       ];
+      if (matchingCat?.subcategories) {
+        matchingCat.subcategories.forEach((sub) => {
+          if (!menList.some((m) => m.name.toLowerCase() === sub.toLowerCase())) {
+            menList.push({ id: sub.toLowerCase().replace(/\s+/g, '-'), name: sub, iconType: 'shirts' });
+          }
+        });
+      }
+      return menList;
     }
 
-    if (normDept === 'women') {
-      return [
-        { id: 'sarees', name: 'Banarasi Sarees', iconType: 'sarees' },
-        { id: 'dresses', name: 'Dresses & Gowns', iconType: 'dresses' },
-        { id: 'tops', name: 'Tops & Shirts', iconType: 'tops' },
-        { id: 't-shirts', name: 'T-Shirts', iconType: 't-shirts' },
-        { id: 'jeans', name: 'Jeans & Denim', iconType: 'jeans' },
-        { id: 'co-ords', name: 'Co-ord Sets', iconType: 'co-ords' },
-        { id: 'handbags', name: 'Handbags', iconType: 'handbags' },
-        { id: 'heels', name: 'Stiletto Heels', iconType: 'heels' },
-        { id: 'flats', name: 'Sandals & Flats', iconType: 'flats' },
+    if (normDept === 'jeans') {
+      const jeansList: SubcategoryItem[] = [
+        { id: 'jeans-collection', name: 'Jeans & Denim', iconType: 'all' },
+        { id: 'slim-fit', name: 'Slim Fit', iconType: 'jeans' },
+        { id: 'regular-fit', name: 'Regular Fit', iconType: 'jeans' },
+        { id: 'baggy-fit', name: 'Baggy Fit', iconType: 'jeans' },
+        { id: 'raw-denim', name: 'Raw Denim', iconType: 'jeans' },
+        { id: 'relaxed-fit', name: 'Relaxed Fit', iconType: 'jeans' },
       ];
+      if (matchingCat?.subcategories) {
+        matchingCat.subcategories.forEach((sub) => {
+          if (!jeansList.some((j) => j.name.toLowerCase() === sub.toLowerCase())) {
+            jeansList.push({ id: sub.toLowerCase().replace(/\s+/g, '-'), name: sub, iconType: 'jeans' });
+          }
+        });
+      }
+      return jeansList;
     }
 
     if (normDept === 'bags') {
@@ -230,10 +264,10 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
         { id: 'bags-collection', name: 'Bags & Luggage', iconType: 'all' },
         { id: 'handbags', name: 'Handbags', iconType: 'handbags' },
         { id: 'shoulder-bags', name: 'Shoulder Bags', iconType: 'handbags' },
-        { id: 'sling-bags', name: 'Sling Bags', iconType: 'handbags' },
+        { id: 'crossbody-bags', name: 'Crossbody Bags', iconType: 'handbags' },
         { id: 'clutches', name: 'Evening Clutches', iconType: 'handbags' },
-        { id: 'totes', name: 'Leather Totes', iconType: 'handbags' },
         { id: 'backpacks', name: 'Backpacks', iconType: 'backpacks' },
+        { id: 'travel-bags', name: 'Travel Bags', iconType: 'handbags' },
         { id: 'wallets', name: 'Wallets', iconType: 'wallets' },
       ];
     }
@@ -241,22 +275,22 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
     if (normDept === 'footwear') {
       return [
         { id: 'footwear-collection', name: 'Footwear Collection', iconType: 'all' },
-        { id: 'sneakers', name: 'Luxury Sneakers', iconType: 'sneakers' },
-        { id: 'loafers', name: 'Loafers', iconType: 'loafers' },
+        { id: 'sneakers', name: 'Sneakers', iconType: 'sneakers' },
+        { id: 'crocs', name: 'Crocs & Clogs', iconType: 'sandals' },
+        { id: 'loafers', name: 'Penny Loafers', iconType: 'loafers' },
         { id: 'formal-shoes', name: 'Formal Shoes', iconType: 'formal-shoes' },
         { id: 'casual-shoes', name: 'Casual Shoes', iconType: 'casual-shoes' },
-        { id: 'sandals', name: 'Leather Sandals', iconType: 'sandals' },
-        { id: 'heels', name: 'Heels', iconType: 'heels' },
+        { id: 'sandals', name: 'Sandals', iconType: 'sandals' },
       ];
     }
 
     if (normDept === 'perfumes') {
       return [
         { id: 'perfumes-collection', name: 'Perfumes Collection', iconType: 'all' },
-        { id: 'oud', name: 'Royal Oud', iconType: 'perfumes' },
-        { id: 'amber', name: 'Amber Bourbon', iconType: 'perfumes' },
-        { id: 'floral', name: 'French Floral', iconType: 'perfumes' },
+        { id: 'oud', name: 'Oud & Extrait', iconType: 'perfumes' },
         { id: 'eau-de-parfum', name: 'Eau de Parfum', iconType: 'perfumes' },
+        { id: 'parfum', name: 'Parfum', iconType: 'perfumes' },
+        { id: 'attar', name: 'Attar & Oils', iconType: 'perfumes' },
       ];
     }
 

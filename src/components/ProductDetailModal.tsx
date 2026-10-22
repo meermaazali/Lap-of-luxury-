@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   X,
   Heart,
@@ -28,6 +28,7 @@ import {
 
 export const ProductDetailModal: React.FC = () => {
   const {
+    products,
     quickViewProduct,
     setQuickViewProduct,
     addToCart,
@@ -45,6 +46,7 @@ export const ProductDetailModal: React.FC = () => {
   const [zoomScale, setZoomScale] = useState<number>(1);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const modalContentRef = useRef<HTMLDivElement>(null);
 
   // Reset image index, zoom and selections whenever a new product is selected
   useEffect(() => {
@@ -55,6 +57,72 @@ export const ProductDetailModal: React.FC = () => {
       setQuantity(1);
     }
   }, [quickViewProduct?.id]);
+
+  // Related products from same category/department (strictly adhering to Men filtering if Men's apparel)
+  const relatedProducts = useMemo(() => {
+    if (!quickViewProduct) return [];
+    const cat = (quickViewProduct.category || '').toLowerCase();
+    const dept = (quickViewProduct.department || '').toLowerCase();
+    const isMen = cat === 'men' || dept === 'men' || cat === 'jeans';
+
+    let list = products.filter((p) => {
+      if (p.id === quickViewProduct.id) return false;
+      const pCat = (p.category || '').toLowerCase();
+      const pDept = (p.department || '').toLowerCase();
+
+      // If viewing Men's collection, strictly exclude perfumes, watches, bags, shoes
+      if (isMen) {
+        if (
+          pCat === 'perfumes' ||
+          pDept === 'perfumes' ||
+          pCat === 'watches' ||
+          pDept === 'watches' ||
+          pCat === 'shoes' ||
+          pCat === 'footwear' ||
+          pDept === 'footwear' ||
+          pCat === 'bags' ||
+          pDept === 'bags' ||
+          pCat === 'accessories' ||
+          pDept === 'accessories'
+        ) {
+          return false;
+        }
+        return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
+      }
+
+      return pCat === cat || pDept === dept;
+    });
+
+    if (list.length < 4) {
+      const fillers = products.filter((p) => {
+        if (p.id === quickViewProduct.id || list.some((item) => item.id === p.id)) return false;
+        const pCat = (p.category || '').toLowerCase();
+        const pDept = (p.department || '').toLowerCase();
+        if (isMen) {
+          if (
+            pCat === 'perfumes' ||
+            pDept === 'perfumes' ||
+            pCat === 'watches' ||
+            pDept === 'watches' ||
+            pCat === 'shoes' ||
+            pCat === 'footwear' ||
+            pDept === 'footwear' ||
+            pCat === 'bags' ||
+            pDept === 'bags' ||
+            pCat === 'accessories' ||
+            pDept === 'accessories'
+          ) {
+            return false;
+          }
+          return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
+        }
+        return true;
+      });
+      list = [...list, ...fillers];
+    }
+
+    return list.slice(0, 4);
+  }, [quickViewProduct, products]);
 
   if (!quickViewProduct) return null;
 
@@ -133,8 +201,9 @@ export const ProductDetailModal: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 max-h-[82vh] overflow-y-auto">
-          {/* Left Column: Customer-Controlled Product Zoom & Gallery (lg: 6 cols) */}
+        <div ref={modalContentRef} className="max-h-[84vh] overflow-y-auto divide-y divide-[#EAE0CD]">
+          <div className="grid grid-cols-1 lg:grid-cols-12">
+            {/* Left Column: Customer-Controlled Product Zoom & Gallery (lg: 6 cols) */}
           <div className="lg:col-span-6 bg-[#F9F7F2] p-4 sm:p-5 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#EAE0CD]">
             {/* Customer Zoom Controls Bar */}
             <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-[#E2D5BE] mb-3 shadow-xs">
@@ -349,7 +418,7 @@ export const ProductDetailModal: React.FC = () => {
                   <Truck className="w-3.5 h-3.5 text-[#B89758]" />
                   <span>Express Dispatch Available</span>
                 </p>
-                <p className="text-[11px]">Free delivery on orders above ₹2,999 · Cash on Delivery & UPI accepted.</p>
+                <p className="text-[11px]">Free delivery on orders above ₹2,999 · Online payments coming soon.</p>
               </div>
             </div>
 
@@ -377,17 +446,35 @@ export const ProductDetailModal: React.FC = () => {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => toggleWishlist(quickViewProduct)}
-                  className="px-3.5 py-3 rounded border border-[#D5C7B0] hover:bg-[#FAF6EE] text-[#111111] transition-colors cursor-pointer"
+                  className="px-3 sm:px-3.5 py-3 rounded border border-[#D5C7B0] hover:bg-[#FAF6EE] text-[#111111] transition-colors cursor-pointer shrink-0"
                   aria-label="Wishlist"
+                  title={inWish ? 'In Wishlist' : 'Add to Wishlist'}
                 >
                   <Heart
                     className={`w-4 h-4 ${inWish ? 'fill-red-600 text-red-600' : ''}`}
                   />
                 </button>
+
+                <a
+                  href={`https://wa.me/917578887888?text=${encodeURIComponent(
+                    `Hello Lap of Luxury, I am inquiring about ${quickViewProduct.name} (₹${quickViewProduct.price}).`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 sm:px-3.5 py-3 rounded border border-[#25D366] bg-[#25D366] hover:bg-[#1faa53] text-white transition-colors cursor-pointer shrink-0 flex items-center justify-center"
+                  aria-label="Chat on WhatsApp"
+                  title="Inquire on WhatsApp"
+                >
+                  <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.075-.3-.15-1.27-.468-2.42-1.492-.895-.798-1.5-1.785-1.675-2.086-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.677-1.631-.928-2.233-.244-.587-.493-.507-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.23 3.111c.15.2 2.123 3.242 5.143 4.547.719.31 1.28.496 1.718.636.721.23 1.378.197 1.897.12.578-.087 1.78-.727 2.031-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zm-5.467 7.618c-2.07 0-4.015-.558-5.71-1.53l-.409-.236-4.249 1.114 1.134-4.141-.267-.424C1.61 14.996 1 12.981 1 10.875 1 5.43 5.43 1 10.875 1S20.75 5.43 20.75 10.875 16.32 20.75 10.875 20.75zm0-20.75C4.879 0 0 4.879 0 10.875c0 2.14.61 4.14 1.667 5.845L0 24l7.464-1.636c1.644.975 3.565 1.511 5.541 1.511 5.996 0 10.875-4.879 10.875-10.875S16.871 0 10.875 0z" />
+                  </svg>
+                </a>
               </div>
 
               <button
+                type="button"
                 onClick={handleBuyNow}
                 className="w-full py-2.5 bg-[#111111] hover:bg-[#2A2A2E] text-white text-xs font-bold tracking-[0.14em] uppercase rounded transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
@@ -396,6 +483,66 @@ export const ProductDetailModal: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Related Products Section in Modal */}
+        {relatedProducts.length > 0 && (
+          <div className="p-4 sm:p-6 bg-[#FAF8F5]">
+            <div className="flex items-center justify-between mb-3.5">
+              <div>
+                <span className="text-[9px] uppercase tracking-[0.24em] font-extrabold text-[#8C6D1F] block">
+                  RECOMMENDED CURATION
+                </span>
+                <h3 className="font-serif text-sm sm:text-base font-bold text-[#111113] uppercase tracking-wider">
+                  Related {quickViewProduct.category} Pieces
+                </h3>
+              </div>
+              <span className="text-[11px] text-[#7A6C58]">
+                {relatedProducts.length} Recommended
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {relatedProducts.map((rel) => (
+                <button
+                  key={rel.id}
+                  type="button"
+                  onClick={() => {
+                    setQuickViewProduct(rel);
+                    setActiveImageIndex(0);
+                    setZoomScale(1);
+                    if (modalContentRef.current) {
+                      modalContentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className="group text-left bg-white rounded-xl border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-md transition-all p-2.5 flex flex-col justify-between cursor-pointer"
+                >
+                  <div className="aspect-[3/4] w-full rounded-lg overflow-hidden bg-[#FAF8F5] mb-2 relative">
+                    <img
+                      src={normalizeImageUrl(rel.image, rel.category)}
+                      alt={rel.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[8px] uppercase tracking-wider text-[#8C6D1F] block">
+                      {rel.category}
+                    </span>
+                    <p className="text-xs font-semibold text-[#111113] line-clamp-1 group-hover:text-[#B8860B] transition-colors">
+                      {rel.name}
+                    </p>
+                    <p className="text-xs font-bold text-[#111113] pt-0.5">
+                      ₹{rel.price.toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
       </div>
     </div>

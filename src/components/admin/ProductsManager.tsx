@@ -39,7 +39,7 @@ export const ProductsManager: React.FC = () => {
     if (found && Array.isArray(found.subcategories) && found.subcategories.length > 0) {
       return found.subcategories;
     }
-    if (slugLower === 'men') return ['Shirts', 'T-shirts', 'Hoodies', 'Full-sleeve T-shirts', 'Jeans'];
+    if (slugLower === 'men') return ['Shirts', 'T-shirts', 'Hoodies', 'Full-sleeve T-shirts', 'Polo T-shirts', 'Trousers'];
     if (slugLower === 'footwear' || slugLower === 'shoes') return ['Sneakers', 'Crocs', 'Formal Shoes', 'Loafers', 'Sandals'];
     if (slugLower === 'bags') return ['Backpacks', 'Briefcases', 'Crossbody Bags', 'Travel Bags', 'Wallets'];
     if (slugLower === 'perfumes') return ['Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils'];

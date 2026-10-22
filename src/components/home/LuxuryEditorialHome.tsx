@@ -97,8 +97,26 @@ export const LuxuryEditorialHome: React.FC = () => {
   const trendingProducts = products.filter((p) => p.isBestSeller).slice(0, 4);
   const bagCreations = products.filter((p) => (p.category || '').toLowerCase() === 'bags' || (p.department || '').toLowerCase() === 'bags').slice(0, 4);
   const footwearCreations = products.filter((p) => (p.category || '').toLowerCase() === 'shoes' || (p.department || '').toLowerCase() === 'footwear').slice(0, 4);
-  const menPicks = products.filter((p) => (p.department || '').toLowerCase() === 'men' || (p.category || '').toLowerCase() === 'men' || (p.category || '').toLowerCase() === 'jeans').slice(0, 3);
-  const womenPicks = products.filter((p) => (p.department || '').toLowerCase() === 'women' || (p.category || '').toLowerCase() === 'women').slice(0, 3);
+  const menPicks = products
+    .filter((p) => {
+      const cat = (p.category || '').toLowerCase();
+      const dept = (p.department || '').toLowerCase();
+      if (
+        cat === 'perfumes' ||
+        dept === 'perfumes' ||
+        cat === 'watches' ||
+        dept === 'watches' ||
+        cat === 'shoes' ||
+        cat === 'footwear' ||
+        dept === 'footwear' ||
+        cat === 'bags' ||
+        dept === 'bags'
+      ) {
+        return false;
+      }
+      return dept === 'men' || cat === 'men' || cat === 'jeans';
+    })
+    .slice(0, 3);
 
   return (
     <div className="w-full bg-[#FAF8F5] text-[#111113] space-y-12 sm:space-y-16 pb-16">
@@ -309,11 +327,12 @@ const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-      <a
-        href={`/product/${product.id}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative aspect-[3/4] w-full overflow-hidden bg-[#FAF8F5] cursor-pointer block"
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setQuickViewProduct(product)}
+        onKeyDown={(e) => e.key === 'Enter' && setQuickViewProduct(product)}
+        className="relative aspect-[3/4] w-full overflow-hidden bg-[#FAF8F5] cursor-pointer block text-left"
       >
         <img
           src={normalizeImageUrl(product.image, product.category)}
@@ -359,14 +378,13 @@ const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
             }`}
           />
         </button>
-      </a>
+      </div>
 
       <div className="p-3.5 sm:p-4 flex flex-col justify-between flex-1 space-y-2">
-        <a
-          href={`/product/${product.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cursor-pointer block group-hover:text-[#B8860B] transition-colors"
+        <button
+          type="button"
+          onClick={() => setQuickViewProduct(product)}
+          className="cursor-pointer block text-left group-hover:text-[#B8860B] transition-colors w-full"
         >
           <span className="text-[9.5px] tracking-[0.18em] uppercase text-[#8A671A] block">
             {product.brand || 'LAP OF LUXURY'}
@@ -374,7 +392,7 @@ const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
           <h4 className="text-xs sm:text-sm text-[#111113] line-clamp-1 mt-0.5">
             {product.name}
           </h4>
-        </a>
+        </button>
 
         <div className="pt-2 border-t border-[#F0EAE1] flex items-center justify-between">
           <div className="flex items-baseline gap-1.5">
@@ -387,15 +405,14 @@ const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
               </span>
             )}
           </div>
-          <a
-            href={`/product/${product.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 text-xs text-[#8A671A] hover:text-[#111113] flex items-center gap-0.5 cursor-pointer"
+          <button
+            type="button"
+            onClick={() => setQuickViewProduct(product)}
+            className="p-1.5 text-xs text-[#8A671A] hover:text-[#111113] flex items-center gap-0.5 cursor-pointer font-semibold"
           >
             <span>View</span>
             <ChevronRight className="w-3 h-3" />
-          </a>
+          </button>
         </div>
       </div>
     </div>

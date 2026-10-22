@@ -95,9 +95,12 @@ interface StoreContextType {
       name: string;
       phone: string;
       email?: string;
-      address: string;
+      houseNo?: string;
+      street?: string;
       city: string;
+      state?: string;
       pincode: string;
+      address: string;
       paymentMethod: Order['paymentMethod'];
       transactionRef?: string;
       paymentScreenshot?: string;
@@ -404,8 +407,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const openProductDetail = (product: Product) => {
-    if (typeof window !== 'undefined' && product?.id) {
-      window.open(`/product/${product.id}`, '_blank', 'noopener,noreferrer');
+    if (product) {
+      setQuickViewProduct(product);
     }
   };
 
@@ -795,9 +798,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       name: string;
       phone: string;
       email?: string;
-      address: string;
+      houseNo?: string;
+      street?: string;
       city: string;
+      state?: string;
       pincode: string;
+      address: string;
       paymentMethod: Order['paymentMethod'];
       transactionRef?: string;
       paymentScreenshot?: string;
@@ -815,15 +821,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       customerName: customer.name,
       phone: customer.phone,
       email: customer.email,
+      houseNo: customer.houseNo,
+      street: customer.street,
       address: customer.address,
       city: customer.city || 'Mahbubnagar',
+      state: customer.state || 'Telangana',
       pincode: customer.pincode,
       customer: {
         name: customer.name,
         phone: customer.phone,
         email: customer.email,
+        houseNo: customer.houseNo,
+        street: customer.street,
         address: customer.address,
         city: customer.city || 'Mahbubnagar',
+        state: customer.state || 'Telangana',
         pincode: customer.pincode,
       },
       items: [...cart],

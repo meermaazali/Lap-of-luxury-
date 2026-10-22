@@ -65,9 +65,12 @@ export interface OrderCustomerInfo {
   name?: string;
   email?: string;
   phone?: string;
-  address?: string;
+  houseNo?: string;
+  street?: string;
   city?: string;
+  state?: string;
   pincode?: string;
+  address?: string;
 }
 
 export interface Order {
@@ -76,16 +79,19 @@ export interface Order {
   customerName: string;
   phone: string;
   email?: string;
-  address: string;
+  houseNo?: string;
+  street?: string;
   city: string;
+  state?: string;
   pincode: string;
+  address: string;
   customer?: OrderCustomerInfo;
   items: CartItem[];
   subtotal: number;
   discount: number;
   shipping: number;
   total: number;
-  paymentMethod: 'UPI' | 'Card' | 'PhonePe' | 'Google Pay' | 'Paytm' | 'Other UPI Apps' | 'UPI QR' | string;
+  paymentMethod: 'Cash on Delivery' | 'Pay on Delivery' | 'UPI' | 'Card' | 'PhonePe' | 'Google Pay' | 'Paytm' | 'Other UPI Apps' | 'UPI QR' | string;
   paymentStatus?: 'Payment Pending' | 'Paid' | 'Verified' | 'Pending' | 'Failed' | 'Refunded' | string;
   transactionRef?: string;
   paymentScreenshot?: string;

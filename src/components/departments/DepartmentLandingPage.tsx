@@ -31,20 +31,17 @@ interface DeptMeta {
 const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
   men: {
     title: "MEN'S FASHION & SARTORIAL",
-    tagline: 'Impeccable tailoring, double-ply cotton shirts, luxury polos, raw denim and handcrafted footwear.',
+    tagline: 'Impeccable tailoring, double-ply cotton shirts, luxury polos, fine trousers and artisanal kurtas.',
     bannerImage: '/images/category_mens_fashion_1791290148102.jpg',
     subcategories: [
       "Men's Collection",
       'Shirts',
-      'T-Shirts & Polos',
+      'T-shirts',
+      'Hoodies',
+      'Full-sleeve T-shirts',
+      'Polo T-shirts',
       'Trousers',
-      'Jeans',
       'Kurta Sets',
-      'Sneakers',
-      'Loafers',
-      'Belts',
-      'Watches',
-      'Perfumes',
     ],
   },
   women: {
@@ -168,46 +165,35 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
 
   // Dynamically compute subcategories from configured categories in admin + default presets
   const availableSubcategories = useMemo(() => {
-    const defaultSubs = deptMeta.subcategories || ['All'];
-    const dynamicSubs = new Set<string>();
-
-    categories.forEach((cat) => {
+    const deptKeyLower = departmentKey.toLowerCase();
+    const matchingCat = categories.find((cat) => {
+      const catSlug = (cat.slug || cat.name || '').toLowerCase();
       const catDept = (cat.department || cat.parentCategory || '').toLowerCase();
-      const matchesDept =
-        catDept === departmentKey.toLowerCase() ||
-        (departmentKey === 'men' && (cat.slug.toLowerCase() === 'men' || cat.slug.toLowerCase() === 'jeans')) ||
-        (departmentKey === 'women' && cat.slug.toLowerCase() === 'women') ||
-        (departmentKey === 'bags' && cat.slug.toLowerCase() === 'bags') ||
-        (departmentKey === 'footwear' && (cat.slug.toLowerCase() === 'shoes' || cat.slug.toLowerCase() === 'footwear')) ||
-        (departmentKey === 'perfumes' && cat.slug.toLowerCase() === 'perfumes') ||
-        (departmentKey === 'watches' && cat.slug.toLowerCase() === 'watches') ||
-        (departmentKey === 'jeans' && cat.slug.toLowerCase() === 'jeans') ||
-        (departmentKey === 'accessories' && (cat.slug.toLowerCase() === 'accessories' || cat.slug.toLowerCase() === 'watches' || cat.slug.toLowerCase() === 'perfumes'));
-
-      if (matchesDept && Array.isArray(cat.subcategories)) {
-        cat.subcategories.forEach((s) => {
-          if (s && typeof s === 'string' && s.trim()) {
-            dynamicSubs.add(s.trim());
-          }
-        });
-      }
-
-      if (matchesDept && Array.isArray(cat.brands)) {
-        cat.brands.forEach((b) => {
-          if (b && typeof b === 'string' && b.trim()) {
-            dynamicSubs.add(b.trim());
-          }
-        });
-      }
+      return (
+        catSlug === deptKeyLower ||
+        catDept === deptKeyLower ||
+        (deptKeyLower === 'footwear' && (catSlug === 'shoes' || catSlug === 'footwear')) ||
+        (deptKeyLower === 'men' && catSlug === 'men') ||
+        (deptKeyLower === 'jeans' && catSlug === 'jeans') ||
+        (deptKeyLower === 'bags' && catSlug === 'bags') ||
+        (deptKeyLower === 'perfumes' && catSlug === 'perfumes') ||
+        (deptKeyLower === 'watches' && catSlug === 'watches')
+      );
     });
 
-    const combined = [...defaultSubs];
-    dynamicSubs.forEach((s) => {
-      if (!combined.some((item) => item.toLowerCase() === s.toLowerCase())) {
-        combined.push(s);
+    // If Firestore has custom subcategories defined for this category, use them directly
+    if (matchingCat && Array.isArray(matchingCat.subcategories) && matchingCat.subcategories.length > 0) {
+      const topLabel = deptMeta.subcategories?.[0] || 'All';
+      const items = [topLabel, ...matchingCat.subcategories];
+      if (Array.isArray(matchingCat.brands)) {
+        matchingCat.brands.forEach((b) => {
+          if (b && !items.includes(b)) items.push(b);
+        });
       }
-    });
-    return combined;
+      return items;
+    }
+
+    return deptMeta.subcategories || ['All'];
   }, [deptMeta, categories, departmentKey]);
 
   // Local filter states
@@ -239,8 +225,56 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
       const tags = (p.tags || []).map((t) => t.toLowerCase());
 
       if (departmentKey === 'men') {
-        // Strict exclusion: never show women's items in Men
-        if (
+        // Strict exclusion: NEVER show perfumes, footwear, watches, bags, eyewear/accessories or women's items in Men's Collection
+        const isPerfume =
+          cat === 'perfumes' ||
+          dept === 'perfumes' ||
+          sub.includes('perfume') ||
+          sub.includes('oud') ||
+          sub.includes('extrait') ||
+          sub.includes('attar') ||
+          sub.includes('scent') ||
+          sub.includes('fragrance') ||
+          tags.some((t) =>
+            t.includes('perfume') || t.includes('fragrance') || t.includes('oud') || t.includes('scent')
+          );
+
+        const isFootwear =
+          cat === 'shoes' ||
+          cat === 'footwear' ||
+          dept === 'footwear' ||
+          sub.includes('sneaker') ||
+          sub.includes('loafer') ||
+          sub.includes('shoe') ||
+          sub.includes('crocs') ||
+          sub.includes('sandals') ||
+          tags.some((t) => t.includes('footwear') || t.includes('sneaker') || t.includes('shoe'));
+
+        const isWatch =
+          cat === 'watches' ||
+          dept === 'watches' ||
+          sub.includes('watch') ||
+          sub.includes('chronograph') ||
+          sub.includes('automatic') ||
+          tags.some((t) => t.includes('watch') || t.includes('timepiece'));
+
+        const isBag =
+          cat === 'bags' ||
+          dept === 'bags' ||
+          sub.includes('bag') ||
+          sub.includes('clutch') ||
+          sub.includes('backpack') ||
+          sub.includes('wallet') ||
+          tags.some((t) => t.includes('bag') || t.includes('wallet'));
+
+        const isAccessory =
+          cat === 'accessories' ||
+          dept === 'accessories' ||
+          sub.includes('sunglass') ||
+          sub.includes('eyewear') ||
+          tags.some((t) => t.includes('sunglass') || t.includes('eyewear'));
+
+        const isWomen =
           dept === 'women' ||
           cat === 'women' ||
           tags.includes('women') ||
@@ -248,21 +282,25 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           sub.includes('gown') ||
           sub.includes('lehenga') ||
           sub.includes('co-ord') ||
-          sub.includes('heels')
-        ) {
+          sub.includes('heels');
+
+        if (isPerfume || isFootwear || isWatch || isBag || isAccessory || isWomen) {
           return false;
         }
+
         return (
           dept === 'men' ||
           cat === 'men' ||
           cat === 'jeans' ||
+          cat === 'shirts' ||
           sub.includes('shirt') ||
           sub.includes('polo') ||
           sub.includes('t-shirt') ||
           sub.includes('trouser') ||
           sub.includes('kurta') ||
-          sub.includes('loafer') ||
-          sub.includes('oxford') ||
+          sub.includes('hoodie') ||
+          sub.includes('jean') ||
+          sub.includes('denim') ||
           tags.includes('men')
         );
       }
