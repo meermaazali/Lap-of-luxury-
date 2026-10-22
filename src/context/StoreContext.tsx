@@ -407,8 +407,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const openProductDetail = (product: Product) => {
-    if (product) {
-      setQuickViewProduct(product);
+    if (typeof window !== 'undefined' && product?.id) {
+      window.open(`/product/${product.id}`, '_blank', 'noopener,noreferrer');
     }
   };
 

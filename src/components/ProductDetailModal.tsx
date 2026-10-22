@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   Heart,
@@ -28,7 +28,6 @@ import {
 
 export const ProductDetailModal: React.FC = () => {
   const {
-    products,
     quickViewProduct,
     setQuickViewProduct,
     addToCart,
@@ -46,7 +45,6 @@ export const ProductDetailModal: React.FC = () => {
   const [zoomScale, setZoomScale] = useState<number>(1);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
-  const modalContentRef = useRef<HTMLDivElement>(null);
 
   // Reset image index, zoom and selections whenever a new product is selected
   useEffect(() => {
@@ -57,72 +55,6 @@ export const ProductDetailModal: React.FC = () => {
       setQuantity(1);
     }
   }, [quickViewProduct?.id]);
-
-  // Related products from same category/department (strictly adhering to Men filtering if Men's apparel)
-  const relatedProducts = useMemo(() => {
-    if (!quickViewProduct) return [];
-    const cat = (quickViewProduct.category || '').toLowerCase();
-    const dept = (quickViewProduct.department || '').toLowerCase();
-    const isMen = cat === 'men' || dept === 'men' || cat === 'jeans';
-
-    let list = products.filter((p) => {
-      if (p.id === quickViewProduct.id) return false;
-      const pCat = (p.category || '').toLowerCase();
-      const pDept = (p.department || '').toLowerCase();
-
-      // If viewing Men's collection, strictly exclude perfumes, watches, bags, shoes
-      if (isMen) {
-        if (
-          pCat === 'perfumes' ||
-          pDept === 'perfumes' ||
-          pCat === 'watches' ||
-          pDept === 'watches' ||
-          pCat === 'shoes' ||
-          pCat === 'footwear' ||
-          pDept === 'footwear' ||
-          pCat === 'bags' ||
-          pDept === 'bags' ||
-          pCat === 'accessories' ||
-          pDept === 'accessories'
-        ) {
-          return false;
-        }
-        return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
-      }
-
-      return pCat === cat || pDept === dept;
-    });
-
-    if (list.length < 4) {
-      const fillers = products.filter((p) => {
-        if (p.id === quickViewProduct.id || list.some((item) => item.id === p.id)) return false;
-        const pCat = (p.category || '').toLowerCase();
-        const pDept = (p.department || '').toLowerCase();
-        if (isMen) {
-          if (
-            pCat === 'perfumes' ||
-            pDept === 'perfumes' ||
-            pCat === 'watches' ||
-            pDept === 'watches' ||
-            pCat === 'shoes' ||
-            pCat === 'footwear' ||
-            pDept === 'footwear' ||
-            pCat === 'bags' ||
-            pDept === 'bags' ||
-            pCat === 'accessories' ||
-            pDept === 'accessories'
-          ) {
-            return false;
-          }
-          return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
-        }
-        return true;
-      });
-      list = [...list, ...fillers];
-    }
-
-    return list.slice(0, 4);
-  }, [quickViewProduct, products]);
 
   if (!quickViewProduct) return null;
 
@@ -201,9 +133,8 @@ export const ProductDetailModal: React.FC = () => {
           </div>
         </div>
 
-        <div ref={modalContentRef} className="max-h-[84vh] overflow-y-auto divide-y divide-[#EAE0CD]">
-          <div className="grid grid-cols-1 lg:grid-cols-12">
-            {/* Left Column: Customer-Controlled Product Zoom & Gallery (lg: 6 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 max-h-[82vh] overflow-y-auto">
+          {/* Left Column: Customer-Controlled Product Zoom & Gallery (lg: 6 cols) */}
           <div className="lg:col-span-6 bg-[#F9F7F2] p-4 sm:p-5 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#EAE0CD]">
             {/* Customer Zoom Controls Bar */}
             <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-[#E2D5BE] mb-3 shadow-xs">
@@ -418,7 +349,7 @@ export const ProductDetailModal: React.FC = () => {
                   <Truck className="w-3.5 h-3.5 text-[#B89758]" />
                   <span>Express Dispatch Available</span>
                 </p>
-                <p className="text-[11px]">Free delivery on orders above ₹2,999 · Online payments coming soon.</p>
+                <p className="text-[11px]">Free delivery on orders above ₹2,999 · Cash on Delivery & UPI accepted.</p>
               </div>
             </div>
 
@@ -483,66 +414,6 @@ export const ProductDetailModal: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Related Products Section in Modal */}
-        {relatedProducts.length > 0 && (
-          <div className="p-4 sm:p-6 bg-[#FAF8F5]">
-            <div className="flex items-center justify-between mb-3.5">
-              <div>
-                <span className="text-[9px] uppercase tracking-[0.24em] font-extrabold text-[#8C6D1F] block">
-                  RECOMMENDED CURATION
-                </span>
-                <h3 className="font-serif text-sm sm:text-base font-bold text-[#111113] uppercase tracking-wider">
-                  Related {quickViewProduct.category} Pieces
-                </h3>
-              </div>
-              <span className="text-[11px] text-[#7A6C58]">
-                {relatedProducts.length} Recommended
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {relatedProducts.map((rel) => (
-                <button
-                  key={rel.id}
-                  type="button"
-                  onClick={() => {
-                    setQuickViewProduct(rel);
-                    setActiveImageIndex(0);
-                    setZoomScale(1);
-                    if (modalContentRef.current) {
-                      modalContentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                  }}
-                  className="group text-left bg-white rounded-xl border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-md transition-all p-2.5 flex flex-col justify-between cursor-pointer"
-                >
-                  <div className="aspect-[3/4] w-full rounded-lg overflow-hidden bg-[#FAF8F5] mb-2 relative">
-                    <img
-                      src={normalizeImageUrl(rel.image, rel.category)}
-                      alt={rel.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = FALLBACK_LUXURY_IMAGE;
-                      }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className="text-[8px] uppercase tracking-wider text-[#8C6D1F] block">
-                      {rel.category}
-                    </span>
-                    <p className="text-xs font-semibold text-[#111113] line-clamp-1 group-hover:text-[#B8860B] transition-colors">
-                      {rel.name}
-                    </p>
-                    <p className="text-xs font-bold text-[#111113] pt-0.5">
-                      ₹{rel.price.toLocaleString('en-IN')}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         </div>
       </div>
     </div>

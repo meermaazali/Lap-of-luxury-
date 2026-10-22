@@ -613,7 +613,7 @@ export const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
-            {/* MANDATORY PAYMENT GATEWAY COMING SOON SECTION (Pure Coming Soon Mode) */}
+            {/* MANDATORY PAYMENT GATEWAY COMING SOON SECTION (Requirement 4) */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FAF8F5] via-[#FFFDF9] to-[#FAF6EE] border-2 border-[#D4AF37] p-6 sm:p-8 shadow-sm text-center space-y-3 animate-in fade-in">
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-ping" />
@@ -628,11 +628,11 @@ export const CheckoutPage: React.FC = () => {
               </p>
 
               <p className="text-xs text-[#7A6C58] max-w-lg mx-auto leading-relaxed">
-                Online order placement and payments are temporarily on hold while we integrate our seamless gateway. To purchase or reserve items in your bag today, please connect directly with our personal shopping concierge.
+                Our automated online card and UPI processing engine is in final staging. You can reserve and place your luxury order right now with <strong>Cash on Delivery (Doorstep Payment)</strong>.
               </p>
             </div>
 
-            {/* Actions: Inquire via WhatsApp / Edit Address */}
+            {/* Final Order Confirmation Actions */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <button
                 type="button"
@@ -642,19 +642,19 @@ export const CheckoutPage: React.FC = () => {
                 ← Back to Address
               </button>
 
-              <a
-                href={`https://wa.me/917578887888?text=${encodeURIComponent(
-                  `Hello Lap of Luxury Concierge, I have ${cart.length} item(s) in my bag (Total: ₹${orderTotal.toLocaleString('en-IN')}) for delivery to ${formData.name}, ${formData.city}, ${formData.state} (${formData.pincode}). Please assist with my order reservation.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-4 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111113] font-black text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2"
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handlePlaceOrderCOD}
+                className="flex-1 py-4 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111113] font-black text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2 disabled:opacity-60"
               >
-                <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.075-.3-.15-1.27-.468-2.42-1.492-.895-.798-1.5-1.785-1.675-2.086-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.677-1.631-.928-2.233-.244-.587-.493-.507-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.23 3.111c.15.2 2.123 3.242 5.143 4.547.719.31 1.28.496 1.718.636.721.23 1.378.197 1.897.12.578-.087 1.78-.727 2.031-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zm-5.467 7.618c-2.07 0-4.015-.558-5.71-1.53l-.409-.236-4.249 1.114 1.134-4.141-.267-.424C1.61 14.996 1 12.981 1 10.875 1 5.43 5.43 1 10.875 1S20.75 5.43 20.75 10.875 16.32 20.75 10.875 20.75zm0-20.75C4.879 0 0 4.879 0 10.875c0 2.14.61 4.14 1.667 5.845L0 24l7.464-1.636c1.644.975 3.565 1.511 5.541 1.511 5.996 0 10.875-4.879 10.875-10.875S16.871 0 10.875 0z" />
-                </svg>
-                <span>Inquire via WhatsApp Concierge</span>
-              </a>
+                <Lock className="w-4 h-4 text-[#111113]" />
+                <span>
+                  {isSubmitting
+                    ? 'CONFIRMING ORDER...'
+                    : `CONFIRM ORDER · PAY ON DELIVERY (₹${orderTotal.toLocaleString('en-IN')})`}
+                </span>
+              </button>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-xs text-[#7A6C58] pt-1">

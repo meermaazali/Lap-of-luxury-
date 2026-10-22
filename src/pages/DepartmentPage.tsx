@@ -13,7 +13,9 @@ interface DepartmentPageProps {
   department?: string;
 }
 
-export const DepartmentPage: React.FC<DepartmentPageProps> = ({ department: propDept }) => {
+export const DepartmentPage: React.FC<DepartmentPageProps> = ({
+  department: propDept,
+}) => {
   const { dept } = useParams<{ dept: string }>();
   const location = useLocation();
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
@@ -21,11 +23,15 @@ export const DepartmentPage: React.FC<DepartmentPageProps> = ({ department: prop
   const activeDepartment = useMemo(() => {
     if (propDept) return propDept.toLowerCase();
     if (dept) return dept.toLowerCase();
+
     const pathname = location.pathname.toLowerCase().replace('/', '');
-    if (pathname.includes('men') && !pathname.includes('women')) return 'men';
+
     if (pathname.includes('women')) return 'women';
+    if (pathname === 'men' || pathname.startsWith('men/')) return 'men';
     if (pathname.includes('bag')) return 'bags';
-    if (pathname.includes('footwear') || pathname.includes('shoes')) return 'footwear';
+    if (pathname.includes('footwear') || pathname.includes('shoes')) {
+      return 'footwear';
+    }
     if (pathname.includes('perfume')) return 'perfumes';
     if (pathname.includes('watch')) return 'watches';
     if (pathname.includes('jean')) return 'jeans';
@@ -34,12 +40,14 @@ export const DepartmentPage: React.FC<DepartmentPageProps> = ({ department: prop
     if (pathname.includes('bestsellers')) return 'bestsellers';
     if (pathname.includes('sale')) return 'sale';
     if (pathname.includes('new-arrivals')) return 'new-arrivals';
+
     return pathname || 'men';
   }, [propDept, dept, location.pathname]);
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#111113] flex flex-col font-normal">
       <Header onOpenWishlist={() => setIsWishlistOpen(true)} />
+
       <LuxuryMegaNav />
 
       <main className="flex-1 w-full">
@@ -50,7 +58,11 @@ export const DepartmentPage: React.FC<DepartmentPageProps> = ({ department: prop
       <CartDrawer />
       <CheckoutModal />
       <OrderSuccessModal />
-      <WishlistDrawer isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+
+      <WishlistDrawer
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+      />
     </div>
   );
 };

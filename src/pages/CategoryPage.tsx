@@ -27,30 +27,6 @@ export const CategoryPage: React.FC = () => {
       let matchCat = false;
       if (targetCat === 'men') {
         if (pDept === 'women' || pCat === 'women') return false;
-        // Strict exclusion: NEVER show perfumes, footwear, watches, bags, eyewear/accessories in Men
-        const isPerfume =
-          pCat === 'perfumes' ||
-          pDept === 'perfumes' ||
-          Boolean(p.subCategory && (p.subCategory.toLowerCase().includes('perfume') || p.subCategory.toLowerCase().includes('oud') || p.subCategory.toLowerCase().includes('extrait'))) ||
-          Boolean(p.tags && p.tags.some((t) => t.toLowerCase().includes('perfume') || t.toLowerCase().includes('oud') || t.toLowerCase().includes('fragrance')));
-        const isWatch =
-          pCat === 'watches' ||
-          pDept === 'watches' ||
-          Boolean(p.subCategory && p.subCategory.toLowerCase().includes('watch'));
-        const isBag =
-          pCat === 'bags' ||
-          pDept === 'bags' ||
-          Boolean(p.subCategory && p.subCategory.toLowerCase().includes('bag'));
-        const isFootwear =
-          pCat === 'footwear' ||
-          pCat === 'shoes' ||
-          pDept === 'footwear' ||
-          Boolean(p.subCategory && (p.subCategory.toLowerCase().includes('shoe') || p.subCategory.toLowerCase().includes('sneaker') || p.subCategory.toLowerCase().includes('loafer')));
-        const isAccessory =
-          pCat === 'accessories' ||
-          (pDept === 'accessories' && !pCat.includes('men'));
-        if (isPerfume || isWatch || isBag || isFootwear || isAccessory) return false;
-
         matchCat =
           pDept === 'men' ||
           pCat === 'men' ||

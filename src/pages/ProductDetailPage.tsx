@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Heart,
@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
-import { INITIAL_PRODUCTS } from '../data/initialData';
 import {
   normalizeImageUrl,
   getProductGallery,
@@ -48,62 +47,33 @@ export const ProductDetailPage: React.FC = () => {
 
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Load product from context or fallback catalogue
+  // Load product from context or backend
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
     setLoading(true);
-
-    // Search both active store products and initial luxury catalogue safely
-    const allKnown: Product[] = Array.isArray(products) && products.length > 0
-      ? [...products, ...INITIAL_PRODUCTS]
-      : INITIAL_PRODUCTS;
-
-    const targetId = String(id).trim();
-    const found = allKnown.find((p) => {
-      if (!p) return false;
-      const pId = p.id ? String(p.id).trim() : '';
-      const pSlug = p.slug ? String(p.slug).trim() : '';
-      return (
-        pId === targetId ||
-        pId.toLowerCase() === targetId.toLowerCase() ||
-        (pSlug && pSlug.toLowerCase() === targetId.toLowerCase())
-      );
-    });
-
+    // Find in context
+    const found = products.find(
+      (p) => p.id === id || p.slug === id || p.id.toLowerCase() === id.toLowerCase()
+    );
     if (found) {
       setProduct(found);
       setSelectedSize(found.sizes?.[0] || 'Standard');
       setSelectedColor(found.colors?.[0] || 'Default');
       setLoading(false);
     } else {
-      // Try to fetch single product from API as extra safety
-      fetch(`/api/products?id=${encodeURIComponent(targetId)}`)
-        .then((res) => {
-          if (!res.ok) throw new Error('Network error');
-          return res.json();
-        })
+      // Try to fetch single product from API
+      fetch(`/api/products?id=${encodeURIComponent(id)}`)
+        .then((res) => res.json())
         .then((data) => {
-          const item = Array.isArray(data) ? data.find((p: Product) => p && p.id === targetId) : data;
-          if (item && item.id) {
+          const item = Array.isArray(data) ? data.find((p: Product) => p.id === id) : data;
+          if (item) {
             setProduct(item);
             setSelectedSize(item.sizes?.[0] || 'Standard');
             setSelectedColor(item.colors?.[0] || 'Default');
           }
           setLoading(false);
         })
-        .catch(() => {
-          // Final fallback to first product if nothing matches
-          const fallback = INITIAL_PRODUCTS[0];
-          if (fallback) {
-            setProduct(fallback);
-            setSelectedSize(fallback.sizes?.[0] || 'Standard');
-            setSelectedColor(fallback.colors?.[0] || 'Default');
-          }
-          setLoading(false);
-        });
+        .catch(() => setLoading(false));
     }
   }, [id, products]);
 
@@ -161,72 +131,10 @@ export const ProductDetailPage: React.FC = () => {
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
       : null;
 
-  // Related products from same category/department (strictly adhering to Men filtering if Men's apparel)
-  const relatedProducts = useMemo(() => {
-    if (!product) return [];
-    const cat = (product.category || '').toLowerCase();
-    const dept = (product.department || '').toLowerCase();
-    const isMen = cat === 'men' || dept === 'men' || cat === 'jeans';
-
-    let list = products.filter((p) => {
-      if (p.id === product.id) return false;
-      const pCat = (p.category || '').toLowerCase();
-      const pDept = (p.department || '').toLowerCase();
-
-      // If viewing Men's collection, strictly exclude perfumes, watches, bags, shoes
-      if (isMen) {
-        if (
-          pCat === 'perfumes' ||
-          pDept === 'perfumes' ||
-          pCat === 'watches' ||
-          pDept === 'watches' ||
-          pCat === 'shoes' ||
-          pCat === 'footwear' ||
-          pDept === 'footwear' ||
-          pCat === 'bags' ||
-          pDept === 'bags' ||
-          pCat === 'accessories' ||
-          pDept === 'accessories'
-        ) {
-          return false;
-        }
-        return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
-      }
-
-      return pCat === cat || pDept === dept;
-    });
-
-    if (list.length < 4) {
-      // Add more items from the same collection if needed
-      const fillers = products.filter((p) => {
-        if (p.id === product.id || list.some((item) => item.id === p.id)) return false;
-        const pCat = (p.category || '').toLowerCase();
-        const pDept = (p.department || '').toLowerCase();
-        if (isMen) {
-          if (
-            pCat === 'perfumes' ||
-            pDept === 'perfumes' ||
-            pCat === 'watches' ||
-            pDept === 'watches' ||
-            pCat === 'shoes' ||
-            pCat === 'footwear' ||
-            pDept === 'footwear' ||
-            pCat === 'bags' ||
-            pDept === 'bags' ||
-            pCat === 'accessories' ||
-            pDept === 'accessories'
-          ) {
-            return false;
-          }
-          return pDept === 'men' || pCat === 'men' || pCat === 'jeans';
-        }
-        return true;
-      });
-      list = [...list, ...fillers];
-    }
-
-    return list.slice(0, 4);
-  }, [product, products]);
+  // Related products from same category
+  const relatedProducts = products
+    .filter((p) => p.category === product.category && p.id !== product.id)
+    .slice(0, 4);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current) return;
@@ -276,8 +184,8 @@ export const ProductDetailPage: React.FC = () => {
             Home
           </Link>
           <ChevronRight className="w-3 h-3 text-gray-400" />
-          <Link to={`/category/${(product.category || 'all').toLowerCase()}`} className="hover:text-[#B8860B] transition-colors">
-            {product.category || 'Collection'}
+          <Link to={`/category/${product.category.toLowerCase()}`} className="hover:text-[#B8860B] transition-colors">
+            {product.category}
           </Link>
           <ChevronRight className="w-3 h-3 text-gray-400" />
           <span className="text-[#111113] truncate max-w-xs">{product.name}</span>
@@ -625,11 +533,12 @@ export const ProductDetailPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-              {relatedProducts.map((rel: Product) => (
-                <Link
+              {relatedProducts.map((rel) => (
+                <a
                   key={rel.id}
-                  to={`/product/${rel.id}`}
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  href={`/product/${rel.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group bg-white rounded-2xl overflow-hidden border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                 >
                   <div className="relative aspect-[3/4] w-full overflow-hidden bg-white">
@@ -653,7 +562,7 @@ export const ProductDetailPage: React.FC = () => {
                       ₹{rel.price.toLocaleString('en-IN')}
                     </p>
                   </div>
-                </Link>
+                </a>
               ))}
             </div>
           </section>

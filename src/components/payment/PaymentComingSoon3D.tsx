@@ -18,7 +18,7 @@ import { UploadedLogoMark } from '../UploadedLogoMark';
 
 interface PaymentComingSoon3DProps {
   onBackToCart: () => void;
-  onProceedCOD?: () => void;
+  onProceedCOD: () => void;
   orderTotal: number;
 }
 
@@ -79,7 +79,7 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         </p>
 
         <p className="text-[11px] text-[#7A6C58] mt-2 max-w-md mx-auto">
-          LAP OF LUXURY is finalizing certified multi-bank 3D secure online processing. In the interim, please contact our Mahbubnagar concierge for personal styling and order inquiries.
+          LAP OF LUXURY is finalizing certified multi-bank 3D secure online processing. In the interim, orders can be placed with Cash on Delivery or Phone Concierge.
         </p>
       </div>
 
@@ -265,18 +265,18 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         </div>
       </div>
 
-      {/* Concierge & Inquiries Module */}
+      {/* Immediate Order Reservation Module */}
       <div className="bg-white rounded-2xl p-5 border border-[#E0D5C3] shadow-xs space-y-3">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-full bg-[#FAF3E6] border border-[#D4AF37] flex items-center justify-center text-[#B8860B] shrink-0 mt-0.5">
-            <Sparkles className="w-5 h-5" />
+            <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
             <h4 className="font-bodoni font-bold text-sm text-[#111111] uppercase tracking-wider">
-              EXCLUSIVE CONCIERGE ASSISTANCE
+              RESERVE YOUR ORDER NOW (CASH ON DELIVERY)
             </h4>
             <p className="text-xs text-[#6E6152] mt-0.5 leading-relaxed">
-              While online payments are in final preparation, our dedicated luxury concierge is at your service for product reservations, sizing, and custom orders.
+              While our automated online gateway is in final staging, you can instantly confirm your order with <strong>Cash on Delivery (Doorstep Payment)</strong> or direct phone concierge verification.
             </p>
           </div>
         </div>
@@ -284,12 +284,12 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#EAE0D0] text-xs text-[#524637] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Phone className="w-3.5 h-3.5 text-[#B89758]" />
-            <span>Mahbubnagar Store Concierge: <strong>+91 75 7888 7888</strong></span>
+            <span>Mahbubnagar Store Concierge: <strong>75 7888 7888</strong></span>
           </div>
-          <span className="text-[#8C6D1F] font-bold text-[11px]">Personal Stylist</span>
+          <span className="text-emerald-700 font-bold text-[11px]">FREE Delivery Active</span>
         </div>
 
-        {/* Dual Actions: Return to Bag / WhatsApp Concierge */}
+        {/* Dual Actions: Proceed COD / Back Button */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
           <button
             type="button"
@@ -300,19 +300,15 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
             <span>← Return to Bag</span>
           </button>
 
-          <a
-            href={`https://wa.me/917578887888?text=${encodeURIComponent(
-              `Hello Lap of Luxury Concierge, I would like to inquire about reserving my bag items (Total: ₹${orderTotal.toLocaleString('en-IN')}).`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={onProceedCOD}
             className="flex-1 py-3.5 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B] hover:brightness-105 text-[#111111] font-black text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2"
           >
-            <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.075-.3-.15-1.27-.468-2.42-1.492-.895-.798-1.5-1.785-1.675-2.086-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.677-1.631-.928-2.233-.244-.587-.493-.507-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376s-1.054 1.029-1.054 2.509 1.079 2.91 1.23 3.111c.15.2 2.123 3.242 5.143 4.547.719.31 1.28.496 1.718.636.721.23 1.378.197 1.897.12.578-.087 1.78-.727 2.031-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zm-5.467 7.618c-2.07 0-4.015-.558-5.71-1.53l-.409-.236-4.249 1.114 1.134-4.141-.267-.424C1.61 14.996 1 12.981 1 10.875 1 5.43 5.43 1 10.875 1S20.75 5.43 20.75 10.875 20.75zm0-20.75C4.879 0 0 4.879 0 10.875c0 2.14.61 4.14 1.667 5.845L0 24l7.464-1.636c1.644.975 3.565 1.511 5.541 1.511 5.996 0 10.875-4.879 10.875-10.875S16.871 0 10.875 0z" />
-            </svg>
-            <span>Inquire with Concierge</span>
-          </a>
+            <Lock className="w-4 h-4" />
+            <span>CONTINUE WITH CASH ON DELIVERY (₹{orderTotal.toLocaleString('en-IN')})</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

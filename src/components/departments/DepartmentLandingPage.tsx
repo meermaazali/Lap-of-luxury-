@@ -2,15 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Filter,
   SlidersHorizontal,
-  ChevronDown,
   X,
   Heart,
-  Eye,
-  Check,
   RotateCcw,
   Sparkles,
-  ShoppingBag,
-  ArrowUpDown,
   ChevronRight,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
@@ -123,19 +118,46 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     title: 'ROYAL PERFUMES & PRIVATE BLENDS',
     tagline: 'Rare Cambodian oud, pure French parfun, extracted ambroxan and artisanal extrait de parfum.',
     bannerImage: '/images/cat_perfume_amber.jpg',
-    subcategories: ['Perfumes Collection', 'Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils', 'Dior', 'Chanel', 'Gucci', 'Tom Ford'],
+    subcategories: [
+      'Perfumes Collection',
+      'Oud & Extrait',
+      'Eau de Parfum',
+      'Parfum',
+      'Attar & Oils',
+      'Dior',
+      'Chanel',
+      'Gucci',
+      'Tom Ford',
+    ],
   },
   watches: {
     title: 'TIMEPIECES & CHRONOGRAPHS',
     tagline: 'Master Swiss automatic movements, sapphire bezels, fine chronographs and heirloom horology.',
     bannerImage: '/images/cat_watch_gold.jpg',
-    subcategories: ['Watches Collection', 'Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions', 'Rado', 'Tissot', 'Rolex', 'Omega'],
+    subcategories: [
+      'Watches Collection',
+      'Chronograph',
+      'Automatic',
+      'Dress Watches',
+      'Gold Editions',
+      'Rado',
+      'Tissot',
+      'Rolex',
+      'Omega',
+    ],
   },
   jeans: {
     title: 'LUXURY JEANS & RAW DENIM',
     tagline: 'Japanese selvedge, tailored slim fit, relaxed regular and contemporary streetwear baggy cuts.',
     bannerImage: '/images/category_jeans_luxury_1791290260306.jpg',
-    subcategories: ['Jeans & Denim', 'Slim Fit', 'Regular Fit', 'Baggy Fit', 'Raw Denim', 'Relaxed Fit'],
+    subcategories: [
+      'Jeans & Denim',
+      'Slim Fit',
+      'Regular Fit',
+      'Baggy Fit',
+      'Raw Denim',
+      'Relaxed Fit',
+    ],
   },
   'new-arrivals': {
     title: 'NEW ARRIVALS · SEASON DROPS',
@@ -154,21 +176,20 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
     selectedSubcategory,
     setSelectedSubcategory,
     setCurrentView,
-    openProductDetail,
-    setQuickViewProduct,
-    wishlist,
     toggleWishlist,
     isInWishlist,
   } = useStore();
 
   const deptMeta = DEPARTMENT_CONFIGS[departmentKey] || DEPARTMENT_CONFIGS.men;
 
-  // Dynamically compute subcategories from configured categories in admin + default presets
+  // Dynamically compute subcategories from admin categories and default presets.
   const availableSubcategories = useMemo(() => {
     const deptKeyLower = departmentKey.toLowerCase();
+
     const matchingCat = categories.find((cat) => {
       const catSlug = (cat.slug || cat.name || '').toLowerCase();
       const catDept = (cat.department || cat.parentCategory || '').toLowerCase();
+
       return (
         catSlug === deptKeyLower ||
         catDept === deptKeyLower ||
@@ -181,110 +202,121 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
       );
     });
 
-    // If Firestore has custom subcategories defined for this category, use them directly
-    if (matchingCat && Array.isArray(matchingCat.subcategories) && matchingCat.subcategories.length > 0) {
+    if (
+      matchingCat &&
+      Array.isArray(matchingCat.subcategories) &&
+      matchingCat.subcategories.length > 0
+    ) {
       const topLabel = deptMeta.subcategories?.[0] || 'All';
       const items = [topLabel, ...matchingCat.subcategories];
+
       if (Array.isArray(matchingCat.brands)) {
-        matchingCat.brands.forEach((b) => {
-          if (b && !items.includes(b)) items.push(b);
+        matchingCat.brands.forEach((brand) => {
+          if (brand && !items.includes(brand)) {
+            items.push(brand);
+          }
         });
       }
+
       return items;
     }
 
     return deptMeta.subcategories || ['All'];
   }, [deptMeta, categories, departmentKey]);
 
-  // Local filter states
+  // Local filter states.
   const [activeSub, setActiveSub] = useState<string>(selectedSubcategory || 'All');
-  const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc' | 'rating'>(
-    'newest'
-  );
-  const [priceFilter, setPriceFilter] = useState<'all' | 'under-2000' | '2000-4000' | 'above-4000'>('all');
+  const [sortBy, setSortBy] = useState<
+    'newest' | 'price-asc' | 'price-desc' | 'rating'
+  >('newest');
+  const [priceFilter, setPriceFilter] = useState<
+    'all' | 'under-2000' | '2000-4000' | 'above-4000'
+  >('all');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [selectedSize, setSelectedSize] = useState<string>('all');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
-  // Sync if selectedSubcategory changes from MegaMenu
+  // Sync subcategory selection from the mega menu.
   useEffect(() => {
-    if (selectedSubcategory) {
-      setActiveSub(selectedSubcategory);
-    } else {
-      setActiveSub('All');
-    }
+    setActiveSub(selectedSubcategory || 'All');
   }, [selectedSubcategory, departmentKey]);
 
-  // Department Product Matching Logic
+  // Department product matching.
   const departmentProducts = useMemo(() => {
-    return products.filter((p) => {
-      const dept = (p.department || '').toLowerCase();
-      const cat = (p.category || '').toLowerCase();
-      const sub = (p.subCategory || p.subcategory || '').toLowerCase();
-      const brand = (p.brand || '').toLowerCase();
-      const tags = (p.tags || []).map((t) => t.toLowerCase());
+    const perfumeTerms = [
+      'perfume',
+      'perfumes',
+      'fragrance',
+      'fragrances',
+      'eau de parfum',
+      'eau de toilette',
+      'parfum',
+      'parfums',
+      'attar',
+      'oud',
+      'scent',
+      'cologne',
+      'ambroxan',
+      'essential oil',
+    ];
 
+    const containsAny = (value: string, terms: string[]) =>
+      terms.some((term) => value.includes(term));
+
+    const getProductFields = (product: Product) => {
+      const dept = (product.department || '').toLowerCase().trim();
+      const cat = (product.category || '').toLowerCase().trim();
+      const sub = (
+        product.subCategory ||
+        product.subcategory ||
+        ''
+      ).toLowerCase().trim();
+      const name = (product.name || '').toLowerCase().trim();
+      const brand = (product.brand || '').toLowerCase().trim();
+      const tags = (product.tags || []).map((tag) =>
+        String(tag).toLowerCase().trim()
+      );
+
+      return { dept, cat, sub, name, brand, tags };
+    };
+
+    const isPerfumeProduct = (product: Product) => {
+      const { dept, cat, sub, name, brand, tags } = getProductFields(product);
+
+      const searchableFields = [
+        dept,
+        cat,
+        sub,
+        name,
+        brand,
+        ...tags,
+      ];
+
+      return searchableFields.some((field) =>
+        containsAny(field, perfumeTerms)
+      );
+    };
+
+    return products.filter((product) => {
+      const { dept, cat, sub, name, brand, tags } = getProductFields(product);
+      const isPerfume = isPerfumeProduct(product);
+
+      // MEN: Exclude perfume products before checking men tags or categories.
       if (departmentKey === 'men') {
-        // Strict exclusion: NEVER show perfumes, footwear, watches, bags, eyewear/accessories or women's items in Men's Collection
-        const isPerfume =
-          cat === 'perfumes' ||
-          dept === 'perfumes' ||
-          sub.includes('perfume') ||
-          sub.includes('oud') ||
-          sub.includes('extrait') ||
-          sub.includes('attar') ||
-          sub.includes('scent') ||
-          sub.includes('fragrance') ||
-          tags.some((t) =>
-            t.includes('perfume') || t.includes('fragrance') || t.includes('oud') || t.includes('scent')
-          );
+        if (isPerfume) return false;
 
-        const isFootwear =
-          cat === 'shoes' ||
-          cat === 'footwear' ||
-          dept === 'footwear' ||
-          sub.includes('sneaker') ||
-          sub.includes('loafer') ||
-          sub.includes('shoe') ||
-          sub.includes('crocs') ||
-          sub.includes('sandals') ||
-          tags.some((t) => t.includes('footwear') || t.includes('sneaker') || t.includes('shoe'));
-
-        const isWatch =
-          cat === 'watches' ||
-          dept === 'watches' ||
-          sub.includes('watch') ||
-          sub.includes('chronograph') ||
-          sub.includes('automatic') ||
-          tags.some((t) => t.includes('watch') || t.includes('timepiece'));
-
-        const isBag =
-          cat === 'bags' ||
-          dept === 'bags' ||
-          sub.includes('bag') ||
-          sub.includes('clutch') ||
-          sub.includes('backpack') ||
-          sub.includes('wallet') ||
-          tags.some((t) => t.includes('bag') || t.includes('wallet'));
-
-        const isAccessory =
-          cat === 'accessories' ||
-          dept === 'accessories' ||
-          sub.includes('sunglass') ||
-          sub.includes('eyewear') ||
-          tags.some((t) => t.includes('sunglass') || t.includes('eyewear'));
-
-        const isWomen =
+        if (
           dept === 'women' ||
           cat === 'women' ||
           tags.includes('women') ||
-          sub.includes('saree') ||
-          sub.includes('gown') ||
-          sub.includes('lehenga') ||
-          sub.includes('co-ord') ||
-          sub.includes('heels');
-
-        if (isPerfume || isFootwear || isWatch || isBag || isAccessory || isWomen) {
+          containsAny(sub, [
+            'saree',
+            'gown',
+            'lehenga',
+            'co-ord',
+            'heels',
+          ])
+        ) {
           return false;
         }
 
@@ -292,21 +324,22 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           dept === 'men' ||
           cat === 'men' ||
           cat === 'jeans' ||
-          cat === 'shirts' ||
-          sub.includes('shirt') ||
-          sub.includes('polo') ||
-          sub.includes('t-shirt') ||
-          sub.includes('trouser') ||
-          sub.includes('kurta') ||
-          sub.includes('hoodie') ||
-          sub.includes('jean') ||
-          sub.includes('denim') ||
+          containsAny(sub, [
+            'shirt',
+            'polo',
+            't-shirt',
+            'trouser',
+            'kurta',
+            'loafer',
+            'oxford',
+            'hoodie',
+          ]) ||
           tags.includes('men')
         );
       }
 
+      // WOMEN: Exclude products explicitly marked as men's fashion.
       if (departmentKey === 'women') {
-        // Strict exclusion: never show men's items in Women
         if (
           dept === 'men' ||
           cat === 'men' ||
@@ -314,17 +347,20 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         ) {
           return false;
         }
+
         return (
           dept === 'women' ||
           cat === 'women' ||
-          sub.includes('saree') ||
-          sub.includes('dress') ||
-          sub.includes('gown') ||
-          sub.includes('lehenga') ||
-          sub.includes('co-ord') ||
-          sub.includes('handbag') ||
-          sub.includes('clutch') ||
-          sub.includes('heel') ||
+          containsAny(sub, [
+            'saree',
+            'dress',
+            'gown',
+            'lehenga',
+            'co-ord',
+            'handbag',
+            'clutch',
+            'heel',
+          ]) ||
           tags.includes('women')
         );
       }
@@ -333,11 +369,13 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         return (
           dept === 'bags' ||
           cat === 'bags' ||
-          sub.includes('bag') ||
-          sub.includes('clutch') ||
-          sub.includes('tote') ||
-          sub.includes('wallet') ||
-          sub.includes('briefcase')
+          containsAny(sub, [
+            'bag',
+            'clutch',
+            'tote',
+            'wallet',
+            'briefcase',
+          ])
         );
       }
 
@@ -346,25 +384,24 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           dept === 'footwear' ||
           cat === 'shoes' ||
           cat === 'footwear' ||
-          sub.includes('sneaker') ||
-          sub.includes('loafer') ||
-          sub.includes('crocs') ||
-          sub.includes('heel') ||
-          sub.includes('shoe') ||
-          sub.includes('sandals') ||
-          sub.includes('flats')
+          containsAny(sub, [
+            'sneaker',
+            'loafer',
+            'crocs',
+            'heel',
+            'shoe',
+            'sandal',
+            'flat',
+          ])
         );
       }
 
+      // PERFUMES: Match perfume-related fields, even if the product has a men tag.
       if (departmentKey === 'perfumes') {
         return (
           dept === 'perfumes' ||
           cat === 'perfumes' ||
-          sub.includes('perfume') ||
-          sub.includes('oud') ||
-          sub.includes('scent') ||
-          sub.includes('attar') ||
-          tags.some((t) => t.includes('perfume') || t.includes('scent') || t.includes('oud'))
+          isPerfume
         );
       }
 
@@ -372,10 +409,14 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         return (
           dept === 'watches' ||
           cat === 'watches' ||
-          sub.includes('watch') ||
-          sub.includes('chronograph') ||
-          sub.includes('automatic') ||
-          tags.some((t) => t.includes('watch') || t.includes('timepiece'))
+          containsAny(sub, [
+            'watch',
+            'chronograph',
+            'automatic',
+          ]) ||
+          tags.some((tag) =>
+            containsAny(tag, ['watch', 'timepiece'])
+          )
         );
       }
 
@@ -383,42 +424,52 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         return (
           dept === 'jeans' ||
           cat === 'jeans' ||
-          sub.includes('jean') ||
-          sub.includes('denim') ||
-          sub.includes('slim fit') ||
-          sub.includes('regular fit') ||
-          sub.includes('baggy fit') ||
-          tags.some((t) => t.includes('jean') || t.includes('denim'))
+          containsAny(sub, [
+            'jean',
+            'denim',
+            'slim fit',
+            'regular fit',
+            'baggy fit',
+          ]) ||
+          tags.some((tag) =>
+            containsAny(tag, ['jean', 'denim'])
+          )
         );
       }
 
       if (departmentKey === 'accessories') {
+        // Keep perfume products in their dedicated department.
+        if (isPerfume) return false;
+
         return (
           dept === 'accessories' ||
           cat === 'accessories' ||
-          cat === 'watches' ||
-          cat === 'perfumes' ||
-          sub.includes('watch') ||
-          sub.includes('belt') ||
-          sub.includes('glasses') ||
-          sub.includes('sunglasses') ||
-          sub.includes('perfume') ||
-          sub.includes('oud')
+          containsAny(sub, [
+            'watch',
+            'belt',
+            'glasses',
+            'sunglasses',
+          ])
         );
       }
 
       if (departmentKey === 'collections') {
-        return p.isFestiveEdit || tags.some((t) => t.includes('festive') || t.includes('wedding') || t.includes('collection'));
+        return (
+          !!product.isFestiveEdit ||
+          tags.some((tag) =>
+            containsAny(tag, ['festive', 'wedding', 'collection'])
+          )
+        );
       }
 
       if (departmentKey === 'bestsellers') {
-        return !!p.isBestSeller;
+        return !!product.isBestSeller;
       }
 
       if (departmentKey === 'sale') {
         return (
-          (p.originalPrice && p.originalPrice > p.price) ||
-          p.price <= 2000
+          (!!product.originalPrice && product.originalPrice > product.price) ||
+          product.price <= 2000
         );
       }
 
@@ -430,66 +481,83 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
     });
   }, [products, departmentKey]);
 
-  // Apply Subcategory, Price, Stock & Size Filtering
+  // Apply subcategory, price, stock, size, and sorting filters.
   const filteredProducts = useMemo(() => {
     let result = [...departmentProducts];
 
-    // Subcategory Filter
     if (activeSub && !activeSub.startsWith('All')) {
       const targetSub = activeSub.toLowerCase();
-      result = result.filter((p) => {
-        const sub = (p.subCategory || '').toLowerCase();
-        const cat = (p.category || '').toLowerCase();
-        const brand = (p.brand || '').toLowerCase();
-        const name = p.name.toLowerCase();
-        const tags = (p.tags || []).map((t) => t.toLowerCase());
+
+      result = result.filter((product) => {
+        const sub = (
+          product.subCategory ||
+          product.subcategory ||
+          ''
+        ).toLowerCase();
+        const cat = (product.category || '').toLowerCase();
+        const brand = (product.brand || '').toLowerCase();
+        const name = (product.name || '').toLowerCase();
+        const tags = (product.tags || []).map((tag) =>
+          String(tag).toLowerCase()
+        );
 
         return (
           sub.includes(targetSub) ||
           brand.includes(targetSub) ||
           cat.includes(targetSub) ||
           name.includes(targetSub) ||
-          tags.some((t) => t.includes(targetSub))
+          tags.some((tag) => tag.includes(targetSub))
         );
       });
     }
 
-    // Price Filter
     if (priceFilter === 'under-2000') {
-      result = result.filter((p) => p.price < 2000);
+      result = result.filter((product) => product.price < 2000);
     } else if (priceFilter === '2000-4000') {
-      result = result.filter((p) => p.price >= 2000 && p.price <= 4000);
+      result = result.filter(
+        (product) => product.price >= 2000 && product.price <= 4000
+      );
     } else if (priceFilter === 'above-4000') {
-      result = result.filter((p) => p.price > 4000);
+      result = result.filter((product) => product.price > 4000);
     }
 
-    // Stock Filter
     if (inStockOnly) {
-      result = result.filter((p) => p.inStock);
+      result = result.filter((product) => product.inStock);
     }
 
-    // Size Filter
     if (selectedSize !== 'all') {
-      result = result.filter((p) => p.sizes.includes(selectedSize));
+      result = result.filter((product) =>
+        (product.sizes || []).includes(selectedSize)
+      );
     }
 
-    // Sorting
     if (sortBy === 'price-asc') {
       result.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
       result.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'rating') {
-      result.sort((a, b) => b.rating - a.rating);
+      result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
 
     return result;
-  }, [departmentProducts, activeSub, priceFilter, inStockOnly, selectedSize, sortBy]);
+  }, [
+    departmentProducts,
+    activeSub,
+    priceFilter,
+    inStockOnly,
+    selectedSize,
+    sortBy,
+  ]);
 
-  // Extract all available sizes in this department
+  // Extract available sizes for this department.
   const availableSizes = useMemo(() => {
-    const set = new Set<string>();
-    departmentProducts.forEach((p) => p.sizes.forEach((s) => set.add(s)));
-    return Array.from(set);
+    const sizes = new Set<string>();
+
+    departmentProducts.forEach((product) => {
+      (product.sizes || []).forEach((size) => sizes.add(size));
+    });
+
+    return Array.from(sizes);
   }, [departmentProducts]);
 
   const handleSubSelect = (sub: string) => {
@@ -524,9 +592,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
 
-          {/* Banner Editorial Overlay */}
           <div className="absolute inset-0 max-w-[1540px] mx-auto px-4 sm:px-8 lg:px-12 flex flex-col justify-center items-start text-left z-10">
-            {/* Breadcrumbs */}
             <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium tracking-[0.12em] uppercase text-[#D4AF37] mb-2">
               <button
                 type="button"
@@ -555,13 +621,15 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         </div>
       </section>
 
-      {/* 2. SUBCATEGORY PILLS CAROUSEL / BAR */}
+      {/* 2. SUBCATEGORY PILLS */}
       <div className="sticky top-[72px] sm:top-[80px] z-20 bg-white/95 backdrop-blur-md border-b border-[#E8DEC8] shadow-xs">
         <div className="max-w-[1540px] mx-auto px-4 sm:px-8 py-3 flex items-center justify-between gap-4 overflow-x-auto scrollbar-none">
           <div className="flex items-center gap-2 shrink-0">
             {availableSubcategories.map((sub, idx) => {
               const isActive =
-                activeSub === sub || (sub.startsWith('All') && (!activeSub || activeSub.startsWith('All')));
+                activeSub === sub ||
+                (sub.startsWith('All') &&
+                  (!activeSub || activeSub.startsWith('All')));
 
               return (
                 <button
@@ -580,7 +648,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
             })}
           </div>
 
-          {/* Quick Filter Drawer Toggle for Mobile */}
           <button
             type="button"
             onClick={() => setIsFilterDrawerOpen(true)}
@@ -592,15 +659,17 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         </div>
       </div>
 
-      {/* 3. MAIN CATALOG AREA WITH DESKTOP SIDEBAR + 3:4 PRODUCT GRID */}
+      {/* 3. MAIN CATALOG */}
       <div className="max-w-[1540px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
-        {/* Results Header: Count & Sort Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-[#E8DEC8] gap-3">
           <div className="flex items-center gap-3">
             <span className="text-xs font-bold uppercase tracking-wider text-[#111113]">
               {filteredProducts.length}{' '}
-              {filteredProducts.length === 1 ? 'Creation Available' : 'Creations Available'}
+              {filteredProducts.length === 1
+                ? 'Creation Available'
+                : 'Creations Available'}
             </span>
+
             {hasActiveFilters && (
               <button
                 type="button"
@@ -615,32 +684,28 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
 
           <div className="flex items-center gap-2.5 self-end sm:self-auto">
             <span className="text-xs font-medium text-[#7A6C58]">Sort By:</span>
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-white border border-[#D5C7B0] rounded-xl px-3 py-1.5 text-xs text-[#111113] font-semibold focus:outline-none focus:border-[#B8860B] cursor-pointer pr-8"
-              >
-                <option value="newest">Newest Arrivals</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="rating">Client Rating & Reviews</option>
-              </select>
-            </div>
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as typeof sortBy)
+              }
+              className="bg-white border border-[#D5C7B0] rounded-xl px-3 py-1.5 text-xs text-[#111113] font-semibold focus:outline-none focus:border-[#B8860B] cursor-pointer pr-8"
+            >
+              <option value="newest">Newest Arrivals</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating">Client Rating & Reviews</option>
+            </select>
           </div>
         </div>
 
-        {/* Catalog Body: 12-column layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 mt-6">
-          {/* DESKTOP FILTER SIDEBAR (3 cols) */}
+          {/* DESKTOP FILTER SIDEBAR */}
           <aside className="hidden md:block md:col-span-3 space-y-6 bg-white p-5 rounded-2xl border border-[#E8DEC8] shadow-xs self-start">
             <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-3">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#B8860B]" />
-                <h3 className="font-serif text-sm font-bold uppercase tracking-wider text-[#111113]">
-                  Refine Curation
-                </h3>
-              </div>
+              <h3 className="font-serif text-sm font-bold uppercase tracking-wider text-[#111113]">
+                Refine Curation
+              </h3>
               {hasActiveFilters && (
                 <button
                   type="button"
@@ -652,7 +717,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
               )}
             </div>
 
-            {/* Price Filter */}
             <div className="space-y-2.5">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#3D3327]">
                 Price Range
@@ -672,7 +736,9 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                       type="radio"
                       name="price"
                       checked={priceFilter === tier.id}
-                      onChange={() => setPriceFilter(tier.id as any)}
+                      onChange={() =>
+                        setPriceFilter(tier.id as typeof priceFilter)
+                      }
                       className="accent-[#B8860B] cursor-pointer"
                     />
                     <span>{tier.label}</span>
@@ -681,7 +747,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
               </div>
             </div>
 
-            {/* Availability */}
             <div className="space-y-2.5 border-t border-[#F0EAE1] pt-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#3D3327]">
                 Availability
@@ -697,7 +762,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
               </label>
             </div>
 
-            {/* Size Filter */}
             {availableSizes.length > 0 && (
               <div className="space-y-2.5 border-t border-[#F0EAE1] pt-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#3D3327]">
@@ -715,6 +779,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                   >
                     All
                   </button>
+
                   {availableSizes.map((size) => (
                     <button
                       key={size}
@@ -734,7 +799,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
             )}
           </aside>
 
-          {/* PRODUCTS GRID (9 cols) */}
+          {/* PRODUCTS GRID */}
           <div className="md:col-span-9">
             {filteredProducts.length === 0 ? (
               <div className="bg-white rounded-2xl border border-[#E8DEC8] p-12 text-center space-y-4">
@@ -758,9 +823,12 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                 {filteredProducts.map((product) => {
                   const inWish = isInWishlist(product.id);
                   const discountPercent =
-                    product.originalPrice && product.originalPrice > product.price
+                    product.originalPrice &&
+                    product.originalPrice > product.price
                       ? Math.round(
-                          ((product.originalPrice - product.price) / product.originalPrice) * 100
+                          ((product.originalPrice - product.price) /
+                            product.originalPrice) *
+                            100
                         )
                       : null;
 
@@ -769,7 +837,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                       key={product.id}
                       className="group bg-white rounded-2xl overflow-hidden border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                     >
-                      {/* Product Image Container with 3:4 Luxury Portrait Aspect */}
                       <a
                         href={`/product/${product.id}`}
                         target="_blank"
@@ -780,24 +847,26 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                           src={normalizeImageUrl(product.image, product.category)}
                           alt={product.name}
                           onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = FALLBACK_LUXURY_IMAGE;
+                            e.currentTarget.src = FALLBACK_LUXURY_IMAGE;
                           }}
                           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
                             product.secondaryImage ? 'group-hover:opacity-0' : ''
                           }`}
                         />
+
                         {product.secondaryImage && (
                           <img
-                            src={normalizeImageUrl(product.secondaryImage, product.category)}
+                            src={normalizeImageUrl(
+                              product.secondaryImage,
+                              product.category
+                            )}
                             alt={`${product.name} alternate`}
                             className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105"
                           />
                         )}
 
-                        {/* Top Badges */}
                         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-                          {discountPercent && (
+                          {discountPercent !== null && (
                             <span className="bg-[#111113] text-[#D4AF37] text-[9.5px] px-2 py-0.5 rounded-md uppercase tracking-wider border border-[#D4AF37]/40 shadow-xs">
                               {discountPercent}% OFF
                             </span>
@@ -809,7 +878,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                           )}
                         </div>
 
-                        {/* Wishlist Heart Button */}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -822,13 +890,14 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                         >
                           <Heart
                             className={`w-4 h-4 transition-colors ${
-                              inWish ? 'fill-red-600 text-red-600' : 'text-[#2A241E]'
+                              inWish
+                                ? 'fill-red-600 text-red-600'
+                                : 'text-[#2A241E]'
                             }`}
                           />
                         </button>
                       </a>
 
-                      {/* Product Card Details */}
                       <div className="p-3.5 sm:p-4 flex flex-col justify-between flex-1 space-y-2">
                         <a
                           href={`/product/${product.id}`}
@@ -847,18 +916,19 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                           </p>
                         </a>
 
-                        {/* Pricing */}
                         <div className="pt-2 border-t border-[#F0EAE1] flex items-center justify-between">
                           <div className="flex items-baseline gap-1.5">
                             <span className="font-sans font-bold text-sm sm:text-base text-[#111113]">
                               ₹{product.price.toLocaleString('en-IN')}
                             </span>
-                            {product.originalPrice && product.originalPrice > product.price && (
-                              <span className="text-[11px] text-gray-400 line-through">
-                                ₹{product.originalPrice.toLocaleString('en-IN')}
-                              </span>
-                            )}
+                            {product.originalPrice &&
+                              product.originalPrice > product.price && (
+                                <span className="text-[11px] text-gray-400 line-through">
+                                  ₹{product.originalPrice.toLocaleString('en-IN')}
+                                </span>
+                              )}
                           </div>
+
                           <a
                             href={`/product/${product.id}`}
                             target="_blank"
@@ -879,7 +949,7 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
         </div>
       </div>
 
-      {/* MOBILE FILTER MODAL DRAWER */}
+      {/* MOBILE FILTER DRAWER */}
       {isFilterDrawerOpen && (
         <div className="md:hidden fixed inset-0 z-50 bg-black/60 flex justify-end animate-in fade-in">
           <div className="w-[85%] max-w-sm bg-white h-full shadow-2xl p-5 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right">
@@ -897,7 +967,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                 </button>
               </div>
 
-              {/* Subcategories */}
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#3D3327]">
                   Category
@@ -920,7 +989,6 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                 </div>
               </div>
 
-              {/* Price Filter */}
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#3D3327]">
                   Price
@@ -932,12 +1000,17 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
                     { id: '2000-4000', label: '₹2,000 – ₹4,000' },
                     { id: 'above-4000', label: 'Above ₹4,000' },
                   ].map((tier) => (
-                    <label key={tier.id} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      key={tier.id}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="mobilePrice"
                         checked={priceFilter === tier.id}
-                        onChange={() => setPriceFilter(tier.id as any)}
+                        onChange={() =>
+                          setPriceFilter(tier.id as typeof priceFilter)
+                        }
                         className="accent-[#B8860B]"
                       />
                       <span>{tier.label}</span>
