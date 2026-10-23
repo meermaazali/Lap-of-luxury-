@@ -226,8 +226,10 @@ export const ProductsManager: React.FC = () => {
     setFormData((prev) => ({ ...prev, secondaryImage: '' }));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
     if (!formData.name.trim()) {
       setFormError('Product name is required.');
       return;
@@ -244,71 +246,76 @@ export const ProductsManager: React.FC = () => {
 
     // Auto-normalize image path with leading "/" (e.g. "images/cat.jpg" -> "/images/cat.jpg")
     const finalPrimaryImage = normalizeImageUrl(formData.image, formData.category);
-    const finalSecondaryImage = formData.secondaryImage
-      ? normalizeImageUrl(formData.secondaryImage, formData.category)
-      : undefined;
+    const finalSecondaryImage = formData.secondaryImage?.trim()
+      ? normalizeImageUrl(formData.secondaryImage.trim(), formData.category)
+      : '';
 
     // Resolve department
     const foundCat = categories.find(
       (c) => (c.slug || c.name || '').toLowerCase() === formData.category.toLowerCase()
     );
-    const resolvedDept = foundCat?.department || foundCat?.parentCategory || formData.category;
+    const resolvedDept = foundCat?.department || foundCat?.parentCategory || formData.category || 'men';
 
-    if (editingProduct) {
-      updateProduct(editingProduct.id, {
-        name: formData.name,
-        category: formData.category,
-        subCategory: formData.subCategory,
-        brand: formData.brand,
-        department: resolvedDept,
-        price: Number(formData.price),
-        originalPrice: Number(formData.originalPrice),
-        description: formData.description,
-        sizes: sizesArr.length > 0 ? sizesArr : ['Standard'],
-        stockCount: Number(formData.stockCount),
-        inStock: Number(formData.stockCount) > 0,
-        image: finalPrimaryImage,
-        secondaryImage: finalSecondaryImage,
-        isFestiveEdit: formData.isFestiveEdit,
-        isBestSeller: formData.isBestSeller,
-        tags: [
-          formData.category,
-          formData.subCategory,
-          formData.brand,
-          formData.isFestiveEdit ? 'Festive Edit' : '',
-        ].filter(Boolean),
-      });
-      showToast('✓ Product updated! Store catalog updated in real-time.');
-    } else {
-      addProduct({
-        name: formData.name,
-        category: formData.category,
-        subCategory: formData.subCategory,
-        brand: formData.brand,
-        department: resolvedDept,
-        price: Number(formData.price),
-        originalPrice: Number(formData.originalPrice),
-        description: formData.description,
-        sizes: sizesArr.length > 0 ? sizesArr : ['Standard'],
-        stockCount: Number(formData.stockCount),
-        inStock: Number(formData.stockCount) > 0,
-        rating: 4.9,
-        reviewsCount: 1,
-        image: finalPrimaryImage,
-        secondaryImage: finalSecondaryImage,
-        isFestiveEdit: formData.isFestiveEdit,
-        isBestSeller: formData.isBestSeller,
-        tags: [
-          formData.category,
-          formData.subCategory,
-          formData.brand,
-          formData.isFestiveEdit ? 'Festive Edit' : '',
-        ].filter(Boolean),
-      });
-      showToast('✓ New product created and published to storefront!');
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, {
+          name: formData.name.trim(),
+          category: formData.category,
+          subCategory: formData.subCategory || 'General',
+          brand: formData.brand || 'LAP OF LUXURY',
+          department: resolvedDept,
+          price: Number(formData.price) || 0,
+          originalPrice: Number(formData.originalPrice) || Number(formData.price) || 0,
+          description: formData.description || '',
+          sizes: sizesArr.length > 0 ? sizesArr : ['Standard'],
+          stockCount: Math.max(0, Number(formData.stockCount) || 0),
+          inStock: (Number(formData.stockCount) || 0) > 0,
+          image: finalPrimaryImage,
+          secondaryImage: finalSecondaryImage,
+          isFestiveEdit: Boolean(formData.isFestiveEdit),
+          isBestSeller: Boolean(formData.isBestSeller),
+          tags: [
+            formData.category,
+            formData.subCategory,
+            formData.brand,
+            formData.isFestiveEdit ? 'Festive Edit' : '',
+          ].filter(Boolean),
+        });
+        showToast('✓ Product updated! Saved permanently to Firestore catalog.');
+      } else {
+        await addProduct({
+          name: formData.name.trim(),
+          category: formData.category,
+          subCategory: formData.subCategory || 'General',
+          brand: formData.brand || 'LAP OF LUXURY',
+          department: resolvedDept,
+          price: Number(formData.price) || 0,
+          originalPrice: Number(formData.originalPrice) || Number(formData.price) || 0,
+          description: formData.description || '',
+          sizes: sizesArr.length > 0 ? sizesArr : ['Standard'],
+          stockCount: Math.max(0, Number(formData.stockCount) || 0),
+          inStock: (Number(formData.stockCount) || 0) > 0,
+          rating: 4.9,
+          reviewsCount: 1,
+          image: finalPrimaryImage,
+          secondaryImage: finalSecondaryImage,
+          isFestiveEdit: Boolean(formData.isFestiveEdit),
+          isBestSeller: Boolean(formData.isBestSeller),
+          tags: [
+            formData.category,
+            formData.subCategory,
+            formData.brand,
+            formData.isFestiveEdit ? 'Festive Edit' : '',
+          ].filter(Boolean),
+        });
+        showToast('✓ New product created and saved permanently to Firestore!');
+      }
+
+      setIsModalOpen(false);
+    } catch (err: unknown) {
+      console.error('Error saving product:', err);
+      setFormError('Failed to save product: ' + (err instanceof Error ? err.message : String(err)));
     }
-
-    setIsModalOpen(false);
   };
 
   const handleConfirmDelete = () => {

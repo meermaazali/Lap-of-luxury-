@@ -139,3 +139,16 @@ export interface BoutiqueHeroConfig {
   ctaText: string;
   image: string;
 }
+
+export interface CustomerEnquiry {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+  categoryInterest?: string;
+  status: 'new' | 'contacted' | 'resolved';
+  isRead: boolean;
+  createdAt: string;
+  source?: string;
+}

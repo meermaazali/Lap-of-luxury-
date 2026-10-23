@@ -56,7 +56,7 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     ],
   },
   bags: {
-    title: 'BAGS & LEATHER ATELIER',
+    title: 'BAGS & LEATHER COLLECTION',
     tagline: 'Architectural top-handle bags, quilted clutches, saddle slings, executive briefcases and weekender totes.',
     bannerImage: '/images/cat_bag_cream.jpg',
     subcategories: [
@@ -97,7 +97,7 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
     ],
   },
   collections: {
-    title: 'THE FESTIVE & OCCASION ATELIER',
+    title: 'THE FESTIVE & OCCASION COLLECTION',
     tagline: 'Curated royal wedding and festive couture featuring hand-embroidered zardozi and heirloom handlooms.',
     bannerImage: '/images/festive_edit_luxury_1791098550195.jpg',
     subcategories: ['Collections', 'Festive', 'Occasion', 'Wedding', 'Heritage'],
@@ -161,7 +161,7 @@ const DEPARTMENT_CONFIGS: Record<string, DeptMeta> = {
   },
   'new-arrivals': {
     title: 'NEW ARRIVALS · SEASON DROPS',
-    tagline: 'Fresh arrivals direct from our Mahbubnagar store atelier and bespoke tailoring line.',
+    tagline: 'Fresh arrivals direct from our Mahbubnagar store and bespoke tailoring line.',
     bannerImage: '/images/hero_luxury_fashion_1791098539165.jpg',
     subcategories: ['New Arrivals', 'Footwear', 'Bags', 'Jeans', 'Outfits'],
   },

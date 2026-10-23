@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Bell,
+  MessageSquare,
   Package,
   Layers,
   FolderTree,
@@ -11,12 +12,14 @@ import {
   LogOut,
   QrCode,
   BookOpen,
+  X,
 } from 'lucide-react';
 
 import { useStore } from '../../context/StoreContext';
 import { UploadedLogoMark } from '../UploadedLogoMark';
 import { AdminAuthGate } from './AdminAuthGate';
 import { OrdersManager } from './OrdersManager';
+import { EnquiriesManager } from './EnquiriesManager';
 import { InventoryManager } from './InventoryManager';
 import { ProductsManager } from './ProductsManager';
 import { BannerManager } from './BannerManager';
@@ -28,6 +31,7 @@ import { ClientPhotoGuide } from './ClientPhotoGuide';
 
 type AdminTab =
   | 'orders'
+  | 'enquiries'
   | 'inventory'
   | 'products'
   | 'banners'
@@ -42,6 +46,10 @@ export const AdminPortal: React.FC = () => {
     setIsAdminMode,
     orders,
     unreadOrdersCount,
+    enquiries,
+    unreadEnquiriesCount,
+    latestEnquiryNotification,
+    dismissEnquiryNotification,
     products,
     banners,
     mediaAssets,
@@ -137,16 +145,36 @@ export const AdminPortal: React.FC = () => {
             </div>
           </div>
 
-          {/* Orders and Logout */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Action Buttons: Enquiries, Orders, and Logout */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <button
+              type="button"
+              onClick={() => setActiveTab('enquiries')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-xs font-semibold ${
+                unreadEnquiriesCount > 0
+                  ? 'bg-amber-600 text-white border-amber-600 animate-pulse shadow-sm'
+                  : 'bg-white border-[#D4AF37] text-[#4B4030] hover:bg-[#F5F0E5]'
+              }`}
+              title="Customer Inquiries"
+            >
+              <MessageSquare className="w-4 h-4 text-amber-500" />
+              <span className="hidden sm:inline">Enquiries</span>
+              {unreadEnquiriesCount > 0 && (
+                <span className="bg-white text-amber-700 text-[10px] font-bold px-1.5 rounded-full">
+                  {unreadEnquiriesCount}
+                </span>
+              )}
+            </button>
+
             <button
               type="button"
               onClick={() => setActiveTab('orders')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-xs ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-xs font-semibold ${
                 unreadOrdersCount > 0
-                  ? 'bg-red-600 text-white border-red-600 animate-pulse'
+                  ? 'bg-red-600 text-white border-red-600 animate-pulse shadow-sm'
                   : 'bg-white border-[#D4AF37] text-[#4B4030] hover:bg-[#F5F0E5]'
               }`}
+              title="Customer Orders"
             >
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">Orders</span>
@@ -182,6 +210,20 @@ export const AdminPortal: React.FC = () => {
               {unreadOrdersCount > 0 && (
                 <span className="bg-red-600 text-white text-[9px] px-1.5 rounded-full font-bold">
                   {unreadOrdersCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('enquiries')}
+              className={tabClass('enquiries')}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Enquiries ({enquiries.length})</span>
+              {unreadEnquiriesCount > 0 && (
+                <span className="bg-amber-600 text-white text-[9px] px-1.5 rounded-full font-bold animate-pulse">
+                  {unreadEnquiriesCount}
                 </span>
               )}
             </button>
@@ -266,13 +308,63 @@ export const AdminPortal: React.FC = () => {
         </div>
       </header>
 
+      {/* Floating Real-time Notification Banner for Incoming Enquiries */}
+      {latestEnquiryNotification && (
+        <aside
+          role="region"
+          aria-label="Real-time notification"
+          className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-[#111113] text-white p-4 rounded-xl shadow-2xl border-2 border-[#D4AF37] animate-bounce-once"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center shrink-0 text-[#D4AF37]">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37]">
+                  New Customer Enquiry
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              </div>
+              <p className="text-sm font-bold text-white mt-0.5 truncate">
+                {latestEnquiryNotification.name}
+              </p>
+              <p className="text-xs text-[#C5B89F] truncate">
+                {latestEnquiryNotification.phone} • {latestEnquiryNotification.email}
+              </p>
+              <p className="text-xs text-[#FAF8F5]/80 mt-1 line-clamp-2 italic bg-[#1E1E22] p-2 rounded">
+                &quot;{latestEnquiryNotification.message}&quot;
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('enquiries');
+                  dismissEnquiryNotification();
+                }}
+                className="mt-2 text-xs font-bold text-[#D4AF37] hover:underline cursor-pointer"
+              >
+                View Enquiry in Portal &rarr;
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={dismissEnquiryNotification}
+              className="text-[#888890] hover:text-white p-1 rounded-md"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </aside>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
         {/* KPI Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-6">
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-sm">
-            <p className="text-[11px] font-bold text-[#7A6C58] uppercase tracking-wider">
-              Total Store Revenue
+            <p className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider">
+              Store Revenue
             </p>
             <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
               ₹{totalRevenue.toLocaleString('en-IN')}
@@ -283,8 +375,8 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-sm">
-            <p className="text-[11px] font-bold text-[#7A6C58] uppercase tracking-wider">
-              Total Customer Orders
+            <p className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider">
+              Customer Orders
             </p>
             <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
               {orders.length}
@@ -294,8 +386,24 @@ export const AdminPortal: React.FC = () => {
             </span>
           </div>
 
+          <div
+            onClick={() => setActiveTab('enquiries')}
+            className="bg-white p-4 rounded-xl border border-[#D4AF37]/50 shadow-sm cursor-pointer hover:border-[#D4AF37] transition-all"
+          >
+            <p className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider flex items-center justify-between">
+              <span>Customer Enquiries</span>
+              <MessageSquare className="w-3.5 h-3.5 text-[#D4AF37]" />
+            </p>
+            <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
+              {enquiries.length}
+            </p>
+            <span className={`text-[10px] font-bold ${unreadEnquiriesCount > 0 ? 'text-amber-600' : 'text-emerald-700'}`}>
+              {unreadEnquiriesCount > 0 ? `${unreadEnquiriesCount} new / unread` : 'All reviewed'}
+            </span>
+          </div>
+
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-sm">
-            <p className="text-[11px] font-bold text-[#7A6C58] uppercase tracking-wider">
+            <p className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider">
               Active Products
             </p>
             <p className="text-xl sm:text-2xl font-black font-bodoni text-[#111111] mt-1 tabular-nums">
@@ -307,8 +415,8 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-[#E0D5C3] shadow-sm">
-            <p className="text-[11px] font-bold text-[#7A6C58] uppercase tracking-wider">
-              Low Stock Warning
+            <p className="text-[10px] font-bold text-[#7A6C58] uppercase tracking-wider">
+              Low Stock Alert
             </p>
             <p
               className={`text-xl sm:text-2xl font-black font-bodoni mt-1 tabular-nums ${
@@ -318,13 +426,14 @@ export const AdminPortal: React.FC = () => {
               {lowStockCount}
             </p>
             <span className="text-[10px] text-[#5C5040] font-medium">
-              5 or fewer units remaining
+              &le; 5 units remaining
             </span>
           </div>
         </div>
 
-        {/* Existing Admin Modules */}
+        {/* Existing Admin Modules & Enquiries Module */}
         {activeTab === 'orders' && <OrdersManager />}
+        {activeTab === 'enquiries' && <EnquiriesManager />}
         {activeTab === 'inventory' && <InventoryManager />}
         {activeTab === 'products' && <ProductsManager />}
         {activeTab === 'banners' && <BannerManager />}

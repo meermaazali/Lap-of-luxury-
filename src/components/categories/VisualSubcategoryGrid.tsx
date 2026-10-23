@@ -30,50 +30,50 @@ interface VisualSubcategoryGridProps {
   onViewAllCategories?: () => void;
 }
 
-// Authentic brand logo renderers for Watches and Sunglasses (Step 12)
+// Authentic brand logo renderers for Watches and Sunglasses with unified Golden Theme
 export const BrandLogos = {
   // Watches
   rolex: (
     <div className="flex flex-col items-center justify-center">
-      <svg className="w-9 h-6 text-[#1A472A]" viewBox="0 0 100 60" fill="currentColor">
-        <path d="M50 8 L58 24 L72 16 L68 34 L82 32 L70 46 L30 46 L18 32 L32 34 L28 16 L42 24 Z" fill="#C5A059" />
-        <circle cx="50" cy="5" r="3" fill="#C5A059" />
-        <circle cx="28" cy="13" r="3" fill="#C5A059" />
-        <circle cx="72" cy="13" r="3" fill="#C5A059" />
-        <circle cx="16" cy="29" r="3" fill="#C5A059" />
-        <circle cx="84" cy="29" r="3" fill="#C5A059" />
+      <svg className="w-8 h-5 text-[#B8860B]" viewBox="0 0 100 60" fill="currentColor">
+        <path d="M50 8 L58 24 L72 16 L68 34 L82 32 L70 46 L30 46 L18 32 L32 34 L28 16 L42 24 Z" fill="#D4AF37" />
+        <circle cx="50" cy="5" r="3" fill="#D4AF37" />
+        <circle cx="28" cy="13" r="3" fill="#D4AF37" />
+        <circle cx="72" cy="13" r="3" fill="#D4AF37" />
+        <circle cx="16" cy="29" r="3" fill="#D4AF37" />
+        <circle cx="84" cy="29" r="3" fill="#D4AF37" />
       </svg>
-      <span className="font-serif text-[11px] font-bold tracking-[0.2em] text-[#006039]">ROLEX</span>
+      <span className="font-serif text-[11px] font-bold tracking-[0.2em] text-[#9A7416]">ROLEX</span>
     </div>
   ),
   rado: (
     <div className="flex flex-col items-center justify-center">
-      <span className="font-sans text-xs font-black tracking-[0.22em] text-[#111113]">RADO</span>
-      <span className="text-[7.5px] tracking-widest text-[#7A6C58]">SWITZERLAND</span>
+      <span className="font-sans text-xs font-black tracking-[0.22em] text-[#B8860B]">RADO</span>
+      <span className="text-[7.5px] tracking-widest text-[#8A671A]">SWITZERLAND</span>
     </div>
   ),
   omega: (
     <div className="flex flex-col items-center justify-center">
-      <span className="font-serif text-sm font-bold text-[#9E1B32]">Ω</span>
-      <span className="font-sans text-[10.5px] font-bold tracking-[0.18em] text-[#111113]">OMEGA</span>
+      <span className="font-serif text-sm font-bold text-[#D4AF37]">Ω</span>
+      <span className="font-sans text-[10.5px] font-bold tracking-[0.18em] text-[#B8860B]">OMEGA</span>
     </div>
   ),
   tissot: (
     <div className="flex flex-col items-center justify-center">
       <div className="flex items-center gap-1">
-        <span className="font-sans text-[11px] font-black tracking-widest text-[#111113]">TISSOT</span>
-        <span className="bg-[#E31B23] text-white text-[8px] font-bold px-1 rounded-2xs">1853</span>
+        <span className="font-sans text-[11px] font-black tracking-widest text-[#B8860B]">TISSOT</span>
+        <span className="bg-[#B8860B] text-white text-[8px] font-bold px-1 rounded-2xs">1853</span>
       </div>
     </div>
   ),
   casio: (
     <div className="flex flex-col items-center justify-center">
-      <span className="font-sans text-[12px] font-black tracking-[0.14em] text-[#003B7A]">CASIO</span>
+      <span className="font-sans text-[12px] font-black tracking-[0.14em] text-[#B8860B]">CASIO</span>
     </div>
   ),
   seiko: (
     <div className="flex flex-col items-center justify-center">
-      <span className="font-serif text-[11.5px] font-bold tracking-[0.18em] text-[#0B2341]">SEIKO</span>
+      <span className="font-serif text-[11.5px] font-bold tracking-[0.18em] text-[#B8860B]">SEIKO</span>
     </div>
   ),
   titan: (
@@ -82,30 +82,30 @@ export const BrandLogos = {
     </div>
   ),
   fossil: (
-    <div className="flex flex-col items-center justify-center border border-[#3C2415]/40 rounded-full px-2 py-0.5 bg-[#FAF6EE]">
-      <span className="font-serif text-[10px] font-bold tracking-[0.12em] text-[#3C2415]">FOSSIL</span>
+    <div className="flex flex-col items-center justify-center border border-[#B8860B]/50 rounded-full px-2 py-0.5 bg-[#FAF6EE]">
+      <span className="font-serif text-[10px] font-bold tracking-[0.12em] text-[#8A671A]">FOSSIL</span>
     </div>
   ),
 
   // Sunglasses
   rayban: (
     <div className="flex flex-col items-center justify-center">
-      <span className="bg-[#E31B23] text-white font-serif font-black italic text-xs px-2.5 py-0.5 rounded-sm shadow-xs tracking-tight">
+      <span className="bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-white font-serif font-black italic text-xs px-2.5 py-0.5 rounded-sm shadow-xs tracking-tight">
         Ray•Ban
       </span>
     </div>
   ),
   oakley: (
     <div className="flex flex-col items-center justify-center">
-      <svg className="w-8 h-4 text-[#111113]" viewBox="0 0 100 50" fill="currentColor">
+      <svg className="w-8 h-4 text-[#B8860B]" viewBox="0 0 100 50" fill="currentColor">
         <path d="M50 0 C22 0 0 11 0 25 C0 39 22 50 50 50 C78 50 100 39 100 25 C100 11 78 0 50 0 Z M50 36 C30 36 14 31 14 25 C14 19 30 14 50 14 C70 14 86 19 86 25 C86 31 70 36 50 36 Z" />
       </svg>
-      <span className="font-sans text-[8.5px] font-bold tracking-widest text-[#111113]">OAKLEY</span>
+      <span className="font-sans text-[8.5px] font-bold tracking-widest text-[#8A671A]">OAKLEY</span>
     </div>
   ),
   gucci: (
     <div className="flex flex-col items-center justify-center">
-      <span className="font-serif text-[11.5px] font-bold tracking-[0.28em] text-[#111113]">GUCCI</span>
+      <span className="font-serif text-[11.5px] font-bold tracking-[0.28em] text-[#B8860B]">GUCCI</span>
     </div>
   ),
 };

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import {
   FALLBACK_CATEGORY_IMAGES,
@@ -8,6 +9,7 @@ import {
 } from '../utils/imageUtils';
 
 export const CategoryAutoSlider: React.FC = () => {
+  const navigate = useNavigate();
   const {
     categories,
     selectedCategory,
@@ -44,6 +46,16 @@ export const CategoryAutoSlider: React.FC = () => {
 
   const handleCategoryClick = (cat: { slug: string; name: string }) => {
     triggerTransition(cat.slug, cat.name);
+    const slug = (cat.slug || cat.name).toLowerCase();
+    let target = slug;
+    if (slug.includes('shoe') || slug.includes('footwear')) target = 'footwear';
+    else if (slug.includes('bag')) target = 'bags';
+    else if (slug.includes('perfume')) target = 'perfumes';
+    else if (slug.includes('watch')) target = 'watches';
+    else if (slug.includes('jean')) target = 'jeans';
+    else if (slug === 'men') target = 'men';
+    else if (slug.includes('accessor')) target = 'accessories';
+    navigate('/' + target);
   };
 
   return (

@@ -381,7 +381,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
             isPrimary: true,
           },
           {
-            label: 'Festive & Occasion Atelier →',
+            label: 'Festive & Occasion Collection →',
             onClick: () => {
               navigate('/collections');
               setIsOpen(false);
@@ -406,7 +406,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
       setMessages((prev) => [...prev, userMsg]);
 
       pushBotReply(
-        "Welcome to LAP OF LUXURY — Experience Premium In Every Touch. ✨\n\nWe bring you curated luxury fashion, Swiss timepieces, royal parfums, artisanal leather bags, and premium footwear.\n\n📍 Flagship Store:\nD/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001.\n\n⏰ Hours: 9:30 AM – 10:00 PM (Everyday)\n📞 Concierge: +91 75 7888 7888",
+        "Welcome to LAP OF LUXURY — Experience Premium In Every Touch. ✨\n\nWe bring you curated luxury fashion, Swiss timepieces, royal parfums, artisanal leather bags, and premium footwear.\n\n📍 Store Location:\nD/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001.\n\n⏰ Hours: 9:30 AM – 10:00 PM (Everyday)\n📞 Concierge: +91 75 7888 7888",
         [
           {
             label: 'Explore Storefront →',
@@ -642,7 +642,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
       ).slice(0, 3);
 
       pushBotReply(
-        "Discover our leather atelier bags, backpacks, travel luggage, and slim wallets:",
+        "Discover our leather designer bags, backpacks, travel luggage, and slim wallets:",
         [
           {
             label: 'View Bags Collection →',

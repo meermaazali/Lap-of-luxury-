@@ -20,6 +20,7 @@ import {
   MediaAsset,
   PaymentConfig,
   BoutiqueHeroConfig,
+  CustomerEnquiry,
 } from '../types';
 import {
   INITIAL_BANNERS,
@@ -234,42 +235,55 @@ export async function ensureCloudDataSeeded(): Promise<void> {
   isSeedingRunning = true;
 
   try {
-    // 1. Check Products
+    // 1. Check and Reconcile Products (never lose catalog products on refresh)
     const prodSnap = await getDocs(collection(db, 'products')).catch(() => null);
-    if (prodSnap && prodSnap.empty) {
-      console.log('Seeding initial products into Cloud Firestore...');
-      for (const p of INITIAL_PRODUCTS) {
+    const existingProdIds = new Set<string>();
+    if (prodSnap) {
+      prodSnap.forEach((d) => existingProdIds.add(d.id));
+    }
+    for (const p of INITIAL_PRODUCTS) {
+      if (!existingProdIds.has(p.id)) {
         await setDoc(doc(db, 'products', p.id), {
           ...p,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }).catch((err) => console.warn('Failed seeding product', p.id, err));
+        }).catch((err) => console.warn('Failed seeding missing product', p.id, err));
       }
     }
 
-    // 2. Check Banners
+    // 2. Check and Reconcile Banners
     const bannerSnap = await getDocs(collection(db, 'banners')).catch(() => null);
-    if (bannerSnap && bannerSnap.empty) {
-      console.log('Seeding initial banners into Cloud Firestore...');
-      for (const b of INITIAL_BANNERS) {
+    const existingBannerIds = new Set<string>();
+    if (bannerSnap) {
+      bannerSnap.forEach((d) => existingBannerIds.add(d.id));
+    }
+    for (const b of INITIAL_BANNERS) {
+      if (!existingBannerIds.has(b.id)) {
         await setDoc(doc(db, 'banners', b.id), {
           ...b,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }).catch((err) => console.warn('Failed seeding banner', b.id, err));
+        }).catch((err) => console.warn('Failed seeding missing banner', b.id, err));
       }
     }
 
-    // 3. Check Categories
+    // 3. Check and Reconcile Categories
     const catSnap = await getDocs(collection(db, 'categories')).catch(() => null);
-    if (catSnap && catSnap.empty) {
-      console.log('Seeding initial categories into Cloud Firestore...');
-      for (const c of INITIAL_CATEGORIES) {
+    const existingCatSlugs = new Set<string>();
+    if (catSnap) {
+      catSnap.forEach((d) => {
+        const data = d.data();
+        if (data.slug) existingCatSlugs.add(data.slug.toLowerCase());
+        if (data.name) existingCatSlugs.add(data.name.toLowerCase());
+      });
+    }
+    for (const c of INITIAL_CATEGORIES) {
+      if (!existingCatSlugs.has((c.slug || c.name).toLowerCase())) {
         await setDoc(doc(db, 'categories', c.id), {
           ...c,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }).catch((err) => console.warn('Failed seeding category', c.id, err));
+        }).catch((err) => console.warn('Failed seeding missing category', c.id, err));
       }
     }
 
@@ -428,6 +442,36 @@ export function subscribeToMediaAssets(callback: (media: MediaAsset[]) => void):
   );
 }
 
+/**
+ * Safely sanitizes objects for Firebase Firestore:
+ * - Recursively strips all `undefined` values that cause Firestore write rejections
+ * - Converts `NaN` numbers to `0`
+ * - Guarantees pristine, error-free payloads
+ */
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return data;
+  }
+  if (typeof data !== 'object') {
+    if (typeof data === 'number' && Number.isNaN(data)) {
+      return 0 as unknown as T;
+    }
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => sanitizeForFirestore(item)) as unknown as T;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, val] of Object.entries(data as Record<string, any>)) {
+    if (val !== undefined) {
+      clean[key] = sanitizeForFirestore(val);
+    }
+  }
+  return clean as T;
+}
+
 // ============================================================================
 // FIRESTORE MUTATIONS (AUTHORITATIVE CLOUD WRITES)
 // ============================================================================
@@ -437,14 +481,23 @@ export async function cloudAddProduct(productData: Omit<Product, 'id'>): Promise
   const newProduct: Product = {
     ...productData,
     id,
+    secondaryImage: productData.secondaryImage || '',
+    subCategory: productData.subCategory || 'General',
+    brand: productData.brand || 'LAP OF LUXURY',
+    department: productData.department || productData.category || 'men',
+    price: Number(productData.price) || 0,
+    originalPrice: Number(productData.originalPrice) || Number(productData.price) || 0,
+    stockCount: Number(productData.stockCount) || 0,
+    inStock: (Number(productData.stockCount) || 0) > 0,
   };
+  const cleanPayload = sanitizeForFirestore({
+    ...newProduct,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
   const path = `products/${id}`;
   try {
-    await setDoc(doc(db, 'products', id), {
-      ...newProduct,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(doc(db, 'products', id), cleanPayload);
     return newProduct;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, path);
@@ -454,10 +507,12 @@ export async function cloudAddProduct(productData: Omit<Product, 'id'>): Promise
 export async function cloudUpdateProduct(id: string, updates: Partial<Product>): Promise<void> {
   const path = `products/${id}`;
   try {
-    await updateDoc(doc(db, 'products', id), {
+    const cleanUpdates = sanitizeForFirestore({
       ...updates,
       updatedAt: new Date().toISOString(),
     });
+    // Use setDoc with merge: true to succeed whether doc exists or needs creation
+    await setDoc(doc(db, 'products', id), cleanUpdates, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }
@@ -475,11 +530,16 @@ export async function cloudDeleteProduct(id: string): Promise<void> {
 export async function cloudUpdateStock(id: string, newStock: number): Promise<void> {
   const path = `products/${id}`;
   try {
-    await updateDoc(doc(db, 'products', id), {
-      stockCount: Math.max(0, newStock),
-      inStock: newStock > 0,
-      updatedAt: new Date().toISOString(),
-    });
+    const stock = Math.max(0, Number(newStock) || 0);
+    await setDoc(
+      doc(db, 'products', id),
+      {
+        stockCount: stock,
+        inStock: stock > 0,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }
@@ -667,3 +727,84 @@ export async function cloudDeleteMediaAsset(id: string): Promise<void> {
     handleFirestoreError(error, OperationType.DELETE, path);
   }
 }
+
+// ============================================================================
+// ENQUIRIES (CUSTOMER INQUIRIES & ADMIN NOTIFICATIONS)
+// ============================================================================
+
+export function subscribeToEnquiries(callback: (enquiries: CustomerEnquiry[]) => void): () => void {
+  const path = 'enquiries';
+  return onSnapshot(
+    collection(db, path),
+    (snapshot) => {
+      const list: CustomerEnquiry[] = [];
+      snapshot.forEach((d) => {
+        const data = d.data() as CustomerEnquiry;
+        list.push({ ...data, id: d.id });
+      });
+      // Sort newest first
+      list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      callback(list);
+    },
+    (error) => {
+      handleFirestoreError(error, OperationType.LIST, path);
+    }
+  );
+}
+
+export async function cloudAddEnquiry(
+  enquiryData: Omit<CustomerEnquiry, 'id' | 'createdAt' | 'isRead' | 'status'>
+): Promise<CustomerEnquiry> {
+  const id = `enq-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const newEnquiry: CustomerEnquiry = {
+    ...enquiryData,
+    id,
+    status: 'new',
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  };
+  const path = `enquiries/${id}`;
+  try {
+    await setDoc(doc(db, 'enquiries', id), newEnquiry);
+    return newEnquiry;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+  }
+}
+
+export async function cloudUpdateEnquiryStatus(
+  enquiryId: string,
+  status: CustomerEnquiry['status']
+): Promise<void> {
+  const path = `enquiries/${enquiryId}`;
+  try {
+    await updateDoc(doc(db, 'enquiries', enquiryId), {
+      status,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+export async function cloudMarkEnquiryRead(enquiryId: string): Promise<void> {
+  const path = `enquiries/${enquiryId}`;
+  try {
+    await updateDoc(doc(db, 'enquiries', enquiryId), {
+      isRead: true,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+export async function cloudDeleteEnquiry(enquiryId: string): Promise<void> {
+  const path = `enquiries/${enquiryId}`;
+  try {
+    await deleteDoc(doc(db, 'enquiries', enquiryId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
+}
+

@@ -68,7 +68,7 @@ export const ClientPhotoGuide: React.FC = () => {
               1. MAIN HERO BANNER
             </h3>
             <p className="text-xs text-[#7A6C58] mt-1 mb-4">
-              The boutique showcase at the very top of your homepage.
+              The hero showcase at the very top of your homepage.
             </p>
 
             {/* Aspect Ratio Diagram */}
@@ -89,7 +89,7 @@ export const ClientPhotoGuide: React.FC = () => {
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Style:</strong> Horizontal luxury photoshoot with models, lifestyle scenery, or boutique luxury store showcase.
+                  <strong>Style:</strong> Horizontal luxury photoshoot with models, lifestyle scenery, or luxury store showcase.
                 </span>
               </div>
               <div className="flex items-start gap-2">

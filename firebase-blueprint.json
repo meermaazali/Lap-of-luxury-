@@ -102,6 +102,23 @@
         "createdAt": { "type": "string" }
       },
       "required": ["id", "dataUrl"]
+    },
+    "Enquiry": {
+      "title": "Enquiry",
+      "description": "Customer enquiry record from homepage form",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "categoryInterest": { "type": "string" },
+        "status": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "email", "message"]
     }
   },
   "firestore": {
@@ -128,6 +145,10 @@
     "/media/{mediaId}": {
       "schema": { "$ref": "#/entities/MediaAsset" },
       "description": "Admin media assets collection"
+    },
+    "/enquiries/{enquiryId}": {
+      "schema": { "$ref": "#/entities/Enquiry" },
+      "description": "Customer enquiries collection"
     }
   }
 }

@@ -8,6 +8,7 @@ import {
   MediaAsset,
   PaymentConfig,
   BoutiqueHeroConfig,
+  CustomerEnquiry,
 } from '../types';
 import {
   INITIAL_BANNERS,
@@ -17,6 +18,7 @@ import {
 } from '../data/initialData';
 import { normalizeImageUrl } from '../utils/imageUtils';
 import { sendOrderEmailNotification } from '../utils/orderNotification';
+import { sendEnquiryNotification } from '../utils/enquiryNotification';
 import {
   ensureCloudDataSeeded,
   subscribeToProducts,
@@ -25,6 +27,7 @@ import {
   subscribeToOrders,
   subscribeToStoreSettings,
   subscribeToMediaAssets,
+  subscribeToEnquiries,
   cloudAddProduct,
   cloudUpdateProduct,
   cloudDeleteProduct,
@@ -42,6 +45,10 @@ import {
   uploadFileToFirebaseStorage,
   cloudAddMediaAsset,
   cloudDeleteMediaAsset,
+  cloudAddEnquiry,
+  cloudUpdateEnquiryStatus,
+  cloudMarkEnquiryRead,
+  cloudDeleteEnquiry,
   DEFAULT_PAYMENT_CONFIG,
   DEFAULT_BOUTIQUE_HERO,
 } from '../lib/firebaseServices';
@@ -113,6 +120,18 @@ interface StoreContextType {
   latestNotification: Order | null;
   dismissNotification: () => void;
   playOrderChime: () => void;
+
+  // Customer Enquiries
+  enquiries: CustomerEnquiry[];
+  unreadEnquiriesCount: number;
+  latestEnquiryNotification: CustomerEnquiry | null;
+  dismissEnquiryNotification: () => void;
+  submitEnquiry: (
+    enquiry: Omit<CustomerEnquiry, 'id' | 'createdAt' | 'isRead' | 'status'>
+  ) => Promise<CustomerEnquiry>;
+  updateEnquiryStatus: (id: string, status: CustomerEnquiry['status']) => Promise<void> | void;
+  markEnquiryRead: (id: string) => Promise<void> | void;
+  deleteEnquiry: (id: string) => Promise<void> | void;
 
   // Payment Setup Configuration
   paymentConfig: PaymentConfig;
@@ -198,6 +217,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [categoryInterval, setCategoryIntervalState] = useState<number>(4);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [enquiries, setEnquiries] = useState<CustomerEnquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem('lol_enquiries_cache');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [latestEnquiryNotification, setLatestEnquiryNotification] = useState<CustomerEnquiry | null>(null);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(() => {
     try {
       const saved = localStorage.getItem('lol_media_cache');
@@ -422,6 +450,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let unsubOrders: (() => void) | undefined;
     let unsubSettings: (() => void) | undefined;
     let unsubMedia: (() => void) | undefined;
+    let unsubEnquiries: (() => void) | undefined;
 
     // Attach live real-time listeners across all devices immediately on mount
     try {
@@ -477,6 +506,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     try {
+      unsubEnquiries = subscribeToEnquiries((cloudEnquiries) => {
+        setEnquiries(cloudEnquiries);
+        try {
+          localStorage.setItem('lol_enquiries_cache', JSON.stringify(cloudEnquiries));
+        } catch {}
+        const unread = cloudEnquiries.find((e) => !e.isRead);
+        if (unread) {
+          setLatestEnquiryNotification(unread);
+        }
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to enquiries:', e);
+    }
+
+    try {
       unsubSettings = subscribeToStoreSettings((settings) => {
         if (settings.paymentConfig) {
           setPaymentConfig(settings.paymentConfig);
@@ -524,6 +568,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       unsubOrders?.();
       unsubSettings?.();
       unsubMedia?.();
+      unsubEnquiries?.();
     };
   }, []);
 
@@ -963,6 +1008,45 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     void cloudDeleteMediaAsset(id);
   };
 
+  // Customer Enquiry Actions
+  const submitEnquiry = async (
+    enquiryData: Omit<CustomerEnquiry, 'id' | 'createdAt' | 'isRead' | 'status'>
+  ): Promise<CustomerEnquiry> => {
+    const created = await cloudAddEnquiry(enquiryData);
+    setEnquiries((prev) => [created, ...prev.filter((e) => e.id !== created.id)]);
+    try {
+      localStorage.setItem('lol_enquiries_cache', JSON.stringify([created, ...enquiries]));
+    } catch {}
+    // Trigger real administrator notification
+    void sendEnquiryNotification(created);
+    return created;
+  };
+
+  const updateEnquiryStatus = async (id: string, status: CustomerEnquiry['status']) => {
+    setEnquiries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, status } : e))
+    );
+    await cloudUpdateEnquiryStatus(id, status);
+  };
+
+  const markEnquiryRead = async (id: string) => {
+    setEnquiries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, isRead: true } : e))
+    );
+    await cloudMarkEnquiryRead(id);
+  };
+
+  const deleteEnquiry = async (id: string) => {
+    setEnquiries((prev) => prev.filter((e) => e.id !== id));
+    await cloudDeleteEnquiry(id);
+  };
+
+  const dismissEnquiryNotification = () => {
+    setLatestEnquiryNotification(null);
+  };
+
+  const unreadEnquiriesCount = enquiries.filter((e) => !e.isRead).length;
+
   return (
     <StoreContext.Provider
       value={{
@@ -1005,6 +1089,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         latestNotification,
         dismissNotification,
         playOrderChime,
+        enquiries,
+        unreadEnquiriesCount,
+        latestEnquiryNotification,
+        dismissEnquiryNotification,
+        submitEnquiry,
+        updateEnquiryStatus,
+        markEnquiryRead,
+        deleteEnquiry,
         mediaAssets,
         uploadMediaAsset,
         addMediaAssetByUrl,

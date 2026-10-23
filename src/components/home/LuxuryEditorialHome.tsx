@@ -1,36 +1,33 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ArrowRight,
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  Heart,
-  Eye,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
   Clock,
-  Compass,
-  Flame,
+  Award,
+  Crown,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { Product, BannerSlide } from '../../types';
-import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../../utils/imageUtils';
+import { normalizeImageUrl } from '../../utils/imageUtils';
+import { CategorySliderSection } from './CategorySliderSection';
+import { CustomerEnquirySection } from './CustomerEnquirySection';
 
 export const LuxuryEditorialHome: React.FC = () => {
   const {
-    products,
     banners,
     categories,
     boutiqueHeroConfig,
     setCurrentView,
-    openProductDetail,
-    setQuickViewProduct,
-    isInWishlist,
-    toggleWishlist,
   } = useStore();
 
   // Active Hero Slide Index
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Assemble campaign slides
+  // Assemble campaign slides from Cloud Firestore / Boutique Hero Config
   const campaignSlides = useMemo(() => {
     const list: Array<{
       image: string;
@@ -41,12 +38,12 @@ export const LuxuryEditorialHome: React.FC = () => {
       ctaLink: string;
     }> = [];
 
-    // Boutique hero banner
+    // Hero showcase banner
     if (boutiqueHeroConfig?.image) {
       list.push({
         image: normalizeImageUrl(boutiqueHeroConfig.image),
         title: `${boutiqueHeroConfig.titleLine1 || 'Luxury'} ${boutiqueHeroConfig.titleLine2 || 'For Every Moment'}`,
-        kicker: boutiqueHeroConfig.kicker || 'EXCLUSIVE ATELIER COLLECTION',
+        kicker: boutiqueHeroConfig.kicker || 'EXCLUSIVE COLLECTION',
         subtitle: (boutiqueHeroConfig.subtitleItems || []).join(' · ') || 'Premium Fashion, Handbags & Timepieces',
         ctaText: boutiqueHeroConfig.ctaText || 'Explore Collections',
         ctaLink: 'collections',
@@ -68,12 +65,12 @@ export const LuxuryEditorialHome: React.FC = () => {
       });
     }
 
-    // Default luxury editorial fallbacks if empty
+    // Default luxury editorial fallback if empty
     if (list.length === 0) {
       list.push({
         image: '/images/category_mens_fashion_1791290148102.jpg',
         title: 'LAP OF LUXURY',
-        kicker: 'THE FESTIVE & OCCASION ATELIER',
+        kicker: 'THE FESTIVE & OCCASION COLLECTION',
         subtitle: 'Premium Shirts, Denim, Fine Leathers & Timepieces',
         ctaText: 'Discover The Curation',
         ctaLink: 'men',
@@ -92,20 +89,12 @@ export const LuxuryEditorialHome: React.FC = () => {
     return () => clearInterval(interval);
   }, [campaignSlides.length]);
 
-  // Curated collections
-  const newArrivals = products.slice(0, 4);
-  const trendingProducts = products.filter((p) => p.isBestSeller).slice(0, 4);
-  const bagCreations = products.filter((p) => (p.category || '').toLowerCase() === 'bags' || (p.department || '').toLowerCase() === 'bags').slice(0, 4);
-  const footwearCreations = products.filter((p) => (p.category || '').toLowerCase() === 'shoes' || (p.department || '').toLowerCase() === 'footwear').slice(0, 4);
-  const menPicks = products.filter((p) => (p.department || '').toLowerCase() === 'men' || (p.category || '').toLowerCase() === 'men' || (p.category || '').toLowerCase() === 'jeans').slice(0, 3);
-  const womenPicks = products.filter((p) => (p.department || '').toLowerCase() === 'women' || (p.category || '').toLowerCase() === 'women').slice(0, 3);
-
   return (
-    <div className="w-full bg-[#FAF8F5] text-[#111113] space-y-12 sm:space-y-16 pb-16">
-      {/* 1. LARGE PREMIUM CAMPAIGN SLIDER */}
+    <div className="w-full bg-[#FAF8F5] text-[#111113]">
+      {/* 1. PREMIUM HERO CAMPAIGN SLIDER */}
       <section className="relative w-full bg-[#111113] overflow-hidden border-b border-[#D4AF37]/30">
         <div className="relative aspect-[16/9] sm:aspect-[21/9] md:aspect-[24/8] max-h-[560px] w-full">
-          {campaignSlides.map((slide: any, idx: number) => {
+          {campaignSlides.map((slide, idx) => {
             const isCurrent = idx === activeSlide;
 
             return (
@@ -130,9 +119,9 @@ export const LuxuryEditorialHome: React.FC = () => {
                   <span className="text-[10px] sm:text-xs font-extrabold tracking-[0.28em] uppercase text-[#D4AF37] mb-2 drop-shadow-sm">
                     {slide.kicker}
                   </span>
-                  <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-[0.08em] text-white leading-tight max-w-3xl drop-shadow-md">
+                  <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-[0.08em] text-white leading-tight max-w-3xl drop-shadow-md">
                     {slide.title}
-                  </h2>
+                  </h1>
                   <p className="font-sans text-xs sm:text-sm md:text-base text-[#E0D5C3] mt-3 max-w-xl font-light leading-relaxed drop-shadow-sm hidden sm:block">
                     {slide.subtitle}
                   </p>
@@ -187,7 +176,7 @@ export const LuxuryEditorialHome: React.FC = () => {
 
               {/* Slider Dots */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-                {campaignSlides.map((_: any, i: number) => (
+                {campaignSlides.map((_, i) => (
                   <button
                     key={i}
                     type="button"
@@ -204,200 +193,66 @@ export const LuxuryEditorialHome: React.FC = () => {
         </div>
       </section>
 
+      {/* 2. SMOOTH AUTOMATICALLY SLIDING CATEGORY SECTION */}
+      <CategorySliderSection />
 
-      <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
-          <div>
-            <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase block">
-              SEASON PREVIEW
-            </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
-              NEW ARRIVALS
-            </h2>
+      {/* 3. VALUE PROPOSITIONS & REASSURANCE */}
+      <section className="w-full bg-white border-b border-[#E8DEC8] py-8 sm:py-10">
+        <div className="max-w-[1540px] mx-auto px-4 sm:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-[#FAF6EE] border border-[#D4AF37]/50 flex items-center justify-center text-[#B8860B] shrink-0">
+                <Crown className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bodoni font-bold text-xs sm:text-sm uppercase tracking-wider text-[#111113]">
+                  100% AUTHENTIC
+                </h4>
+                <p className="text-[11px] text-[#7A6C58]">Handcrafted premium luxury collections</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-[#FAF6EE] border border-[#D4AF37]/50 flex items-center justify-center text-[#B8860B] shrink-0">
+                <Truck className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bodoni font-bold text-xs sm:text-sm uppercase tracking-wider text-[#111113]">
+                  EXPRESS DISPATCH
+                </h4>
+                <p className="text-[11px] text-[#7A6C58]">Doorstep delivery across India</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-[#FAF6EE] border border-[#D4AF37]/50 flex items-center justify-center text-[#B8860B] shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bodoni font-bold text-xs sm:text-sm uppercase tracking-wider text-[#111113]">
+                  CONCIERGE ASSISTANCE
+                </h4>
+                <p className="text-[11px] text-[#7A6C58]">Direct stylist fitting &amp; support</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-[#FAF6EE] border border-[#D4AF37]/50 flex items-center justify-center text-[#B8860B] shrink-0">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bodoni font-bold text-xs sm:text-sm uppercase tracking-wider text-[#111113]">
+                  DOORSTEP VERIFICATION
+                </h4>
+                <p className="text-[11px] text-[#7A6C58]">Inspect upon delivery with ease</p>
+              </div>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setCurrentView('new-arrivals')}
-            className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
-          >
-            <span>View All New In</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-          {newArrivals.map((product) => (
-            <ProductCardItem key={product.id} product={product} />
-          ))}
         </div>
       </section>
 
-
-
-      {/* 6. BESTSELLING BAGS & LEATHERCRAFT */}
-      <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
-          <div>
-            <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase block">
-              ATELIER LEATHERS
-            </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
-              BESTSELLING BAGS & ACCESSORIES
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => setCurrentView('bags')}
-            className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
-          >
-            <span>Explore Bags</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-          {bagCreations.map((product) => (
-            <ProductCardItem key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-
-
-      {/* 8. PREMIUM FOOTWEAR COLLECTION SPOTLIGHT */}
-      <section className="max-w-[1540px] mx-auto px-4 sm:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#E8DEC8] pb-4 gap-2">
-          <div>
-            <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase block">
-              THE LUXURY STRIDE
-            </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold uppercase tracking-wider text-[#111113]">
-              PREMIUM FOOTWEAR COLLECTION
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => setCurrentView('footwear')}
-            className="text-xs font-bold uppercase tracking-wider text-[#B8860B] hover:text-[#111113] flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
-          >
-            <span>Explore Footwear</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-          {footwearCreations.map((product) => (
-            <ProductCardItem key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-
-    </div>
-  );
-};
-
-// Reusable 3:4 Luxury Product Card for Homepage Grids
-const ProductCardItem: React.FC<{ product: Product }> = ({ product }) => {
-  const { openProductDetail, setQuickViewProduct, isInWishlist, toggleWishlist } = useStore();
-  const inWish = isInWishlist(product.id);
-
-  const discountPercent =
-    product.originalPrice && product.originalPrice > product.price
-      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-      : null;
-
-  return (
-    <div className="group bg-white rounded-2xl overflow-hidden border border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-      <a
-        href={`/product/${product.id}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative aspect-[3/4] w-full overflow-hidden bg-[#FAF8F5] cursor-pointer block"
-      >
-        <img
-          src={normalizeImageUrl(product.image, product.category)}
-          alt={product.name}
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = FALLBACK_LUXURY_IMAGE;
-          }}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            product.secondaryImage ? 'group-hover:opacity-0' : ''
-          }`}
-        />
-        {product.secondaryImage && (
-          <img
-            src={normalizeImageUrl(product.secondaryImage, product.category)}
-            alt={`${product.name} alternate`}
-            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105"
-          />
-        )}
-
-        {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-          {discountPercent && (
-            <span className="bg-[#111113] text-[#D4AF37] text-[9.5px] px-2 py-0.5 rounded-md uppercase tracking-wider border border-[#D4AF37]/40 shadow-xs">
-              {discountPercent}% OFF
-            </span>
-          )}
-        </div>
-
-        {/* Wishlist Button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleWishlist(product);
-          }}
-          className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-[#111113] shadow-md flex items-center justify-center transition-all cursor-pointer z-10 active:scale-90"
-        >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              inWish ? 'fill-red-600 text-red-600' : 'text-[#2A241E]'
-            }`}
-          />
-        </button>
-      </a>
-
-      <div className="p-3.5 sm:p-4 flex flex-col justify-between flex-1 space-y-2">
-        <a
-          href={`/product/${product.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cursor-pointer block group-hover:text-[#B8860B] transition-colors"
-        >
-          <span className="text-[9.5px] tracking-[0.18em] uppercase text-[#8A671A] block">
-            {product.brand || 'LAP OF LUXURY'}
-          </span>
-          <h4 className="text-xs sm:text-sm text-[#111113] line-clamp-1 mt-0.5">
-            {product.name}
-          </h4>
-        </a>
-
-        <div className="pt-2 border-t border-[#F0EAE1] flex items-center justify-between">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-sm sm:text-base text-[#111113]">
-              ₹{product.price.toLocaleString('en-IN')}
-            </span>
-            {product.originalPrice && product.originalPrice > product.price && (
-              <span className="text-[11px] text-gray-400 line-through">
-                ₹{product.originalPrice.toLocaleString('en-IN')}
-              </span>
-            )}
-          </div>
-          <a
-            href={`/product/${product.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 text-xs text-[#8A671A] hover:text-[#111113] flex items-center gap-0.5 cursor-pointer"
-          >
-            <span>View</span>
-            <ChevronRight className="w-3 h-3" />
-          </a>
-        </div>
-      </div>
+      {/* 4. FULLY FUNCTIONAL CUSTOMER ENQUIRY FORM */}
+      <CustomerEnquirySection />
     </div>
   );
 };
