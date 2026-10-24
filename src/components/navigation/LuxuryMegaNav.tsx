@@ -86,7 +86,20 @@ export const LuxuryMegaNav: React.FC = () => {
 
         if (defaultData[targetKey]) {
           if (Array.isArray(cat.subcategories) && cat.subcategories.length > 0) {
-            defaultData[targetKey].subcategories = cat.subcategories;
+            defaultData[targetKey].subcategories = cat.subcategories.filter((s) => {
+              if (targetKey === 'men') {
+                const sl = s.toLowerCase();
+                return (
+                  !sl.includes('sunglass') &&
+                  !sl.includes('glasses') &&
+                  !sl.includes('eyewear') &&
+                  !sl.includes('perfume') &&
+                  !sl.includes('watch') &&
+                  !sl.includes('women')
+                );
+              }
+              return true;
+            });
           }
           if (Array.isArray(cat.brands) && cat.brands.length > 0) {
             defaultData[targetKey].brands = cat.brands;
@@ -302,21 +315,28 @@ export const LuxuryMegaNav: React.FC = () => {
     }, 250);
   };
 
-  const handleTabClick = (view: string) => {
+  const handleTabClick = (view: string, e?: React.MouseEvent) => {
     setActiveHoverId(null);
-    setCurrentView(view, null);
-    const targetPath = view === 'home' ? '/' : `/${view}`;
-    navigate(targetPath);
+    if (view === 'home') {
+      e?.preventDefault();
+      setCurrentView('home', null);
+      navigate('/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // Per user explicit request: open departments in new tabs
+      const targetPath = `/${view}`;
+      window.open(targetPath, '_blank', 'noopener,noreferrer');
+    }
   };
 
-  const handleSubCategoryClick = (view: string, subCategory?: string) => {
+  const handleSubCategoryClick = (view: string, subCategory?: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setActiveHoverId(null);
-    setCurrentView(view, subCategory || null);
+    let targetPath = `/${view}`;
     if (subCategory && subCategory.trim()) {
-      navigate(`/category/${view}/${encodeURIComponent(subCategory.trim())}`);
-    } else {
-      navigate(`/${view}`);
+      targetPath = `/category/${view}/${encodeURIComponent(subCategory.trim())}`;
     }
+    window.open(targetPath, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -332,6 +352,7 @@ export const LuxuryMegaNav: React.FC = () => {
               currentView === tab.view ||
               (tab.view === 'home' && (!currentView || currentView === 'home'));
             const isHovered = activeHoverId === tab.id;
+            const targetUrl = tab.view === 'home' ? '/' : `/${tab.view}`;
 
             return (
               <li
@@ -339,10 +360,17 @@ export const LuxuryMegaNav: React.FC = () => {
                 className="relative py-3 group"
                 onMouseEnter={() => handleMouseEnter(tab.id)}
               >
-                {/* Main Navigation Tab Button */}
-                <button
-                  type="button"
-                  onClick={() => handleTabClick(tab.view)}
+                {/* Main Navigation Link (Opens in New Tab for departments) */}
+                <a
+                  href={targetUrl}
+                  target={tab.view === 'home' ? '_self' : '_blank'}
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    if (tab.view === 'home') {
+                      e.preventDefault();
+                      handleTabClick('home');
+                    }
+                  }}
                   className={`flex items-center gap-1.5 transition-colors cursor-pointer py-1 relative ${
                     isActive
                       ? 'text-[#B8860B] font-bold'
@@ -368,7 +396,7 @@ export const LuxuryMegaNav: React.FC = () => {
                   {isActive && (
                     <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#B8860B] rounded-full" />
                   )}
-                </button>
+                </a>
 
                 {/* LUXURY DROPDOWN MENU — SHOWS ONLY SUBCATEGORY & BRAND LINKS */}
                 {tab.hasDropdown && isHovered && tab.columns && (
@@ -394,14 +422,19 @@ export const LuxuryMegaNav: React.FC = () => {
                                   item.subCategory &&
                                   selectedSubcategory.toLowerCase() ===
                                     item.subCategory.toLowerCase();
+                                const subUrl =
+                                  item.subCategory && item.subCategory.trim()
+                                    ? `/category/${tab.view}/${encodeURIComponent(item.subCategory.trim())}`
+                                    : `/${tab.view}`;
 
                                 return (
                                   <li key={itemIdx}>
-                                    <button
-                                      type="button"
+                                    <a
+                                      href={subUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleSubCategoryClick(tab.view, item.subCategory);
                                       }}
                                       className={`text-left w-full hover:text-[#B8860B] hover:translate-x-1 transition-all cursor-pointer flex items-center justify-between py-1 px-1 rounded-md group/link ${
                                         isSubActive
@@ -413,7 +446,7 @@ export const LuxuryMegaNav: React.FC = () => {
                                         {item.label}
                                       </span>
                                       <ArrowRight className="w-3 h-3 opacity-0 group-hover/link:opacity-100 -translate-x-1 group-hover/link:translate-x-0 transition-all text-[#B8860B]" />
-                                    </button>
+                                    </a>
                                   </li>
                                 );
                               })}
@@ -425,16 +458,17 @@ export const LuxuryMegaNav: React.FC = () => {
                       {/* Bottom Quick-Action Bar */}
                       <div className="mt-4 pt-3 border-t border-[#F0EAE1] flex items-center justify-between text-[11px]">
                         <span className="text-[#8C8274] font-normal lowercase tracking-normal">
-                          explore handcrafted {tab.label.toLowerCase()}
+                          explore {tab.label.toLowerCase()}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleSubCategoryClick(tab.view)}
+                        <a
+                          href={`/${tab.view}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="font-bold text-[#8A671A] hover:text-[#B8860B] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                         >
                           <span>View All {tab.label}</span>
                           <ArrowRight className="w-3 h-3" />
-                        </button>
+                        </a>
                       </div>
                     </div>
                   </div>

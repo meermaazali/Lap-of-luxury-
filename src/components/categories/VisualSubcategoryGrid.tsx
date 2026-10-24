@@ -30,7 +30,7 @@ interface VisualSubcategoryGridProps {
   onViewAllCategories?: () => void;
 }
 
-// Authentic brand logo renderers for Watches and Sunglasses with unified Golden Theme
+// Featured brand logo renderers for Watches and Sunglasses with unified Golden Theme
 export const BrandLogos = {
   // Watches
   rolex: (
@@ -164,7 +164,18 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
   onViewAllCategories,
 }) => {
   const { categories } = useStore();
-  const normDept = departmentKey.toLowerCase();
+  const rawDept = departmentKey.toLowerCase().trim();
+  let normDept = rawDept;
+  if ((rawDept.includes('men') || rawDept === 'mens' || rawDept === "men's") && !rawDept.includes('women')) normDept = 'men';
+  else if (rawDept.includes('women') || rawDept === 'womens' || rawDept === "women's") normDept = 'women';
+  else if (rawDept.includes('shoe') || rawDept.includes('footwear')) normDept = 'footwear';
+  else if (rawDept.includes('bag')) normDept = 'bags';
+  else if (rawDept.includes('perfume')) normDept = 'perfumes';
+  else if (rawDept.includes('watch')) normDept = 'watches';
+  else if (rawDept.includes('jean') || rawDept.includes('denim')) normDept = 'jeans';
+  else if (rawDept.includes('sunglass') || rawDept.includes('eyewear') || rawDept.includes('glasses')) normDept = 'sunglasses';
+  else if (rawDept.includes('accessor')) normDept = 'accessories';
+
   const isWatchesDept = normDept === 'watches' || (normDept === 'accessories' && activeSubcategory?.toLowerCase().includes('watch'));
   const isSunglassesDept = normDept === 'sunglasses' || normDept === 'eyewear';
 
@@ -178,7 +189,8 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
         slugLower === normDept ||
         catDept === normDept ||
         (normDept === 'footwear' && (slugLower === 'shoes' || slugLower === 'footwear')) ||
-        (normDept === 'men' && slugLower === 'men') ||
+        (normDept === 'men' && (slugLower === 'men' || slugLower === 'mens')) ||
+        (normDept === 'women' && (slugLower === 'women' || slugLower === 'womens')) ||
         (normDept === 'jeans' && slugLower === 'jeans') ||
         (normDept === 'bags' && slugLower === 'bags') ||
         (normDept === 'perfumes' && slugLower === 'perfumes') ||
@@ -232,12 +244,54 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
       ];
       if (matchingCat?.subcategories) {
         matchingCat.subcategories.forEach((sub) => {
+          const sLower = sub.toLowerCase();
+          if (
+            sLower.includes('sunglass') ||
+            sLower.includes('glasses') ||
+            sLower.includes('eyewear') ||
+            sLower.includes('perfume') ||
+            sLower.includes('watch') ||
+            sLower.includes('bag') ||
+            sLower.includes('saree') ||
+            sLower.includes('lehenga') ||
+            sLower.includes('gown') ||
+            sLower.includes('women')
+          ) {
+            return;
+          }
           if (!menList.some((m) => m.name.toLowerCase() === sub.toLowerCase())) {
             menList.push({ id: sub.toLowerCase().replace(/\s+/g, '-'), name: sub, iconType: 'shirts' });
           }
         });
       }
       return menList;
+    }
+
+    if (normDept === 'women') {
+      const womenList: SubcategoryItem[] = [
+        { id: 'women-collection', name: "Women's Collection", iconType: 'all' },
+        { id: 'sarees', name: 'Sarees', iconType: 'sarees' },
+        { id: 'dresses', name: 'Dresses & Gowns', iconType: 'sarees' },
+        { id: 'blouses', name: 'Blouses', iconType: 'shirts' },
+        { id: 'co-ord-sets', name: 'Co-ord Sets', iconType: 'sarees' },
+      ];
+      if (matchingCat?.subcategories) {
+        matchingCat.subcategories.forEach((sub) => {
+          const sLower = sub.toLowerCase();
+          if (
+            sLower.includes('men') ||
+            sLower.includes('sunglass') ||
+            sLower.includes('perfume') ||
+            sLower.includes('watch')
+          ) {
+            return;
+          }
+          if (!womenList.some((w) => w.name.toLowerCase() === sub.toLowerCase())) {
+            womenList.push({ id: sub.toLowerCase().replace(/\s+/g, '-'), name: sub, iconType: 'sarees' });
+          }
+        });
+      }
+      return womenList;
     }
 
     if (normDept === 'jeans') {
@@ -294,11 +348,17 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
       ];
     }
 
+    if (normDept === 'accessories') {
+      return [
+        { id: 'accessories-collection', name: 'Accessories', iconType: 'all' },
+        { id: 'sunglasses', name: 'Sunglasses', iconType: 'sunglasses' },
+        { id: 'belts', name: 'Belts & Buckles', iconType: 'belts' },
+        { id: 'wallets', name: 'Wallets', iconType: 'wallets' },
+      ];
+    }
+
     return [
-      { id: 'all', name: `${departmentKey.toUpperCase()}`, iconType: 'all' },
-      { id: 'belts', name: 'Belts & Buckles', iconType: 'belts' },
-      { id: 'sunglasses', name: 'Sunglasses', iconType: 'sunglasses' },
-      { id: 'accessories', name: 'Luxury Accessories', iconType: 'all' },
+      { id: 'all', name: `All ${departmentKey.toUpperCase()}`, iconType: 'all' },
     ];
   })();
 
@@ -311,9 +371,9 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
             <span className="w-2 h-2 rounded-full bg-[#B8860B]" />
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#111113]">
               {isWatchesDept
-                ? 'AUTHENTIC HOROLOGY BRANDS'
+                ? 'LUXURY WATCH BRANDS'
                 : isSunglassesDept
-                ? 'AUTHENTIC EYEWEAR BRANDS'
+                ? 'LUXURY EYEWEAR BRANDS'
                 : 'EXPLORE BY CATEGORY'}
             </h3>
           </div>
@@ -332,9 +392,9 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
         {/* Visual Icons Grid (Responsive: 3 cols mobile, 4-6 cols desktop) */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-9 gap-2.5 sm:gap-3.5">
           {subcategoryList.map((item) => {
-            const isAll = item.name.toLowerCase().startsWith('all');
+            const isAll = item.name.toLowerCase().startsWith('all') || item.id.includes('collection') || item.name.toLowerCase() === departmentKey.toLowerCase();
             const isSelected =
-              (isAll && (!activeSubcategory || activeSubcategory.toLowerCase().startsWith('all'))) ||
+              (isAll && (!activeSubcategory || activeSubcategory.toLowerCase().startsWith('all') || activeSubcategory.toLowerCase() === departmentKey.toLowerCase() || activeSubcategory.toLowerCase() === item.name.toLowerCase())) ||
               (activeSubcategory &&
                 (activeSubcategory.toLowerCase() === item.name.toLowerCase() ||
                   activeSubcategory.toLowerCase() === item.id.toLowerCase()));
@@ -343,21 +403,21 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => onSelectSubcategory(item.name)}
-                className={`group flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer relative min-h-[92px] text-center ${
+                onClick={() => onSelectSubcategory(isAll ? 'All' : item.name)}
+                className={`group flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer relative min-h-[96px] text-center ${
                   isSelected
-                    ? 'bg-white border-[#B8860B] ring-2 ring-[#B8860B]/40 shadow-md'
-                    : 'bg-white/80 hover:bg-white border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-sm'
+                    ? 'bg-white border-[#B8860B] ring-2 ring-[#B8860B]/40 shadow-md scale-[1.02]'
+                    : 'bg-white/90 hover:bg-white border-[#E8DEC8] hover:border-[#B8860B] hover:shadow-sm'
                 }`}
               >
-                {/* Visual Icon or Authentic Brand Logo */}
+                {/* Visual Icon or Brand Logo */}
                 <div className="h-10 w-full flex items-center justify-center mb-1.5">
                   {item.isBrand && item.brandLogo ? (
                     <div className="transition-transform duration-200 group-hover:scale-105">
                       {item.brandLogo}
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-[#FAF6EE] border border-[#E8DEC8] flex items-center justify-center group-hover:bg-[#F3E7BE] transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-[#FAF6EE] border border-[#D4AF37]/30 flex items-center justify-center group-hover:bg-[#F3E7BE] transition-colors shadow-2xs">
                       {renderCategoryIcon(item.name, departmentKey)}
                     </div>
                   )}
@@ -376,7 +436,7 @@ export const VisualSubcategoryGrid: React.FC<VisualSubcategoryGridProps> = ({
 
                 {/* Selected Checkmark Badge */}
                 {isSelected && (
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#B8860B] text-white flex items-center justify-center">
+                  <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#B8860B] text-white flex items-center justify-center shadow-xs">
                     <Check className="w-2.5 h-2.5 stroke-3" />
                   </span>
                 )}

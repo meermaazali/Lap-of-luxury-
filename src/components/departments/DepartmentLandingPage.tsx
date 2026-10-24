@@ -297,25 +297,112 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
       );
     };
 
-    return products.filter((product) => {
-      const { dept, cat, sub, name, brand, tags } = getProductFields(product);
-      const isPerfume = isPerfumeProduct(product);
+    const isWatchProduct = (product: Product) => {
+      const { dept, cat, sub, name, tags } = getProductFields(product);
+      if (isPerfumeProduct(product)) return false;
+      if (containsAny(name, ['sunglasses', 'glasses', 'goggle', 'eyewear', 'bag', 'tote', 'clutch', 'shoe', 'sneaker', 'shirt', 'jean', 'hoodie'])) return false;
+      if (containsAny(sub, ['sunglasses', 'glasses', 'eyewear', 'bag', 'tote', 'clutch', 'shoe', 'sneaker', 'shirt', 'jean'])) return false;
+      return (
+        dept === 'watches' ||
+        cat === 'watches' ||
+        containsAny(name, ['watch', 'chronograph', 'timepiece']) ||
+        containsAny(sub, ['watch', 'chronograph', 'automatic', 'dress watches', 'gold editions']) ||
+        tags.some((t) => containsAny(t, ['watch', 'timepiece', 'chronograph']))
+      );
+    };
 
-      // MEN: Exclude perfume products before checking men tags or categories.
-      if (departmentKey === 'men') {
-        if (isPerfume) return false;
+    const isEyewearProduct = (product: Product) => {
+      const { sub, name, tags } = getProductFields(product);
+      return (
+        containsAny(name, ['sunglasses', 'glasses', 'goggle', 'eyewear', 'aviator']) ||
+        containsAny(sub, ['sunglasses', 'glasses', 'eyewear', 'aviator', 'polarized']) ||
+        tags.some((t) => containsAny(t, ['sunglasses', 'eyewear', 'uv400', 'polarized']))
+      );
+    };
+
+    const isBagProduct = (product: Product) => {
+      const { dept, cat, sub, name, tags } = getProductFields(product);
+      if (isPerfumeProduct(product) || isWatchProduct(product) || isEyewearProduct(product)) return false;
+      return (
+        dept === 'bags' ||
+        cat === 'bags' ||
+        containsAny(name, ['bag', 'clutch', 'tote', 'wallet', 'briefcase', 'backpack', 'duffle', 'crossbody', 'sling']) ||
+        containsAny(sub, ['bag', 'clutch', 'tote', 'wallet', 'briefcase', 'backpack', 'duffle', 'crossbody', 'sling']) ||
+        tags.some((t) => containsAny(t, ['bag', 'handbag', 'tote', 'clutch', 'leather bag']))
+      );
+    };
+
+    const isFootwearProduct = (product: Product) => {
+      const { dept, cat, sub, name, tags } = getProductFields(product);
+      if (isPerfumeProduct(product) || isWatchProduct(product) || isBagProduct(product)) return false;
+      return (
+        dept === 'footwear' ||
+        cat === 'footwear' ||
+        cat === 'shoes' ||
+        containsAny(name, ['sneaker', 'loafer', 'crocs', 'heel', 'shoe', 'sandal', 'flat', 'brogue', 'boot', 'slide']) ||
+        containsAny(sub, ['sneaker', 'loafer', 'crocs', 'heel', 'shoe', 'sandal', 'flat', 'formal shoes', 'casual shoes']) ||
+        tags.some((t) => containsAny(t, ['footwear', 'shoes', 'sneakers', 'loafers']))
+      );
+    };
+
+    const isJeansProduct = (product: Product) => {
+      const { dept, cat, sub, name, tags } = getProductFields(product);
+      if (isPerfumeProduct(product) || isWatchProduct(product) || isBagProduct(product) || isFootwearProduct(product)) return false;
+      return (
+        dept === 'jeans' ||
+        cat === 'jeans' ||
+        containsAny(name, ['jean', 'denim', 'selvedge']) ||
+        containsAny(sub, ['jean', 'denim', 'slim fit', 'regular fit', 'baggy fit', 'raw denim', 'relaxed fit']) ||
+        tags.some((t) => containsAny(t, ['jean', 'denim', 'selvedge']))
+      );
+    };
+
+    return products.filter((product) => {
+      const { dept, cat, sub, name, tags } = getProductFields(product);
+      const isPerfume = isPerfumeProduct(product);
+      const isWatch = isWatchProduct(product);
+      const isBag = isBagProduct(product);
+      const isFootwear = isFootwearProduct(product);
+      const isJeans = isJeansProduct(product);
+      const isEyewear = isEyewearProduct(product);
+
+      // WATCHES: Strictly only watches. Never perfumes, sunglasses, bags, footwear, or apparel.
+      if (departmentKey === 'watches') {
+        return isWatch;
+      }
+
+      // PERFUMES: Strictly only perfumes & scents. Never watches, sunglasses, bags, footwear, or apparel.
+      if (departmentKey === 'perfumes') {
+        return isPerfume && !isWatch && !isBag && !isEyewear && !isFootwear;
+      }
+
+      // BAGS: Strictly only bags, clutches, backpacks, wallets. Never watches, perfumes, shoes, or apparel.
+      if (departmentKey === 'bags') {
+        return isBag;
+      }
+
+      // FOOTWEAR: Strictly only shoes, sneakers, loafers, crocs, sandals.
+      if (departmentKey === 'footwear') {
+        return isFootwear;
+      }
+
+      // JEANS: Strictly only jeans and denim cuts.
+      if (departmentKey === 'jeans') {
+        return isJeans;
+      }
+
+      // MEN: Only men's fashion apparel. Never perfumes, watches, bags, sunglasses, accessories, footwear, or women's clothing.
+      if (departmentKey === 'men' || departmentKey === 'mens') {
+        if (isPerfume || isWatch || isBag || isFootwear || isEyewear) return false;
+        if (cat === 'accessories' || dept === 'accessories' || containsAny(sub, ['sunglasses', 'glasses', 'belt', 'accessory'])) return false;
+        if (containsAny(name, ['sunglasses', 'glasses', 'belt', 'goggle'])) return false;
+        if (tags.some((t) => containsAny(t, ['sunglasses', 'eyewear', 'women', 'perfume', 'watch']))) return false;
 
         if (
           dept === 'women' ||
           cat === 'women' ||
           tags.includes('women') ||
-          containsAny(sub, [
-            'saree',
-            'gown',
-            'lehenga',
-            'co-ord',
-            'heels',
-          ])
+          containsAny(sub, ['saree', 'gown', 'lehenga', 'co-ord', 'heels'])
         ) {
           return false;
         }
@@ -324,142 +411,38 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
           dept === 'men' ||
           cat === 'men' ||
           cat === 'jeans' ||
-          containsAny(sub, [
-            'shirt',
-            'polo',
-            't-shirt',
-            'trouser',
-            'kurta',
-            'loafer',
-            'oxford',
-            'hoodie',
-          ]) ||
+          containsAny(sub, ['shirt', 'polo', 't-shirt', 'trouser', 'kurta', 'hoodie']) ||
+          containsAny(name, ['shirt', 'polo', 't-shirt', 'trouser', 'kurta', 'hoodie', 'blazer']) ||
           tags.includes('men')
         );
       }
 
-      // WOMEN: Exclude products explicitly marked as men's fashion.
-      if (departmentKey === 'women') {
-        if (
-          dept === 'men' ||
-          cat === 'men' ||
-          tags.includes('men')
-        ) {
-          return false;
-        }
+      // ACCESSORIES: Eyewear, sunglasses, belts, ties. Strictly excludes watches and perfumes which have dedicated departments.
+      if (departmentKey === 'accessories' || departmentKey === 'sunglasses') {
+        if (isPerfume || isWatch || isFootwear || isBag) return false;
+        return (
+          dept === 'accessories' ||
+          cat === 'accessories' ||
+          isEyewear ||
+          containsAny(sub, ['belt', 'glasses', 'sunglasses', 'tie', 'wallet']) ||
+          containsAny(name, ['sunglasses', 'glasses', 'belt', 'buckle'])
+        );
+      }
 
+      // WOMEN: Only women's fashion. Exclude men's clothing, sunglasses, watches, perfumes.
+      if (departmentKey === 'women' || departmentKey === 'womens') {
+        if (isPerfume || isWatch || isEyewear) return false;
+        if (dept === 'men' || cat === 'men' || tags.includes('men')) return false;
         return (
           dept === 'women' ||
           cat === 'women' ||
-          containsAny(sub, [
-            'saree',
-            'dress',
-            'gown',
-            'lehenga',
-            'co-ord',
-            'handbag',
-            'clutch',
-            'heel',
-          ]) ||
+          containsAny(sub, ['saree', 'dress', 'gown', 'lehenga', 'co-ord', 'handbag', 'clutch', 'heel']) ||
           tags.includes('women')
         );
       }
 
-      if (departmentKey === 'bags') {
-        return (
-          dept === 'bags' ||
-          cat === 'bags' ||
-          containsAny(sub, [
-            'bag',
-            'clutch',
-            'tote',
-            'wallet',
-            'briefcase',
-          ])
-        );
-      }
-
-      if (departmentKey === 'footwear') {
-        return (
-          dept === 'footwear' ||
-          cat === 'shoes' ||
-          cat === 'footwear' ||
-          containsAny(sub, [
-            'sneaker',
-            'loafer',
-            'crocs',
-            'heel',
-            'shoe',
-            'sandal',
-            'flat',
-          ])
-        );
-      }
-
-      // PERFUMES: Match perfume-related fields, even if the product has a men tag.
-      if (departmentKey === 'perfumes') {
-        return (
-          dept === 'perfumes' ||
-          cat === 'perfumes' ||
-          isPerfume
-        );
-      }
-
-      if (departmentKey === 'watches') {
-        return (
-          dept === 'watches' ||
-          cat === 'watches' ||
-          containsAny(sub, [
-            'watch',
-            'chronograph',
-            'automatic',
-          ]) ||
-          tags.some((tag) =>
-            containsAny(tag, ['watch', 'timepiece'])
-          )
-        );
-      }
-
-      if (departmentKey === 'jeans') {
-        return (
-          dept === 'jeans' ||
-          cat === 'jeans' ||
-          containsAny(sub, [
-            'jean',
-            'denim',
-            'slim fit',
-            'regular fit',
-            'baggy fit',
-          ]) ||
-          tags.some((tag) =>
-            containsAny(tag, ['jean', 'denim'])
-          )
-        );
-      }
-
-      if (departmentKey === 'accessories') {
-        // Keep perfume products in their dedicated department.
-        if (isPerfume) return false;
-
-        return (
-          dept === 'accessories' ||
-          cat === 'accessories' ||
-          containsAny(sub, [
-            'watch',
-            'belt',
-            'glasses',
-            'sunglasses',
-          ])
-        );
-      }
-
       if (departmentKey === 'collections') {
-        return (
-          !!product.isFestiveEdit ||
-          tags.some((tag) =>
-            containsAny(tag, ['festive', 'wedding', 'collection'])
-          )
-        );
+        return !!product.isFestiveEdit || tags.some((tag) => containsAny(tag, ['festive', 'wedding', 'collection']));
       }
 
       if (departmentKey === 'bestsellers') {
@@ -485,26 +468,31 @@ export const DepartmentLandingPage: React.FC<DepartmentLandingPageProps> = ({
   const filteredProducts = useMemo(() => {
     let result = [...departmentProducts];
 
-    if (activeSub && !activeSub.startsWith('All')) {
-      const targetSub = activeSub.toLowerCase();
+    const isTopLevelSub =
+      !activeSub ||
+      activeSub.toLowerCase() === 'all' ||
+      activeSub.toLowerCase().startsWith('all ') ||
+      activeSub.toLowerCase() === departmentKey.toLowerCase() ||
+      activeSub.toLowerCase().includes('collection') ||
+      activeSub.toLowerCase() === 'watches' ||
+      activeSub.toLowerCase() === 'bags & luggage' ||
+      activeSub.toLowerCase() === 'footwear collection' ||
+      activeSub.toLowerCase() === 'jeans & denim' ||
+      activeSub.toLowerCase() === 'perfumes collection';
+
+    if (!isTopLevelSub) {
+      const targetSub = activeSub.toLowerCase().trim();
 
       result = result.filter((product) => {
-        const sub = (
-          product.subCategory ||
-          product.subcategory ||
-          ''
-        ).toLowerCase();
-        const cat = (product.category || '').toLowerCase();
+        const sub = (product.subCategory || product.subcategory || '').toLowerCase();
         const brand = (product.brand || '').toLowerCase();
         const name = (product.name || '').toLowerCase();
-        const tags = (product.tags || []).map((tag) =>
-          String(tag).toLowerCase()
-        );
+        const tags = (product.tags || []).map((tag) => String(tag).toLowerCase());
 
         return (
           sub.includes(targetSub) ||
           brand.includes(targetSub) ||
-          cat.includes(targetSub) ||
+          targetSub.includes(brand) ||
           name.includes(targetSub) ||
           tags.some((tag) => tag.includes(targetSub))
         );

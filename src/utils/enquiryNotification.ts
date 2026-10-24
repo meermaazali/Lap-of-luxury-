@@ -4,7 +4,7 @@ import { CustomerEnquiry } from '../types';
  * Dispatches an instant administrator notification when a new customer enquiry is submitted.
  * Supports:
  * 1. Webhook endpoint / Formspree / Email Gateway (configured in environment or admin settings)
- * 2. Pre-formatted mailto trigger for direct store concierge notification
+ * 2. Pre-formatted mailto trigger for direct store notifications
  */
 export async function sendEnquiryNotification(enquiry: CustomerEnquiry): Promise<boolean> {
   const storeOwnerEmail =

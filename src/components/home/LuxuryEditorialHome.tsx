@@ -206,7 +206,7 @@ export const LuxuryEditorialHome: React.FC = () => {
               </div>
               <div>
                 <h4 className="font-bodoni font-bold text-xs sm:text-sm uppercase tracking-wider text-[#111113]">
-                  100% AUTHENTIC
+                  100% GENUINE
                 </h4>
                 <p className="text-[11px] text-[#7A6C58]">Handcrafted premium luxury collections</p>
               </div>
@@ -230,7 +230,7 @@ export const LuxuryEditorialHome: React.FC = () => {
               </div>
               <div>
                 <h4 className="font-bodoni font-bold text-xs sm:text-sm uppercase tracking-wider text-[#111113]">
-                  CONCIERGE ASSISTANCE
+                  STORE ASSISTANCE
                 </h4>
                 <p className="text-[11px] text-[#7A6C58]">Direct stylist fitting &amp; support</p>
               </div>

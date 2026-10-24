@@ -8,8 +8,8 @@ interface AnnouncementBarProps {
 const MESSAGES = [
   'Complimentary Express Delivery Across India on Orders ₹2,999+',
   'The Festive Couture Edit is Now Live · Handcrafted Luxury',
-  'Authentic Artisan Craftsmanship · 100% Genuine Guaranteed',
-  'Client Concierge & Styling Assistance: +91 7578887888',
+  'Artisan Craftsmanship · 100% Genuine Guaranteed',
+  'Customer Support & Styling Assistance: +91 75 7888 7888',
 ];
 
 export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact }) => {
@@ -38,7 +38,7 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact 
 
       {/* Center: Rotating Editorial Announcement */}
       <div className="flex-1 flex items-center justify-center text-center overflow-hidden px-2">
-        <div className="flex items-center gap-2 animate-in fade-in duration-500 key={currentIndex}">
+        <div className="flex items-center gap-2 animate-in fade-in duration-500" key={currentIndex}>
           <Sparkles className="w-3 h-3 text-[#D4AF37] shrink-0" />
           <span className="font-medium tracking-[0.06em] text-white text-[11px] sm:text-xs">
             {MESSAGES[currentIndex]}
@@ -46,7 +46,7 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact 
         </div>
       </div>
 
-      {/* Right: Personal Stylist / Concierge & Track */}
+      {/* Right: Personal Stylist / Support & Track */}
       <div className="hidden sm:flex items-center gap-3 text-[10px] text-[#A89F91] shrink-0 font-medium tracking-wider uppercase">
         <button
           type="button"
@@ -54,7 +54,7 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({ onOpenContact 
           className="hover:text-[#D4AF37] transition-colors flex items-center gap-1 cursor-pointer"
         >
           <Phone className="w-3 h-3 text-[#D4AF37]" />
-          <span>Concierge</span>
+          <span>Support</span>
         </button>
         <span className="text-[#3A352E]">|</span>
         <span className="text-[#8C8274]">Original Luxury</span>

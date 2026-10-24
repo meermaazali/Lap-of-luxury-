@@ -202,7 +202,7 @@ export const PaymentSetupManager: React.FC = () => {
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Active</span>
                 </div>
                 <span className="text-xs font-bold text-[#111111]">PhonePe & UPI</span>
-                <span className="text-[10px] text-[#7A6C58]">9848263939 · KODIGANTI DINESH</span>
+                <span className="text-[10px] text-[#7A6C58]">{upiId || '+91 75 7888 7888 · Store UPI'}</span>
               </div>
 
               {/* Card / Online Gateway */}

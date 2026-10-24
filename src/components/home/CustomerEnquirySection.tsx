@@ -88,7 +88,7 @@ export const CustomerEnquirySection: React.FC = () => {
         email: formData.email.trim(),
         categoryInterest: formData.categoryInterest,
         message: formData.message.trim(),
-        source: 'Homepage Concierge Enquiry Form',
+        source: 'Homepage Enquiry Form',
       });
 
       setSubmittedEnquiryId(created.id);
@@ -103,7 +103,7 @@ export const CustomerEnquirySection: React.FC = () => {
     } catch (err: unknown) {
       console.error('Failed to submit enquiry:', err);
       setErrorMessage(
-        'Unable to transmit enquiry at this moment. Please call our store concierge directly.'
+        'Unable to transmit enquiry at this moment. Please call our store directly at +91 75 7888 7888.'
       );
     } finally {
       setIsSubmitting(false);
@@ -114,21 +114,21 @@ export const CustomerEnquirySection: React.FC = () => {
     <section id="enquiry-section" className="w-full bg-[#FAF8F5] py-14 sm:py-20 border-t border-[#E8DEC8]">
       <div className="max-w-[1240px] mx-auto px-4 sm:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          {/* Left Column: Brand Story & Atelier Information */}
+          {/* Left Column: Brand Story & Store Information */}
           <div className="lg:col-span-5 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#D4AF37]/50 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-[#B8860B] animate-pulse" />
               <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-[#8C6D1F]">
-                BESPOKE CLIENT ASSISTANCE
+                STORE ASSISTANCE
               </span>
             </div>
 
             <div className="space-y-2">
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-wide text-[#111113] leading-tight">
-                CONCIERGE &amp; CLIENT ENQUIRIES
+                CUSTOMER SUPPORT &amp; ENQUIRIES
               </h2>
               <p className="text-xs sm:text-sm text-[#6A5E4E] leading-relaxed">
-                Connect directly with our master stylists and concierge team. Whether inquiring about custom fits, private perfume blends, exclusive timepieces, or doorstep orders — we are delighted to assist you.
+                Connect directly with our store team. Whether inquiring about custom fits, exclusive timepieces, luxury perfumes, or doorstep orders — we are delighted to assist you.
               </p>
             </div>
 
@@ -139,9 +139,9 @@ export const CustomerEnquirySection: React.FC = () => {
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="font-bold text-[#111113] block">Phone &amp; WhatsApp Concierge</span>
+                  <span className="font-bold text-[#111113] block">Phone &amp; WhatsApp Support</span>
                   <a href="tel:+917578887888" className="hover:text-[#B8860B] transition-colors font-medium">
-                    +91 75 7888 7888 / +91 9848263939
+                    +91 75 7888 7888
                   </a>
                 </div>
               </div>
@@ -172,7 +172,7 @@ export const CustomerEnquirySection: React.FC = () => {
             {/* Response Time Guarantee Pill */}
             <div className="p-3 bg-white rounded-xl border border-[#D4AF37]/40 text-xs text-[#625544] flex items-center gap-2.5 shadow-2xs">
               <Clock className="w-4 h-4 text-[#B8860B] shrink-0" />
-              <span>Prompt concierge review: All inquiries answered within <strong>2 to 4 business hours</strong>.</span>
+              <span>Prompt support review: All inquiries answered within <strong>2 to 4 business hours</strong>.</span>
             </div>
           </div>
 
@@ -199,7 +199,7 @@ export const CustomerEnquirySection: React.FC = () => {
                     <p className="text-xs text-[#6A5E4E] max-w-md mx-auto">
                       Your enquiry reference ID is{' '}
                       <strong className="font-mono text-[#111113]">#{submittedEnquiryId.slice(-6).toUpperCase()}</strong>.
-                      Our store concierge will review your message and reach out via phone/WhatsApp promptly.
+                      Our store team will review your message and reach out via phone/WhatsApp promptly.
                     </p>
                   </div>
 
@@ -366,7 +366,7 @@ export const CustomerEnquirySection: React.FC = () => {
                       className="w-full py-3.5 bg-gradient-to-r from-[#DFBA53] via-[#F4E09E] to-[#B8860B] hover:brightness-105 text-[#111113] font-extrabold text-xs sm:text-sm uppercase tracking-[0.16em] rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60"
                     >
                       <Send className="w-4 h-4 text-[#111113]" />
-                      <span>{isSubmitting ? 'TRANSMITTING ENQUIRY TO CONCIERGE...' : 'SUBMIT ENQUIRY NOW'}</span>
+                      <span>{isSubmitting ? 'TRANSMITTING ENQUIRY...' : 'SUBMIT ENQUIRY NOW'}</span>
                     </button>
                   </div>
 

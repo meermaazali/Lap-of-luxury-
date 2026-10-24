@@ -79,7 +79,7 @@ export const OurStoryModal: React.FC<OurStoryModalProps> = ({ isOpen, onClose })
                 WHITE GLOVE CARE
               </h4>
               <p className="text-[11px] text-[#6B5F50] mt-1">
-                Personal concierge support, bespoke tailoring assistance, and verified express delivery.
+                Dedicated customer care, bespoke tailoring assistance, and verified express delivery.
               </p>
             </div>
           </div>

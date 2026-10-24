@@ -24,12 +24,12 @@ import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../../utils/imageUtils
 const PARENT_CATEGORY_OPTIONS = [
   { value: 'Men', label: "Men (Men's Fashion & Sartorial)" },
   { value: 'Footwear', label: 'Footwear (Shoes, Sneakers, Loafers, Crocs)' },
-  { value: 'Bags', label: 'Bags (Bags, Luggage & Leather Atelier)' },
+  { value: 'Bags', label: 'Bags (Bags, Luggage & Leather)' },
   { value: 'Perfumes', label: 'Perfumes (Royal Scents & Parfums)' },
   { value: 'Watches', label: 'Watches (Timepieces & Horology)' },
-  { value: 'Jeans', label: 'Jeans (Denim Atelier)' },
+  { value: 'Jeans', label: 'Jeans (Denim Collection)' },
   { value: 'Accessories', label: 'Accessories (Luxury Accessories)' },
-  { value: 'Collections', label: 'Collections (Festive & Wedding Atelier)' },
+  { value: 'Collections', label: 'Collections (Festive & Wedding Collection)' },
   { value: 'None', label: 'None (Top-Level Main Category)' },
 ];
 

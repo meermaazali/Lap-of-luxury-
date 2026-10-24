@@ -51,7 +51,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
   // WhatsApp configured business number
   const phone = (import.meta.env.VITE_WHATSAPP_PHONE || '917578887888').replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(
-    'Hello LAP OF LUXURY Concierge, I would like assistance with my luxury shopping enquiry.'
+    'Hello LAP OF LUXURY Support, I would like assistance with my luxury shopping enquiry.'
   )}`;
 
   // Quick Reply Main Menu Actions
@@ -75,7 +75,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
       onClick: () => handleSelectOption('about'),
     },
     {
-      label: '📞 Contact Concierge',
+      label: '📞 Contact Support',
       onClick: () => handleSelectOption('contact'),
     },
   ];
@@ -86,7 +86,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
       {
         id: 'welcome-msg',
         sender: 'bot',
-        text: "Welcome to LAP OF LUXURY ✨\n\nI am your personal shopping concierge. How may I assist you with your luxury selection today?",
+        text: "Welcome to LAP OF LUXURY ✨\n\nI am your personal shopping assistant. How may I assist you with your luxury selection today?",
         actions: [
           {
             label: '🛍️ Shop Products',
@@ -107,7 +107,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
             onClick: () => handleSelectOption('about'),
           },
           {
-            label: '📞 Contact Concierge',
+            label: '📞 Contact Support',
             onClick: () => handleSelectOption('contact'),
           },
         ],
@@ -406,7 +406,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
       setMessages((prev) => [...prev, userMsg]);
 
       pushBotReply(
-        "Welcome to LAP OF LUXURY — Experience Premium In Every Touch. ✨\n\nWe bring you curated luxury fashion, Swiss timepieces, royal parfums, artisanal leather bags, and premium footwear.\n\n📍 Store Location:\nD/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001.\n\n⏰ Hours: 9:30 AM – 10:00 PM (Everyday)\n📞 Concierge: +91 75 7888 7888",
+        "Welcome to LAP OF LUXURY — Experience Premium In Every Touch. ✨\n\nWe bring you curated luxury fashion, Swiss timepieces, royal parfums, artisanal leather bags, and premium footwear.\n\n📍 Store Location:\nD/6, Kota Complex, Telangana Chowrasta, 2-2-2/2, beside Prashant Residency, Mahbubnagar, Telangana 509001.\n\n⏰ Hours: 9:30 AM – 10:00 PM (Everyday)\n📞 Phone: +91 75 7888 7888",
         [
           {
             label: 'Explore Storefront →',
@@ -436,7 +436,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
       const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
         sender: 'user',
-        text: '📞 Contact Concierge',
+        text: '📞 Contact Support',
       };
       setMessages((prev) => [...prev, userMsg]);
 
@@ -444,7 +444,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
         "We are here to assist you with order tracking, sizing guidance, custom sourcing, and product queries! 💬",
         [
           {
-            label: 'Chat with Concierge on WhatsApp 💬',
+            label: 'Chat on WhatsApp 💬',
             onClick: () => {
               window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
             },
@@ -694,7 +694,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
     // Order / Shipping query
     if (lower.includes('order') || lower.includes('track') || lower.includes('delivery') || lower.includes('shipping')) {
       pushBotReply(
-        "Orders are inspected and dispatched within 24 hours. Standard delivery across India takes 2 to 4 business days. Track your order or contact our concierge below:",
+        "Orders are inspected and dispatched within 24 hours. Standard delivery across India takes 2 to 4 business days. Track your order or contact our team below:",
         [
           {
             label: 'Track My Order →',
@@ -760,10 +760,10 @@ export const ShoppingAssistantChatbot: React.FC = () => {
 
     // Friendly fallback response with WhatsApp option
     pushBotReply(
-      `Thank you for asking about "${query}". ✨ Our concierge team is happy to assist you personally with product availability and bespoke sizing:`,
+      `Thank you for asking about "${query}". ✨ Our store team is happy to assist you personally with product availability and bespoke sizing:`,
       [
         {
-          label: 'Chat with Concierge on WhatsApp 💬',
+          label: 'Chat on WhatsApp 💬',
           onClick: () => {
             window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
           },
@@ -789,7 +789,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          aria-label="Open Shopping Concierge"
+          aria-label="Open Shopping Assistant"
           className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-[#111113] via-[#2A241C] to-[#111113] border-2 border-[#D4AF37] text-[#D4AF37] shadow-[0_8px_30px_rgba(212,175,55,0.45)] hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer group"
         >
           {/* Subtle golden pulsing glow ring */}
@@ -828,7 +828,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
                 </h3>
                 <p className="text-[10.5px] text-[#A89F91] flex items-center gap-1.5 mt-0.5">
                   <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
-                  <span>Personal Shopping Concierge</span>
+                  <span>Personal Shopping Assistant</span>
                 </p>
               </div>
             </div>
@@ -862,7 +862,7 @@ export const ShoppingAssistantChatbot: React.FC = () => {
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 text-[#A89F91] hover:text-white hover:bg-white/10 rounded-full transition-all cursor-pointer"
-                title="Close Concierge"
+                title="Close Assistant"
                 aria-label="Close chat"
               >
                 <X className="w-4 h-4" />

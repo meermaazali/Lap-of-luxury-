@@ -26,7 +26,7 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
     shipping: 'SHIPPING & EXPRESS DELIVERY',
     size: 'SIZE & FIT GUIDE',
     faq: 'FREQUENTLY ASKED QUESTIONS',
-    contact: 'STORE CONCIERGE & CONTACT',
+    contact: 'STORE SUPPORT & CONTACT',
     careers: 'CAREERS AT LAP OF LUXURY',
   };
 
@@ -43,7 +43,7 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
               ← Back
             </button>
             <span className="font-serif font-semibold tracking-wider uppercase text-xs sm:text-sm text-[#111111]">
-              {tabTitles[activeTab] || 'CUSTOMER CONCIERGE & POLICIES'}
+              {tabTitles[activeTab] || 'CUSTOMER CARE & POLICIES'}
             </span>
           </div>
           <button
@@ -175,10 +175,10 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({
           {activeTab === 'contact' && (
             <div className="space-y-3">
               <h3 className="font-bodoni font-bold text-base text-[#111111] uppercase tracking-wider">
-                GET IN TOUCH WITH VIP CONCIERGE
+                GET IN TOUCH WITH OUR STORE TEAM
               </h3>
               <p className="leading-relaxed">
-                Whether you need styling advice, sizing verification, or custom delivery requests, our concierge team is available during Store Timings: 9:30 AM – 10:00 PM.
+                Whether you need styling advice, sizing verification, or custom delivery requests, our store team is available during Store Timings: 9:30 AM – 10:00 PM.
               </p>
               <div className="p-4 bg-[#FAF8F5] rounded-xl border border-[#E8DEC8] space-y-2">
                 <p><strong>Store Timings:</strong> 9:30 AM – 10:00 PM</p>

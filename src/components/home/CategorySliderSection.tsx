@@ -48,7 +48,8 @@ export const CategorySliderSection: React.FC = () => {
     setCurrentIndex((prev) => (prev + 1) % visibleCount);
   };
 
-  const handleCategoryClick = (category: CategoryItem, subCategory?: string) => {
+  const handleCategoryClick = (category: CategoryItem, subCategory?: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const slug = (category.slug || category.name).toLowerCase();
     let targetView = slug;
 
@@ -57,13 +58,15 @@ export const CategorySliderSection: React.FC = () => {
     else if (slug.includes('perfume')) targetView = 'perfumes';
     else if (slug.includes('watch')) targetView = 'watches';
     else if (slug.includes('jean')) targetView = 'jeans';
-    else if (slug === 'men') targetView = 'men';
-    else if (slug.includes('accessor')) targetView = 'accessories';
+    else if (slug.includes('sunglass') || slug.includes('glasses') || slug.includes('eyewear') || slug.includes('accessor')) targetView = 'accessories';
+    else if (slug.includes('women')) targetView = 'women';
+    else if (slug.includes('men')) targetView = 'men';
 
-    setSelectedSubcategory(subCategory || null);
-    setCurrentView(targetView, subCategory || null);
-    navigate('/' + targetView);
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    let targetPath = `/${targetView}`;
+    if (subCategory && subCategory.trim()) {
+      targetPath = `/category/${targetView}/${encodeURIComponent(subCategory.trim())}`;
+    }
+    window.open(targetPath, '_blank', 'noopener,noreferrer');
   };
 
   const getCategoryGoldenLogo = (name: string) => {
@@ -81,7 +84,7 @@ export const CategorySliderSection: React.FC = () => {
 
   return (
     <section
-      className="w-full bg-[#FAF8F5] py-12 sm:py-16 border-b border-[#E8DEC8] overflow-hidden"
+      className="w-full bg-[#FAF8F5] py-14 sm:py-20 border-b border-[#E8DEC8] overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
@@ -89,18 +92,18 @@ export const CategorySliderSection: React.FC = () => {
     >
       <div className="max-w-[1540px] mx-auto px-4 sm:px-8">
         {/* Section Header with Navigation Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-5 border-b border-[#E8DEC8] gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 border-b border-[#E8DEC8] gap-4 mb-10">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#B8860B] animate-pulse" />
-              <span className="text-[10px] sm:text-xs font-bold tracking-[0.24em] text-[#8A671A] uppercase">
-                OUR DEPARTMENTS
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-pulse" />
+              <span className="text-[11px] font-bold tracking-[0.26em] text-[#8A671A] uppercase">
+                CURATED DEPARTMENTS
               </span>
             </div>
             <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-wider text-[#111113]">
               EXPLORE BY CATEGORY
             </h2>
-            <p className="text-xs text-[#7A6C58] mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-[#7A6C58] mt-1.5 max-w-xl">
               Curated luxury fashion, fine leathers, horology, and signature perfumes crafted for discerning clientele.
             </p>
           </div>
@@ -110,20 +113,20 @@ export const CategorySliderSection: React.FC = () => {
             <button
               type="button"
               onClick={handlePrev}
-              className="w-10 h-10 rounded-full border border-[#D4AF37]/50 bg-white hover:bg-[#FAF6EE] text-[#111113] hover:text-[#B8860B] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+              className="w-11 h-11 rounded-full border border-[#D4AF37]/60 bg-white hover:bg-[#FAF6EE] text-[#111113] hover:text-[#B8860B] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
               aria-label="Previous Category Slide"
             >
               <ChevronLeft className="w-5 h-5 text-[#B8860B]" />
             </button>
 
-            <span className="text-xs font-mono font-bold text-[#7A6C58]">
+            <span className="text-xs font-mono font-bold text-[#7A6C58] px-1">
               {String(currentIndex + 1).padStart(2, '0')} / {String(visibleCount).padStart(2, '0')}
             </span>
 
             <button
               type="button"
               onClick={handleNext}
-              className="w-10 h-10 rounded-full border border-[#D4AF37]/50 bg-white hover:bg-[#FAF6EE] text-[#111113] hover:text-[#B8860B] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+              className="w-11 h-11 rounded-full border border-[#D4AF37]/60 bg-white hover:bg-[#FAF6EE] text-[#111113] hover:text-[#B8860B] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
               aria-label="Next Category Slide"
             >
               <ChevronRight className="w-5 h-5 text-[#B8860B]" />
@@ -141,16 +144,29 @@ export const CategorySliderSection: React.FC = () => {
           >
             {activeCategories.map((category) => {
               const subcategories = Array.isArray(category.subcategories) ? category.subcategories : [];
+              const slug = (category.slug || category.name).toLowerCase();
+              let targetView = slug;
+              if (slug.includes('shoe') || slug.includes('footwear')) targetView = 'footwear';
+              else if (slug.includes('bag')) targetView = 'bags';
+              else if (slug.includes('perfume')) targetView = 'perfumes';
+              else if (slug.includes('watch')) targetView = 'watches';
+              else if (slug.includes('jean')) targetView = 'jeans';
+              else if (slug === 'men') targetView = 'men';
+              else if (slug.includes('accessor')) targetView = 'accessories';
+
+              const cardTargetUrl = `/${targetView}`;
 
               return (
                 <div
                   key={category.id}
-                  className="w-[85%] sm:w-[45%] lg:w-[28.5%] shrink-0 group flex flex-col bg-white rounded-2xl overflow-hidden border border-[#D4AF37]/40 hover:border-[#D4AF37] shadow-sm hover:shadow-[0_10px_30px_rgba(212,175,55,0.2)] transition-all duration-300"
+                  className="w-[85%] sm:w-[45%] lg:w-[28.5%] shrink-0 group flex flex-col bg-white rounded-2xl overflow-hidden border border-[#D4AF37]/50 hover:border-[#D4AF37] ring-1 ring-[#D4AF37]/20 hover:ring-[#D4AF37]/60 shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.22)] transition-all duration-300"
                 >
-                  {/* Category Image Card */}
-                  <div
-                    onClick={() => handleCategoryClick(category)}
-                    className="relative aspect-[4/5] w-full overflow-hidden bg-[#1E1E22] cursor-pointer"
+                  {/* Category Image Card with Link Opening in New Tab */}
+                  <a
+                    href={cardTargetUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative aspect-[4/5] w-full overflow-hidden bg-[#1E1E22] cursor-pointer block"
                   >
                     <img
                       src={normalizeImageUrl(category.image, category.name)}
@@ -161,18 +177,18 @@ export const CategorySliderSection: React.FC = () => {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108 brightness-[0.88] group-hover:brightness-95"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
 
                     {/* Department Badge */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-xs text-[#D4AF37] border border-[#D4AF37]/60 text-[9.5px] font-extrabold uppercase tracking-wider">
+                    <div className="absolute top-3.5 left-3.5 z-10">
+                      <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-xs text-[#D4AF37] border border-[#D4AF37]/80 text-[10px] font-extrabold uppercase tracking-widest shadow-md">
                         {category.department?.toUpperCase() || 'COLLECTION'}
                       </span>
                     </div>
 
                     {/* Golden Theme Category Logo Emblem */}
                     <div
-                      className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/75 border border-[#D4AF37] flex items-center justify-center shadow-lg backdrop-blur-xs group-hover:scale-110 transition-transform"
+                      className="absolute top-3.5 right-3.5 z-10 w-10 h-10 rounded-full bg-black/85 border border-[#D4AF37] flex items-center justify-center shadow-lg backdrop-blur-xs group-hover:scale-110 transition-transform shadow-[0_0_12px_rgba(212,175,55,0.3)]"
                       title={`${category.name} Logo`}
                     >
                       {getCategoryGoldenLogo(category.name)}
@@ -180,36 +196,40 @@ export const CategorySliderSection: React.FC = () => {
 
                     {/* Bottom Title on Image */}
                     <div className="absolute bottom-4 left-4 right-4 z-10 text-white space-y-1">
-                      <span className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-[#D4AF37] block">
-                        LAP OF LUXURY
-                      </span>
-                      <h3 className="font-serif text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+                        <span className="text-[10px] uppercase tracking-[0.24em] font-extrabold text-[#D4AF37] block">
+                          LAP OF LUXURY
+                        </span>
+                      </div>
+                      <h3 className="font-serif text-2xl font-bold uppercase tracking-wider text-white group-hover:text-[#F3E7BE] transition-colors">
                         {category.name}
                       </h3>
                     </div>
-                  </div>
+                  </a>
 
                   {/* Subcategories & Action Footer */}
-                  <div className="p-4 sm:p-5 flex flex-col justify-between flex-1 space-y-3.5 bg-white">
+                  <div className="p-4 sm:p-5 flex flex-col justify-between flex-1 space-y-4 bg-white border-t border-[#FAF6EE]">
                     {subcategories.length > 0 && (
-                      <div className="space-y-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A671A] block">
+                      <div className="space-y-2">
+                        <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#8A671A] block">
                           Featured Subcategories:
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {subcategories.slice(0, 4).map((sub) => (
-                            <button
-                              key={sub}
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCategoryClick(category, sub);
-                              }}
-                              className="px-2.5 py-1 rounded-md bg-[#FAF8F5] hover:bg-[#FAF6EE] border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[10.5px] font-semibold text-[#3D3327] hover:text-[#8A671A] transition-colors cursor-pointer"
-                            >
-                              {sub}
-                            </button>
-                          ))}
+                          {subcategories.slice(0, 4).map((sub) => {
+                            const subUrl = `/category/${targetView}/${encodeURIComponent(sub.trim())}`;
+                            return (
+                              <a
+                                key={sub}
+                                href={subUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 rounded-md bg-[#FAF8F5] hover:bg-[#FAF6EE] border border-[#D4AF37]/35 hover:border-[#D4AF37] text-[11px] font-semibold text-[#3D3327] hover:text-[#8A671A] transition-colors cursor-pointer"
+                              >
+                                {sub}
+                              </a>
+                            );
+                          })}
                           {subcategories.length > 4 && (
                             <span className="px-2 py-1 text-[10px] font-medium text-[#7A6C58]">
                               +{subcategories.length - 4} more
@@ -219,14 +239,15 @@ export const CategorySliderSection: React.FC = () => {
                       </div>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => handleCategoryClick(category)}
-                      className="w-full py-2.5 px-4 rounded-xl border border-[#D4AF37] hover:bg-[#111113] hover:text-[#D4AF37] text-[#111113] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 group-hover:bg-[#111113] group-hover:text-[#D4AF37] shadow-2xs"
+                    <a
+                      href={cardTargetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 px-4 rounded-xl border border-[#D4AF37] bg-white hover:bg-[#111113] hover:text-[#D4AF37] text-[#111113] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 group-hover:bg-[#111113] group-hover:text-[#D4AF37] shadow-xs group-hover:shadow-[0_4px_16px_rgba(212,175,55,0.25)]"
                     >
                       <span>Explore Collection</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#B8860B]" />
-                    </button>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#B8860B] group-hover:text-[#D4AF37] group-hover:translate-x-1 transition-transform" />
+                    </a>
                   </div>
                 </div>
               );

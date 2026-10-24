@@ -572,6 +572,38 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
+  // Cross-tab and cross-window instant synchronization
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'lol_products_cache' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProducts(parsed);
+          }
+        } catch {}
+      }
+      if (e.key === 'lol_categories_cache' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setCategories(parsed);
+          }
+        } catch {}
+      }
+      if (e.key === 'lol_banners_cache' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setBanners(parsed);
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   // ============================================================================
   // 5. CLOUD MUTATION ACTIONS (WRITES TO FIRESTORE DIRECTLY)
   // ============================================================================
@@ -589,11 +621,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     } catch (err) {
       console.error('Failed to add product to cloud:', err);
+      throw err;
     }
   };
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
     try {
+      await cloudUpdateProduct(id, updates);
       setProducts((prev) => {
         const next = prev.map((p) => (p.id === id ? { ...p, ...updates } : p));
         try {
@@ -601,14 +635,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch {}
         return next;
       });
-      await cloudUpdateProduct(id, updates);
     } catch (err) {
       console.error('Failed to update product in cloud:', err);
+      throw err;
     }
   };
 
   const deleteProduct = async (id: string) => {
     try {
+      await cloudDeleteProduct(id);
       setProducts((prev) => {
         const next = prev.filter((p) => p.id !== id);
         try {
@@ -616,9 +651,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch {}
         return next;
       });
-      await cloudDeleteProduct(id);
     } catch (err) {
       console.error('Failed to delete product from cloud:', err);
+      throw err;
     }
   };
 

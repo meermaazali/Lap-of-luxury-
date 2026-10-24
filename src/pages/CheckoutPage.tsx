@@ -158,7 +158,7 @@ export const CheckoutPage: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error('Failed to place order:', err);
-      setErrorMessage('Failed to place order. Please try again or contact concierge.');
+      setErrorMessage('Failed to place order. Please try again or call our store at +91 75 7888 7888.');
     } finally {
       setIsSubmitting(false);
     }
@@ -199,7 +199,7 @@ export const CheckoutPage: React.FC = () => {
             <p><strong>Delivery Address:</strong> {formData.houseNo}, {formData.street}, {formData.city}, {formData.state} - {formData.pincode}</p>
             <p><strong>Total Amount to Pay:</strong> ₹{orderTotal.toLocaleString('en-IN')}</p>
             <p className="text-[11px] text-[#7A6C58] pt-1 border-t border-gray-100">
-              Our Mahbubnagar store concierge (+91 75 7888 7888) will verify dispatch with you. You will pay cash or UPI upon delivery.
+              Our Mahbubnagar store team (+91 75 7888 7888) will verify dispatch with you. You will pay cash or UPI upon delivery.
             </p>
           </div>
 
@@ -659,7 +659,7 @@ export const CheckoutPage: React.FC = () => {
 
             <div className="flex items-center justify-center gap-2 text-xs text-[#7A6C58] pt-1">
               <Phone className="w-4 h-4 text-[#B8860B]" />
-              <span>For phone assistance or bespoke alterations, contact Mahbubnagar Concierge: +91 75 7888 7888</span>
+              <span>For phone assistance or bespoke alterations, contact Mahbubnagar Store: +91 75 7888 7888</span>
             </div>
           </div>
         )}

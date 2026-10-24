@@ -475,7 +475,7 @@ export const EnquiriesManager: React.FC = () => {
                   className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg focus:outline-none focus:bg-white focus:border-[#B8860B]"
                 />
                 <p className="text-[10px] text-[#7A6C58] mt-1">
-                  Primary store concierge inbox for client leads and orders.
+                  Primary store support inbox for client leads and orders.
                 </p>
               </div>
 

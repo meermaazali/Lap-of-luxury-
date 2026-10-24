@@ -24,33 +24,170 @@ export const CategoryPage: React.FC = () => {
       const pDept = (p.department || '').toLowerCase();
       const targetCat = catName.toLowerCase();
 
+      const pSub = (p.subCategory || p.subcategory || '').toLowerCase();
+      const pName = (p.name || '').toLowerCase();
+      const isPerfume =
+        pDept === 'perfumes' ||
+        pCat === 'perfumes' ||
+        pSub.includes('perfume') ||
+        pSub.includes('oud') ||
+        pSub.includes('parfum') ||
+        pSub.includes('fragrance') ||
+        pName.includes('perfume') ||
+        pName.includes('parfum') ||
+        pName.includes('extrait') ||
+        pName.includes('oud');
+
+      const isWatch =
+        !isPerfume &&
+        !pSub.includes('glasses') &&
+        !pName.includes('sunglasses') &&
+        !pCat.includes('bag') &&
+        (pDept === 'watches' ||
+          pCat === 'watches' ||
+          pName.includes('watch') ||
+          pName.includes('chronograph') ||
+          pSub.includes('watch') ||
+          pSub.includes('chronograph') ||
+          pSub.includes('automatic'));
+
+      const isBag =
+        !isPerfume &&
+        !isWatch &&
+        (pDept === 'bags' ||
+          pCat === 'bags' ||
+          pSub.includes('bag') ||
+          pSub.includes('tote') ||
+          pSub.includes('clutch') ||
+          pSub.includes('briefcase') ||
+          pSub.includes('backpack') ||
+          pSub.includes('wallet') ||
+          pName.includes('bag') ||
+          pName.includes('tote') ||
+          pName.includes('clutch'));
+
+      const isFootwear =
+        !isPerfume &&
+        !isWatch &&
+        !isBag &&
+        (pDept === 'footwear' ||
+          pCat === 'footwear' ||
+          pCat === 'shoes' ||
+          pSub.includes('sneaker') ||
+          pSub.includes('loafer') ||
+          pSub.includes('crocs') ||
+          pSub.includes('shoe') ||
+          pSub.includes('sandal') ||
+          pName.includes('sneaker') ||
+          pName.includes('loafer') ||
+          pName.includes('shoe'));
+
+      const isJeans =
+        !isPerfume &&
+        !isWatch &&
+        !isBag &&
+        !isFootwear &&
+        (pDept === 'jeans' ||
+          pCat === 'jeans' ||
+          pSub.includes('jean') ||
+          pSub.includes('denim') ||
+          pName.includes('jean') ||
+          pName.includes('denim'));
+
+      const isEyewear =
+        (pCat === 'accessories' && (pSub.includes('glasses') || pSub.includes('eyewear'))) ||
+        pName.includes('sunglasses') ||
+        pName.includes('glasses') ||
+        pName.includes('eyewear') ||
+        pName.includes('aviator') ||
+        pSub.includes('glasses') ||
+        pSub.includes('sunglasses') ||
+        pSub.includes('eyewear') ||
+        pSub.includes('aviator') ||
+        (p.tags || []).some((t) => {
+          const tl = String(t).toLowerCase();
+          return tl.includes('sunglass') || tl.includes('glasses') || tl.includes('eyewear');
+        });
+
+      const isAccessory =
+        pCat === 'accessories' ||
+        pDept === 'accessories' ||
+        isEyewear ||
+        pSub.includes('belt') ||
+        pSub.includes('glasses') ||
+        pName.includes('belt') ||
+        pName.includes('buckle');
+
       let matchCat = false;
-      if (targetCat === 'men') {
-        if (pDept === 'women' || pCat === 'women') return false;
+      const normTarget = targetCat.trim().toLowerCase();
+      const isTargetMen = normTarget === 'men' || normTarget === 'mens' || normTarget === "men's" || normTarget === 'men-fashion';
+      const isTargetWomen = normTarget === 'women' || normTarget === 'womens' || normTarget === "women's" || normTarget === 'women-fashion';
+      const isTargetWatches = normTarget === 'watches' || normTarget === 'watch';
+      const isTargetPerfumes = normTarget === 'perfumes' || normTarget === 'perfume';
+      const isTargetBags = normTarget === 'bags' || normTarget === 'bag';
+      const isTargetFootwear = normTarget === 'footwear' || normTarget === 'shoes' || normTarget === 'shoe';
+      const isTargetJeans = normTarget === 'jeans' || normTarget === 'denim';
+      const isTargetAccessories = normTarget === 'accessories' || normTarget === 'sunglasses' || normTarget === 'eyewear';
+
+      if (isTargetWatches) {
+        matchCat = isWatch && !isPerfume && !isBag && !isEyewear;
+      } else if (isTargetPerfumes) {
+        matchCat = isPerfume && !isWatch && !isBag && !isEyewear && !isFootwear;
+      } else if (isTargetBags) {
+        matchCat = isBag && !isPerfume && !isWatch && !isEyewear;
+      } else if (isTargetFootwear) {
+        matchCat = isFootwear && !isPerfume && !isWatch && !isBag && !isEyewear;
+      } else if (isTargetJeans) {
+        matchCat = isJeans && !isPerfume && !isWatch && !isBag && !isFootwear && !isEyewear;
+      } else if (isTargetMen) {
+        // STRICT: Only Men's clothing/apparel. ABSOLUTELY NEVER sunglasses, accessories, watches, perfumes, bags, footwear, or women's
+        if (
+          isPerfume ||
+          isWatch ||
+          isBag ||
+          isFootwear ||
+          isEyewear ||
+          isAccessory ||
+          pDept === 'women' ||
+          pCat === 'women' ||
+          pDept === 'accessories' ||
+          pCat === 'accessories' ||
+          (p.tags || []).some((t) => {
+            const tl = String(t).toLowerCase();
+            return tl.includes('women') || tl.includes('sunglass') || tl.includes('eyewear');
+          })
+        ) {
+          return false;
+        }
         matchCat =
+          (pDept === 'men' || pCat === 'men' || pCat === 'jeans') &&
+          !pName.includes('sunglass') &&
+          !pName.includes('glasses') &&
+          !pSub.includes('glasses');
+      } else if (isTargetAccessories) {
+        if (isPerfume || isWatch || isBag || isFootwear) return false;
+        matchCat = isAccessory || isEyewear;
+      } else if (isTargetWomen) {
+        // STRICT: Only Women's fashion. ABSOLUTELY NEVER men's clothing, sunglasses, perfumes, watches
+        if (
+          isPerfume ||
+          isWatch ||
+          isEyewear ||
           pDept === 'men' ||
           pCat === 'men' ||
-          pCat === 'jeans' ||
-          pCat === 'shirts';
-      } else if (targetCat === 'women') {
-        if (pDept === 'men' || pCat === 'men') return false;
+          (p.tags || []).some((t) => String(t).toLowerCase() === 'men')
+        ) {
+          return false;
+        }
         matchCat =
           pDept === 'women' ||
           pCat === 'women' ||
           pCat === 'dresses' ||
-          pCat === 'sarees';
-      } else if (targetCat === 'bags') {
-        matchCat = pDept === 'bags' || pCat.includes('bag') || Boolean(p.subCategory && p.subCategory.toLowerCase().includes('bag'));
-      } else if (targetCat === 'footwear' || targetCat === 'shoes') {
-        matchCat = pDept === 'footwear' || pCat.includes('shoe') || pCat.includes('footwear');
-      } else if (targetCat === 'perfumes') {
-        matchCat = pDept === 'perfumes' || pCat === 'perfumes' || Boolean(p.subCategory && (p.subCategory.toLowerCase().includes('perfume') || p.subCategory.toLowerCase().includes('oud')));
-      } else if (targetCat === 'watches') {
-        matchCat = pDept === 'watches' || pCat === 'watches' || Boolean(p.subCategory && p.subCategory.toLowerCase().includes('watch'));
-      } else if (targetCat === 'jeans') {
-        matchCat = pDept === 'jeans' || pCat === 'jeans' || Boolean(p.subCategory && p.subCategory.toLowerCase().includes('jean'));
-      } else if (targetCat === 'accessories') {
-        matchCat = pDept === 'accessories' || pCat === 'accessories' || pCat === 'watches' || pCat === 'perfumes';
+          pCat === 'sarees' ||
+          pSub.includes('saree') ||
+          pSub.includes('dress') ||
+          pSub.includes('gown') ||
+          pSub.includes('lehenga');
       } else {
         matchCat = pCat === targetCat || pCat.includes(targetCat) || pDept === targetCat;
       }

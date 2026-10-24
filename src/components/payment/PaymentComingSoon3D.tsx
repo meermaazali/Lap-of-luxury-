@@ -79,7 +79,7 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         </p>
 
         <p className="text-[11px] text-[#7A6C58] mt-2 max-w-md mx-auto">
-          LAP OF LUXURY is finalizing certified multi-bank 3D secure online processing. In the interim, orders can be placed with Cash on Delivery or Phone Concierge.
+          LAP OF LUXURY is finalizing certified multi-bank 3D secure online processing. In the interim, orders can be placed with Cash on Delivery or Phone Support.
         </p>
       </div>
 
@@ -276,7 +276,7 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
               RESERVE YOUR ORDER NOW (CASH ON DELIVERY)
             </h4>
             <p className="text-xs text-[#6E6152] mt-0.5 leading-relaxed">
-              While our automated online gateway is in final staging, you can instantly confirm your order with <strong>Cash on Delivery (Doorstep Payment)</strong> or direct phone concierge verification.
+              While our automated online gateway is in final staging, you can instantly confirm your order with <strong>Cash on Delivery (Doorstep Payment)</strong> or direct phone verification.
             </p>
           </div>
         </div>
@@ -284,7 +284,7 @@ export const PaymentComingSoon3D: React.FC<PaymentComingSoon3DProps> = ({
         <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#EAE0D0] text-xs text-[#524637] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Phone className="w-3.5 h-3.5 text-[#B89758]" />
-            <span>Mahbubnagar Store Concierge: <strong>75 7888 7888</strong></span>
+            <span>Mahbubnagar Store: <strong>+91 75 7888 7888</strong></span>
           </div>
           <span className="text-emerald-700 font-bold text-[11px]">FREE Delivery Active</span>
         </div>

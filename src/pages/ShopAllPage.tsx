@@ -66,7 +66,7 @@ export const ShopAllPage: React.FC = () => {
               Shop All Creations
             </h1>
             <p className="text-xs text-[#7A6C58] mt-1">
-              Showing {filteredProducts.length} authentic luxury pieces
+              Showing {filteredProducts.length} luxury pieces
             </p>
           </div>
 

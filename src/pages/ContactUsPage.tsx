@@ -34,7 +34,7 @@ export const ContactUsPage: React.FC = () => {
 
         <div className="border-b border-[#E8DEC8] pb-4">
           <span className="text-[10px] uppercase tracking-[0.24em] text-[#8A671A] block">
-            Client Concierge & Store
+            Customer Support & Store
           </span>
           <h1 className="text-2xl sm:text-3xl text-[#111113] uppercase tracking-wider">
             Contact LAP OF LUXURY
@@ -73,7 +73,7 @@ export const ContactUsPage: React.FC = () => {
               <div className="flex items-start gap-3">
                 <Phone className="w-4 h-4 text-[#B8860B] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[#111113]">Phone & Concierge:</p>
+                  <p className="text-[#111113]">Phone & Support:</p>
                   <a
                     href="tel:+917578887888"
                     className="text-[#8A671A] hover:underline block mt-0.5"
@@ -122,7 +122,7 @@ export const ContactUsPage: React.FC = () => {
             {sent && (
               <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Thank you. Your message has been sent to our client concierge team.</span>
+                <span>Thank you. Your message has been sent to our store team.</span>
               </div>
             )}
 
@@ -171,7 +171,7 @@ export const ContactUsPage: React.FC = () => {
                   rows={4}
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="How may our fashion concierge assist you with sizes, orders, or styling?"
+                  placeholder="How may our team assist you with sizes, orders, or styling?"
                   className="w-full px-3 py-2.5 text-xs border border-[#D5C7B0] rounded-xl bg-[#FAF8F5] focus:outline-none focus:border-[#B8860B]"
                 />
               </div>

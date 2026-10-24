@@ -98,7 +98,7 @@ export const OrderTrackingPage: React.FC = () => {
                       <div className="w-3.5 h-3.5 bg-emerald-600 rounded-full absolute -left-[31px] top-0.5 border-2 border-white ring-2 ring-emerald-600/30" />
                       <p className="text-xs text-[#111113]">Quality Inspected & Luxury Packaging</p>
                       <p className="text-[11px] text-[#7A6C58]">
-                        Hand-packaged with authenticity certification
+                        Hand-packaged with quality inspection pass
                       </p>
                     </div>
 

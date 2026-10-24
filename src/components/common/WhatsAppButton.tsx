@@ -38,7 +38,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
           </svg>
 
           <span className="hidden sm:inline-block text-xs font-bold tracking-wider uppercase font-sans">
-            WhatsApp Concierge
+            WhatsApp Support
           </span>
         </a>
       </aside>
@@ -52,7 +52,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       aria-label="WhatsApp Luxury Styling & Orders"
-      title="WhatsApp Concierge (+91 75 7888 7888)"
+      title="WhatsApp Support (+91 75 7888 7888)"
       className={`relative inline-flex items-center gap-1 sm:gap-1.5 px-2 xs:px-2.5 sm:px-3 py-1 sm:py-1.5 bg-[#25D366] hover:bg-[#1faa53] text-white rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-xs hover:shadow-[0_0_12px_rgba(37,211,102,0.45)] cursor-pointer group active:scale-95 shrink-0 ${className}`}
     >
       {/* Subtle pulse indicator dot */}

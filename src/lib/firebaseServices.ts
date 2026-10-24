@@ -63,7 +63,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path,
   };
-  console.error('[Firebase Error]', JSON.stringify(errInfo));
+  console.warn('[Firebase Firestore Warning]', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
 
@@ -237,53 +237,50 @@ export async function ensureCloudDataSeeded(): Promise<void> {
   try {
     // 1. Check and Reconcile Products (never lose catalog products on refresh)
     const prodSnap = await getDocs(collection(db, 'products')).catch(() => null);
-    const existingProdIds = new Set<string>();
-    if (prodSnap) {
-      prodSnap.forEach((d) => existingProdIds.add(d.id));
-    }
-    for (const p of INITIAL_PRODUCTS) {
-      if (!existingProdIds.has(p.id)) {
+    if (!prodSnap || prodSnap.empty) {
+      console.log('Seeding initial products into Firestore catalog...');
+      for (const p of INITIAL_PRODUCTS) {
         await setDoc(doc(db, 'products', p.id), {
           ...p,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }).catch((err) => console.warn('Failed seeding missing product', p.id, err));
+        }).catch((err) => console.warn('Failed seeding initial product', p.id, err));
+      }
+    } else {
+      // Auto-heal legacy broken subCategory if it still has old string 'Watches and Accessories'
+      for (const d of prodSnap.docs) {
+        const data = d.data();
+        if (data.subCategory === 'Watches and Accessories') {
+          await setDoc(
+            doc(db, 'products', d.id),
+            { subCategory: 'Watches', updatedAt: new Date().toISOString() },
+            { merge: true }
+          ).catch((err) => console.warn('Failed auto-healing subCategory', d.id, err));
+        }
       }
     }
 
     // 2. Check and Reconcile Banners
     const bannerSnap = await getDocs(collection(db, 'banners')).catch(() => null);
-    const existingBannerIds = new Set<string>();
-    if (bannerSnap) {
-      bannerSnap.forEach((d) => existingBannerIds.add(d.id));
-    }
-    for (const b of INITIAL_BANNERS) {
-      if (!existingBannerIds.has(b.id)) {
+    if (!bannerSnap || bannerSnap.empty) {
+      for (const b of INITIAL_BANNERS) {
         await setDoc(doc(db, 'banners', b.id), {
           ...b,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }).catch((err) => console.warn('Failed seeding missing banner', b.id, err));
+        }).catch((err) => console.warn('Failed seeding initial banner', b.id, err));
       }
     }
 
     // 3. Check and Reconcile Categories
     const catSnap = await getDocs(collection(db, 'categories')).catch(() => null);
-    const existingCatSlugs = new Set<string>();
-    if (catSnap) {
-      catSnap.forEach((d) => {
-        const data = d.data();
-        if (data.slug) existingCatSlugs.add(data.slug.toLowerCase());
-        if (data.name) existingCatSlugs.add(data.name.toLowerCase());
-      });
-    }
-    for (const c of INITIAL_CATEGORIES) {
-      if (!existingCatSlugs.has((c.slug || c.name).toLowerCase())) {
+    if (!catSnap || catSnap.empty) {
+      for (const c of INITIAL_CATEGORIES) {
         await setDoc(doc(db, 'categories', c.id), {
           ...c,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }).catch((err) => console.warn('Failed seeding missing category', c.id, err));
+        }).catch((err) => console.warn('Failed seeding initial category', c.id, err));
       }
     }
 

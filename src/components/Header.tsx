@@ -177,14 +177,18 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const handleMobileNav = (view: string, subCategory?: string) => {
-    setCurrentView(view, subCategory || null);
     setIsMobileMenuOpen(false);
-    if (subCategory && subCategory.trim()) {
-      navigate(`/category/${view}/${encodeURIComponent(subCategory.trim())}`);
+    if (view === 'home') {
+      setCurrentView('home', null);
+      navigate('/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      navigate(view === 'home' ? '/' : `/${view}`);
+      let targetPath = `/${view}`;
+      if (subCategory && subCategory.trim()) {
+        targetPath = `/category/${view}/${encodeURIComponent(subCategory.trim())}`;
+      }
+      window.open(targetPath, '_blank', 'noopener,noreferrer');
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Filter products for live search.

@@ -17,7 +17,7 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'What payment methods do you accept?',
-    a: 'We accept payments through secure Instant UPI and Online Banking. You can pay seamlessly via Google Pay, PhonePe, Paytm, any UPI ID, Debit Card, Credit Card, or NetBanking. We do not offer Cash on Delivery to guarantee authenticity and contactless handling.',
+    a: 'We accept payments through secure Instant UPI and Online Banking. You can pay seamlessly via Google Pay, PhonePe, Paytm, any UPI ID, Debit Card, Credit Card, or NetBanking. We do not offer Cash on Delivery to guarantee secure and contactless handling.',
   },
   {
     q: 'How long does delivery take?',
@@ -25,11 +25,11 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'What is your return and exchange policy?',
-    a: 'We offer an easy 7-day return and exchange policy on all unworn items with original tags and packaging intact. You can initiate a return or exchange request through our Contact page or by reaching out to our concierge at +91 75 7888 7888.',
+    a: 'We offer an easy 7-day return and exchange policy on all unworn items with original tags and packaging intact. You can initiate a return or exchange request through our Contact page or by reaching out to our store team at +91 75 7888 7888.',
   },
   {
-    q: 'Are all products authentic?',
-    a: 'Yes, 100% of the products featured on LAP OF LUXURY are guaranteed genuine and crafted from authentic high-grade materials, including double-ply Egyptian cotton, raw selvedge denim, genuine calfskin leathers, and precision movements.',
+    q: 'Are all products genuine?',
+    a: 'Yes, 100% of the products featured on LAP OF LUXURY are guaranteed genuine and crafted from premium high-grade materials, including double-ply Egyptian cotton, raw selvedge denim, genuine calfskin leathers, and precision movements.',
   },
   {
     q: 'Where is your physical store located?',
@@ -102,14 +102,14 @@ export const FaqsPage: React.FC = () => {
             Still Have Questions?
           </h2>
           <p className="text-xs text-[#7A6C58]">
-            Our styling concierge is available daily from 9:30 AM to 10:00 PM.
+            Our support team is available daily from 9:30 AM to 10:00 PM.
           </p>
           <div className="pt-2">
             <Link
               to="/contact"
               className="inline-block px-5 py-2 bg-[#111113] text-[#D4AF37] text-xs uppercase tracking-wider rounded-xl hover:bg-black transition-colors"
             >
-              Contact Our Concierge
+              Contact Customer Care
             </Link>
           </div>
         </div>

@@ -159,7 +159,7 @@ export const CheckoutModal: React.FC = () => {
       setIsCartOpen(false);
     } catch (err) {
       console.error('Failed to place order:', err);
-      setErrorMessage('Failed to place order. Please try again or contact concierge.');
+      setErrorMessage('Failed to place order. Please try again or call our store at +91 75 7888 7888.');
     } finally {
       setIsSubmitting(false);
     }
@@ -558,7 +558,7 @@ export const CheckoutModal: React.FC = () => {
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-[#7A6C58] pt-1">
                 <Phone className="w-3.5 h-3.5 text-[#B8860B]" />
-                <span>Mahbubnagar Store Concierge: +91 75 7888 7888</span>
+                <span>Mahbubnagar Store: +91 75 7888 7888</span>
               </div>
             </div>
           )}

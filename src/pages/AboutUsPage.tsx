@@ -85,7 +85,7 @@ export const AboutUsPage: React.FC = () => {
           </div>
           <div className="p-6 bg-white rounded-2xl border border-[#E8DEC8] space-y-2 text-center">
             <ShieldCheck className="w-6 h-6 text-[#B8860B] mx-auto" />
-            <h2 className="text-xs uppercase tracking-wider text-[#111113]">Authenticity Guaranteed</h2>
+            <h2 className="text-xs uppercase tracking-wider text-[#111113]">100% Genuine Guaranteed</h2>
             <p className="text-xs text-[#7A6C58]">100% genuine products with verified craftsmanship.</p>
           </div>
         </div>
