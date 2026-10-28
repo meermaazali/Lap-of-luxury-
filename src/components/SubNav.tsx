@@ -15,12 +15,11 @@ interface NavCategory {
 
 const DEFAULT_NAV_ITEMS: NavCategory[] = [
   { name: "MEN'S FASHION", slug: 'Men' },
-  { name: 'FOOTWEAR & SHOES', slug: 'Footwear' },
-  { name: 'BAGS & LUGGAGE', slug: 'Bags' },
-  { name: 'PERFUMES & SCENTS', slug: 'Perfumes' },
-  { name: 'WATCHES & TIMEPIECES', slug: 'Watches' },
   { name: 'JEANS & DENIM', slug: 'Jeans' },
-  { name: 'LUXURY ACCESSORIES', slug: 'Accessories' },
+  { name: "WOMEN'S COLLECTION", slug: 'Women' },
+  { name: 'WATCHES & TIMEPIECES', slug: 'Watches' },
+  { name: 'PERFUMES & SCENTS', slug: 'Perfumes' },
+  { name: 'BAGS & LEATHERS', slug: 'Bags' },
 ];
 
 const isUnwantedOrPromo = (name: string, slug: string): boolean => {
@@ -31,8 +30,7 @@ const isUnwantedOrPromo = (name: string, slug: string): boolean => {
     .trim();
 
   return (
-    value.includes('women') ||
-    /\bnew arrivals?\b|\bbest sellers?\b|\boffers?\b|\bsale\b|\bdeals?\b|\bcollections?\b|\bfestive\b|\bpopular\b|\bspecial offers?\b/.test(
+    /\bfootwear\b|\bshoes?\b|\baccessories\b|\bnew arrivals?\b|\bbest sellers?\b|\boffers?\b|\bsale\b|\bdeals?\b|\bcollections?\b|\bfestive\b|\bpopular\b|\bspecial offers?\b/.test(
       value
     )
   );

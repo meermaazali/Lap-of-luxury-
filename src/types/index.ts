@@ -23,6 +23,8 @@ export interface Product {
   isBestSeller?: boolean;
   isFestiveEdit?: boolean;
   tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BannerSlide {

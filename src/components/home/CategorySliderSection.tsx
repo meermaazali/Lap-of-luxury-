@@ -23,8 +23,15 @@ export const CategorySliderSection: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Active categories only, excluding hidden ones
-  const activeCategories = categories.filter((c) => c.active !== false && (c.slug || c.name).toLowerCase() !== 'women');
+  // Allowed core categories in deterministic order
+  const ALLOWED_ORDER = ['men', 'jeans', 'women', 'watches', 'perfumes', 'bags'];
+  const activeCategories = categories
+    .filter((c) => c.active !== false && ALLOWED_ORDER.includes((c.slug || c.name || '').toLowerCase()))
+    .sort((a, b) => {
+      const idxA = ALLOWED_ORDER.indexOf((a.slug || a.name || '').toLowerCase());
+      const idxB = ALLOWED_ORDER.indexOf((b.slug || b.name || '').toLowerCase());
+      return idxA - idxB;
+    });
 
   const visibleCount = activeCategories.length;
   const slideIntervalMs = (categoryInterval || 4) * 1000;
@@ -53,12 +60,10 @@ export const CategorySliderSection: React.FC = () => {
     const slug = (category.slug || category.name).toLowerCase();
     let targetView = slug;
 
-    if (slug.includes('shoe') || slug.includes('footwear')) targetView = 'footwear';
-    else if (slug.includes('bag')) targetView = 'bags';
+    if (slug.includes('bag')) targetView = 'bags';
     else if (slug.includes('perfume')) targetView = 'perfumes';
     else if (slug.includes('watch')) targetView = 'watches';
     else if (slug.includes('jean')) targetView = 'jeans';
-    else if (slug.includes('sunglass') || slug.includes('glasses') || slug.includes('eyewear') || slug.includes('accessor')) targetView = 'accessories';
     else if (slug.includes('women')) targetView = 'women';
     else if (slug.includes('men')) targetView = 'men';
 
@@ -71,12 +76,11 @@ export const CategorySliderSection: React.FC = () => {
 
   const getCategoryGoldenLogo = (name: string) => {
     const norm = name.toLowerCase();
-    if (norm.includes('shoe') || norm.includes('footwear')) return <Footprints className="w-4 h-4 text-[#D4AF37]" />;
     if (norm.includes('bag')) return <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />;
     if (norm.includes('watch')) return <Watch className="w-4 h-4 text-[#D4AF37]" />;
     if (norm.includes('perfume')) return <Droplets className="w-4 h-4 text-[#D4AF37]" />;
     if (norm.includes('jean')) return <Sparkles className="w-4 h-4 text-[#D4AF37]" />;
-    if (norm.includes('accessor')) return <Crown className="w-4 h-4 text-[#D4AF37]" />;
+    if (norm.includes('women')) return <Crown className="w-4 h-4 text-[#D4AF37]" />;
     return <Shirt className="w-4 h-4 text-[#D4AF37]" />;
   };
 

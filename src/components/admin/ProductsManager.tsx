@@ -39,12 +39,12 @@ export const ProductsManager: React.FC = () => {
     if (found && Array.isArray(found.subcategories) && found.subcategories.length > 0) {
       return found.subcategories;
     }
-    if (slugLower === 'men') return ['Shirts', 'T-shirts', 'Hoodies', 'Full-sleeve T-shirts', 'Polo T-shirts', 'Trousers'];
-    if (slugLower === 'footwear' || slugLower === 'shoes') return ['Sneakers', 'Crocs', 'Formal Shoes', 'Loafers', 'Sandals'];
-    if (slugLower === 'bags') return ['Backpacks', 'Briefcases', 'Crossbody Bags', 'Travel Bags', 'Wallets'];
-    if (slugLower === 'perfumes') return ['Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils'];
-    if (slugLower === 'watches') return ['Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions'];
-    if (slugLower === 'jeans') return ['Slim Fit', 'Regular Fit', 'Baggy Fit', 'Raw Denim', 'Relaxed Fit'];
+    if (slugLower === 'men') return ['Shirts', 'T-shirts', 'Hoodies', 'Full-sleeve T-shirts', 'Polo T-shirts', 'Trousers', 'Sneakers', 'Loafers'];
+    if (slugLower === 'jeans') return ['Slim Fit', 'Regular Fit', 'Baggy Fit', 'Raw Denim', 'Relaxed Fit', 'Cargo Jeans'];
+    if (slugLower === 'women') return ['Sarees', 'Dresses', 'Gowns', 'Blouses & Tops', 'Co-ord Sets', 'Skirts', 'Festive Edit'];
+    if (slugLower === 'watches') return ['Chronograph', 'Automatic', 'Dress Watches', 'Gold Editions', 'Skeleton', 'Steel Edition'];
+    if (slugLower === 'perfumes') return ['Oud & Extrait', 'Eau de Parfum', 'Parfum', 'Attar & Oils', 'Luxury Cologne'];
+    if (slugLower === 'bags') return ['Backpacks', 'Briefcases', 'Crossbody Bags', 'Travel Bags', 'Wallets', 'Leather Belts'];
     return ['Standard', 'Classic'];
   };
 
@@ -56,11 +56,12 @@ export const ProductsManager: React.FC = () => {
     if (found && Array.isArray(found.brands) && found.brands.length > 0) {
       return found.brands;
     }
-    if (slugLower === 'bags') return ['Gucci', 'Louis Vuitton', 'Prada', 'Saint Laurent', 'Bottega Veneta'];
-    if (slugLower === 'perfumes') return ['Dior', 'Chanel', 'Gucci', 'Tom Ford', 'Creed'];
-    if (slugLower === 'watches') return ['Rado', 'Tissot', 'Rolex', 'Omega', 'Tag Heuer'];
-    if (slugLower === 'footwear' || slugLower === 'shoes') return ['Nike', 'Gucci', 'Crocs', 'Prada', 'LAP OF LUXURY SARTORIAL'];
-    if (slugLower === 'jeans') return ['LAP OF LUXURY SARTORIAL', 'Diesel', "Levi's", 'Calvin Klein'];
+    if (slugLower === 'men') return ['LAP OF LUXURY SARTORIAL', 'Gucci', 'Louis Vuitton', 'Dior', 'Ralph Lauren'];
+    if (slugLower === 'jeans') return ['LAP OF LUXURY SARTORIAL', 'Diesel', "Levi's", 'Calvin Klein', 'Balmain'];
+    if (slugLower === 'women') return ['Gucci', 'Prada', 'Chanel', 'Dior', 'Saint Laurent', 'LAP OF LUXURY SARTORIAL'];
+    if (slugLower === 'watches') return ['Rado', 'Tissot', 'Rolex', 'Omega', 'Tag Heuer', 'Audemars Piguet'];
+    if (slugLower === 'perfumes') return ['Dior', 'Chanel', 'Gucci', 'Tom Ford', 'Creed', 'Roja Parfums'];
+    if (slugLower === 'bags') return ['Gucci', 'Louis Vuitton', 'Prada', 'Saint Laurent', 'Bottega Veneta', 'LAP OF LUXURY'];
     return ['LAP OF LUXURY SARTORIAL', 'Gucci', 'Louis Vuitton', 'Dior', 'Rolex'];
   };
 
@@ -396,17 +397,15 @@ export const ProductsManager: React.FC = () => {
               setAdminCategory(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-1.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs focus:outline-none focus:border-[#B8860B]"
+            className="px-3 py-1.5 bg-[#FAF8F5] border border-[#D5C7B0] rounded-lg text-xs focus:outline-none focus:border-[#B8860B] font-medium"
           >
             <option value="All">All Categories ({products.length})</option>
-            <option value="Men">Men's Shirts</option>
+            <option value="Men">Men's Fashion</option>
+            <option value="Jeans">Luxury Jeans</option>
             <option value="Women">Women's Collection</option>
-            <option value="Jeans">Jeans & Denim</option>
             <option value="Watches">Watches</option>
-            <option value="Bags">Bags</option>
-            <option value="Shoes">Shoes</option>
-            <option value="Accessories">Accessories</option>
             <option value="Perfumes">Perfumes</option>
+            <option value="Bags">Bags & Leather</option>
           </select>
         </div>
 
@@ -629,28 +628,12 @@ export const ProductsManager: React.FC = () => {
                     onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-[#D5C7B0] rounded text-xs focus:border-[#B89758] focus:outline-none cursor-pointer font-bold text-[#1E1E22]"
                   >
-                    {categories
-                      .filter(
-                        (c) =>
-                          c.active !== false &&
-                          (c.slug.toLowerCase() !== 'women' || formData.category.toLowerCase() === 'women')
-                      )
-                      .map((c) => (
-                        <option key={c.id} value={c.slug}>
-                          {c.name} ({c.slug})
-                        </option>
-                      ))}
-                    {/* Fallback baseline categories if categories list is still loading */}
-                    {categories.length === 0 && (
-                      <>
-                        <option value="Men">MEN (Shirts, Hoodies, Jeans)</option>
-                        <option value="Footwear">FOOTWEAR (Sneakers, Loafers, Crocs)</option>
-                        <option value="Bags">BAGS (Gucci, Louis Vuitton, Wallets)</option>
-                        <option value="Perfumes">PERFUMES (Dior, Chanel, Tom Ford)</option>
-                        <option value="Watches">WATCHES (Rado, Rolex, Tissot)</option>
-                        <option value="Jeans">JEANS (Slim, Regular, Baggy Fit)</option>
-                      </>
-                    )}
+                    <option value="Men">MEN (Shirts, Tees, Hoodies, Sartorial)</option>
+                    <option value="Jeans">JEANS (Slim, Regular, Baggy Fit Denim)</option>
+                    <option value="Women">WOMEN'S (Sarees, Dresses, Gowns, Co-ords)</option>
+                    <option value="Watches">WATCHES (Chronographs, Automatic, Horology)</option>
+                    <option value="Perfumes">PERFUMES (Oud, Eau de Parfum, Royal Scents)</option>
+                    <option value="Bags">BAGS (Leather Bags, Backpacks, Wallets)</option>
                   </select>
                 </div>
               </div>

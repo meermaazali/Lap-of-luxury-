@@ -23,13 +23,11 @@ import { normalizeImageUrl, FALLBACK_LUXURY_IMAGE } from '../../utils/imageUtils
 
 const PARENT_CATEGORY_OPTIONS = [
   { value: 'Men', label: "Men (Men's Fashion & Sartorial)" },
-  { value: 'Footwear', label: 'Footwear (Shoes, Sneakers, Loafers, Crocs)' },
-  { value: 'Bags', label: 'Bags (Bags, Luggage & Leather)' },
-  { value: 'Perfumes', label: 'Perfumes (Royal Scents & Parfums)' },
+  { value: 'Jeans', label: 'Jeans (Luxury Denim)' },
+  { value: 'Women', label: "Women (Women's Collection & Couture)" },
   { value: 'Watches', label: 'Watches (Timepieces & Horology)' },
-  { value: 'Jeans', label: 'Jeans (Denim Collection)' },
-  { value: 'Accessories', label: 'Accessories (Luxury Accessories)' },
-  { value: 'Collections', label: 'Collections (Festive & Wedding Collection)' },
+  { value: 'Perfumes', label: 'Perfumes (Royal Scents & Parfums)' },
+  { value: 'Bags', label: 'Bags (Bags & Leather)' },
   { value: 'None', label: 'None (Top-Level Main Category)' },
 ];
 
@@ -353,7 +351,7 @@ export const CategoryManager: React.FC = () => {
 
       {/* Department Filter Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-        {['All', 'Men', 'Women', 'Bags', 'Footwear', 'Accessories', 'Collections', 'Top-Level'].map(
+        {['All', 'Men', 'Jeans', 'Women', 'Watches', 'Perfumes', 'Bags'].map(
           (dept) => (
             <button
               key={dept}

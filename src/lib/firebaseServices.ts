@@ -247,7 +247,7 @@ export async function ensureCloudDataSeeded(): Promise<void> {
         }).catch((err) => console.warn('Failed seeding initial product', p.id, err));
       }
     } else {
-      // Auto-heal legacy broken subCategory if it still has old string 'Watches and Accessories'
+      // Auto-heal legacy broken categories or subcategories
       for (const d of prodSnap.docs) {
         const data = d.data();
         if (data.subCategory === 'Watches and Accessories') {
@@ -256,6 +256,19 @@ export async function ensureCloudDataSeeded(): Promise<void> {
             { subCategory: 'Watches', updatedAt: new Date().toISOString() },
             { merge: true }
           ).catch((err) => console.warn('Failed auto-healing subCategory', d.id, err));
+        }
+        if (['Accessories', 'Shoes', 'Footwear'].includes(data.category)) {
+          const isBelt = (data.name || '').toLowerCase().includes('belt');
+          await setDoc(
+            doc(db, 'products', d.id),
+            {
+              category: isBelt ? 'Bags' : 'Men',
+              department: 'men',
+              subCategory: isBelt ? 'Leather Belts' : (data.subCategory || 'General'),
+              updatedAt: new Date().toISOString(),
+            },
+            { merge: true }
+          ).catch((err) => console.warn('Failed auto-healing extra category product', d.id, err));
         }
       }
     }
@@ -272,7 +285,7 @@ export async function ensureCloudDataSeeded(): Promise<void> {
       }
     }
 
-    // 3. Check and Reconcile Categories
+    // 3. Check and Reconcile Categories (ensure only core 6 categories exist)
     const catSnap = await getDocs(collection(db, 'categories')).catch(() => null);
     if (!catSnap || catSnap.empty) {
       for (const c of INITIAL_CATEGORIES) {
@@ -281,6 +294,14 @@ export async function ensureCloudDataSeeded(): Promise<void> {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }).catch((err) => console.warn('Failed seeding initial category', c.id, err));
+      }
+    } else {
+      // Purge any unwanted/duplicate category docs
+      const coreIds = new Set(['cat-men', 'cat-jeans', 'cat-women', 'cat-watches', 'cat-perfumes', 'cat-bags']);
+      for (const d of catSnap.docs) {
+        if (!coreIds.has(d.id)) {
+          await deleteDoc(doc(db, 'categories', d.id)).catch(() => null);
+        }
       }
     }
 
@@ -327,10 +348,17 @@ export function subscribeToProducts(callback: (products: Product[]) => void): ()
         const data = d.data() as Product;
         list.push({ ...data, id: d.id });
       });
+      // Deterministic cross-device sorting: newest first, fallback to id
+      list.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (timeB !== timeA) return timeB - timeA;
+        return a.id.localeCompare(b.id);
+      });
       callback(list);
     },
     (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
+      console.warn('Realtime subscription warning for products:', error);
     }
   );
 }
@@ -345,11 +373,12 @@ export function subscribeToBanners(callback: (banners: BannerSlide[]) => void): 
         const data = d.data() as BannerSlide;
         list.push({ ...data, id: d.id });
       });
-      list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      // Deterministic cross-device sorting by order
+      list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id.localeCompare(b.id));
       callback(list);
     },
     (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
+      console.warn('Realtime subscription warning for banners:', error);
     }
   );
 }
@@ -364,10 +393,12 @@ export function subscribeToCategories(callback: (categories: CategoryItem[]) => 
         const data = d.data() as CategoryItem;
         list.push({ ...data, id: d.id });
       });
+      // Deterministic cross-device sorting by order
+      list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id.localeCompare(b.id));
       callback(list);
     },
     (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
+      console.warn('Realtime subscription warning for categories:', error);
     }
   );
 }
@@ -564,10 +595,14 @@ export async function cloudAddBanner(bannerData: Omit<BannerSlide, 'id'>): Promi
 export async function cloudUpdateBanner(id: string, updates: Partial<BannerSlide>): Promise<void> {
   const path = `banners/${id}`;
   try {
-    await updateDoc(doc(db, 'banners', id), {
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(
+      doc(db, 'banners', id),
+      {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }
@@ -604,10 +639,14 @@ export async function cloudAddCategory(catData: Omit<CategoryItem, 'id'>): Promi
 export async function cloudUpdateCategory(id: string, updates: Partial<CategoryItem>): Promise<void> {
   const path = `categories/${id}`;
   try {
-    await updateDoc(doc(db, 'categories', id), {
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(
+      doc(db, 'categories', id),
+      {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }

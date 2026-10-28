@@ -27,58 +27,50 @@ export const LuxuryEditorialHome: React.FC = () => {
   // Active Hero Slide Index
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Assemble campaign slides from Cloud Firestore / Boutique Hero Config
+  // Assemble campaign slides directly from live Cloud Firestore Banners collection
   const campaignSlides = useMemo(() => {
-    const list: Array<{
-      image: string;
-      title: string;
-      kicker: string;
-      subtitle: string;
-      ctaText: string;
-      ctaLink: string;
-    }> = [];
+    // 1. Authoritative banners from Cloud Firestore (sorted by order, active only)
+    const activeBanners = (banners || [])
+      .filter((b) => b.active !== false)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    // Hero showcase banner
+    if (activeBanners.length > 0) {
+      return activeBanners.map((b) => ({
+        image: normalizeImageUrl(b.image),
+        title: b.title,
+        kicker: b.kicker || 'HAUTE COUTURE EDIT',
+        subtitle: b.subtitle,
+        ctaText: b.ctaText || 'Shop Collection',
+        ctaLink: b.ctaLink?.toLowerCase() || 'men',
+      }));
+    }
+
+    // 2. Hero showcase fallback if no banners exist in cloud
     if (boutiqueHeroConfig?.image) {
-      list.push({
-        image: normalizeImageUrl(boutiqueHeroConfig.image),
-        title: `${boutiqueHeroConfig.titleLine1 || 'Luxury'} ${boutiqueHeroConfig.titleLine2 || 'For Every Moment'}`,
-        kicker: boutiqueHeroConfig.kicker || 'EXCLUSIVE COLLECTION',
-        subtitle: (boutiqueHeroConfig.subtitleItems || []).join(' · ') || 'Premium Fashion, Handbags & Timepieces',
-        ctaText: boutiqueHeroConfig.ctaText || 'Explore Collections',
-        ctaLink: 'collections',
-      });
+      return [
+        {
+          image: normalizeImageUrl(boutiqueHeroConfig.image),
+          title: `${boutiqueHeroConfig.titleLine1 || 'Luxury'} ${boutiqueHeroConfig.titleLine2 || 'For Every Moment'}`,
+          kicker: boutiqueHeroConfig.kicker || 'EXCLUSIVE COLLECTION',
+          subtitle: (boutiqueHeroConfig.subtitleItems || []).join(' · ') || 'Premium Fashion, Handbags & Timepieces',
+          ctaText: boutiqueHeroConfig.ctaText || 'Explore Collections',
+          ctaLink: 'collections',
+        },
+      ];
     }
 
-    // Existing banners from Cloud Firestore (preserving exact ordering, active only)
-    if (banners && banners.length > 0) {
-      banners.forEach((b) => {
-        if (b.active === false) return;
-        list.push({
-          image: normalizeImageUrl(b.image),
-          title: b.title,
-          kicker: b.kicker || 'HAUTE COUTURE EDIT',
-          subtitle: b.subtitle,
-          ctaText: b.ctaText || 'Shop Collection',
-          ctaLink: b.ctaLink?.toLowerCase() || 'men',
-        });
-      });
-    }
-
-    // Default luxury editorial fallback if empty
-    if (list.length === 0) {
-      list.push({
+    // 3. Baseline luxury editorial fallback if completely empty
+    return [
+      {
         image: '/images/category_mens_fashion_1791290148102.jpg',
         title: 'LAP OF LUXURY',
         kicker: 'THE FESTIVE & OCCASION COLLECTION',
         subtitle: 'Premium Shirts, Denim, Fine Leathers & Timepieces',
         ctaText: 'Discover The Curation',
         ctaLink: 'men',
-      });
-    }
-
-    return list;
-  }, [boutiqueHeroConfig, banners]);
+      },
+    ];
+  }, [banners, boutiqueHeroConfig]);
 
   // Auto-play Campaign Slider
   useEffect(() => {

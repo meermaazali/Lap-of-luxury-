@@ -69,47 +69,34 @@ export const Header: React.FC<HeaderProps> = ({
           { label: 'T-shirts', sub: 'T-shirts' },
           { label: 'Hoodies', sub: 'Hoodies' },
           { label: 'Full-sleeve T-shirts', sub: 'Full-sleeve T-shirts' },
-          { label: 'Jeans', sub: 'Jeans' },
-        ],
-      },
-      {
-        id: 'footwear',
-        label: 'Footwear Collection',
-        view: 'footwear',
-        subcategories: [
-          { label: 'Footwear Collection', sub: '' },
           { label: 'Sneakers', sub: 'Sneakers' },
-          { label: 'Crocs', sub: 'Crocs' },
-          { label: 'Formal Shoes', sub: 'Formal Shoes' },
           { label: 'Loafers', sub: 'Loafers' },
-          { label: 'Sandals', sub: 'Sandals' },
         ],
       },
       {
-        id: 'bags',
-        label: 'Bags & Luggage',
-        view: 'bags',
+        id: 'jeans',
+        label: 'Jeans & Denim',
+        view: 'jeans',
         subcategories: [
-          { label: 'Bags & Luggage', sub: '' },
-          { label: 'Gucci', sub: 'Gucci' },
-          { label: 'Louis Vuitton', sub: 'Louis Vuitton' },
-          { label: 'Prada', sub: 'Prada' },
-          { label: 'Backpacks', sub: 'Backpacks' },
-          { label: 'Briefcases', sub: 'Briefcases' },
-          { label: 'Travel Bags', sub: 'Travel Bags' },
-          { label: 'Wallets', sub: 'Wallets' },
+          { label: 'Jeans & Denim', sub: '' },
+          { label: 'Slim Fit', sub: 'Slim Fit' },
+          { label: 'Regular Fit', sub: 'Regular Fit' },
+          { label: 'Baggy Fit', sub: 'Baggy Fit' },
+          { label: 'Raw Denim', sub: 'Raw Denim' },
+          { label: 'Cargo Jeans', sub: 'Cargo Jeans' },
         ],
       },
       {
-        id: 'perfumes',
-        label: 'Perfumes & Scents',
-        view: 'perfumes',
+        id: 'women',
+        label: "Women's Collection",
+        view: 'women',
         subcategories: [
-          { label: 'Perfumes Collection', sub: '' },
-          { label: 'Oud & Extrait', sub: 'Oud & Extrait' },
-          { label: 'Eau de Parfum', sub: 'Eau de Parfum' },
-          { label: 'Parfum', sub: 'Parfum' },
-          { label: 'Attar & Oils', sub: 'Attar & Oils' },
+          { label: "Women's Collection", sub: '' },
+          { label: 'Sarees', sub: 'Sarees' },
+          { label: 'Dresses', sub: 'Dresses' },
+          { label: 'Gowns', sub: 'Gowns' },
+          { label: 'Blouses & Tops', sub: 'Blouses & Tops' },
+          { label: 'Co-ord Sets', sub: 'Co-ord Sets' },
         ],
       },
       {
@@ -125,15 +112,31 @@ export const Header: React.FC<HeaderProps> = ({
         ],
       },
       {
-        id: 'jeans',
-        label: 'Jeans & Denim',
-        view: 'jeans',
+        id: 'perfumes',
+        label: 'Perfumes & Scents',
+        view: 'perfumes',
         subcategories: [
-          { label: 'Jeans & Denim', sub: '' },
-          { label: 'Slim Fit', sub: 'Slim Fit' },
-          { label: 'Regular Fit', sub: 'Regular Fit' },
-          { label: 'Baggy Fit', sub: 'Baggy Fit' },
-          { label: 'Raw Denim', sub: 'Raw Denim' },
+          { label: 'Perfumes Collection', sub: '' },
+          { label: 'Oud & Extrait', sub: 'Oud & Extrait' },
+          { label: 'Eau de Parfum', sub: 'Eau de Parfum' },
+          { label: 'Parfum', sub: 'Parfum' },
+          { label: 'Attar & Oils', sub: 'Attar & Oils' },
+        ],
+      },
+      {
+        id: 'bags',
+        label: 'Bags & Leather',
+        view: 'bags',
+        subcategories: [
+          { label: 'Bags & Leather', sub: '' },
+          { label: 'Gucci', sub: 'Gucci' },
+          { label: 'Louis Vuitton', sub: 'Louis Vuitton' },
+          { label: 'Prada', sub: 'Prada' },
+          { label: 'Backpacks', sub: 'Backpacks' },
+          { label: 'Briefcases', sub: 'Briefcases' },
+          { label: 'Travel Bags', sub: 'Travel Bags' },
+          { label: 'Wallets', sub: 'Wallets' },
+          { label: 'Leather Belts', sub: 'Leather Belts' },
         ],
       },
     ];
@@ -142,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
     if (categories && categories.length > 0) {
       categories.forEach((cat) => {
         const slugLower = (cat.slug || cat.name || '').toLowerCase();
-        if (slugLower.includes('women') || cat.active === false) {
+        if (cat.active === false || slugLower.includes('footwear') || slugLower.includes('accessor')) {
           return;
         }
 
